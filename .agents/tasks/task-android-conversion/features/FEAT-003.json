@@ -1,0 +1,33 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Create Room database layer (entities, DAOs, database class, repositories) and DataStore preferences for the app's persistent storage. This covers: birth profiles, jaap sessions, meditation sessions, and app preferences (dark mode, selected profile).",
+  "status": "completed",
+  "steps": [
+    "Create android/app/src/main/java/com/jainkundali/app/data/entities/ProfileEntity.kt - Room entity with fields: id (auto-gen), name, dateOfBirth, birthTime, birthPlace, latitude, longitude, gender, createdAt. Include type converters if needed.",
+    "Create android/app/src/main/java/com/jainkundali/app/data/entities/JaapSessionEntity.kt - Room entity with fields: id (auto-gen), profileId, mantraName, mantraText, targetCount, completedCount, malas (count/108), startTime, endTime, date.",
+    "Create android/app/src/main/java/com/jainkundali/app/data/entities/MeditationSessionEntity.kt - Room entity with fields: id (auto-gen), profileId, durationMinutes, type (e.g. 'silent', 'mantra', 'breath'), startTime, endTime, date, completed (boolean).",
+    "Create android/app/src/main/java/com/jainkundali/app/data/dao/ProfileDao.kt - DAO interface with: insert, update, delete, getAll (Flow), getById, getCount.",
+    "Create android/app/src/main/java/com/jainkundali/app/data/dao/JaapDao.kt - DAO interface with: insert, getByProfileId (Flow), getAll (Flow), getTotalCountByMantra, getSessionsForDate.",
+    "Create android/app/src/main/java/com/jainkundali/app/data/dao/MeditationDao.kt - DAO interface with: insert, getByProfileId (Flow), getAll (Flow), getStreakDays (consecutive days with sessions), getSessionsForDateRange.",
+    "Create android/app/src/main/java/com/jainkundali/app/data/AppDatabase.kt - Room database class with all 3 entities, version 1, export schema false.",
+    "Create android/app/src/main/java/com/jainkundali/app/data/repository/ProfileRepository.kt - repository class wrapping ProfileDao with suspend functions.",
+    "Create android/app/src/main/java/com/jainkundali/app/data/repository/SadhanaRepository.kt - repository class wrapping JaapDao and MeditationDao.",
+    "Create android/app/src/main/java/com/jainkundali/app/data/preferences/AppPreferences.kt - DataStore preferences manager with: isDarkMode (Boolean), selectedProfileId (Long?), lastOpenedScreen (String)."
+  ],
+  "acceptance_criteria": [
+    "Three Room entities are defined with proper @Entity, @PrimaryKey, @ColumnInfo annotations",
+    "Three DAO interfaces have @Insert, @Query, @Delete, @Update annotations with correct SQL",
+    "AppDatabase class extends RoomDatabase and declares all entities",
+    "Repositories provide clean suspend fun and Flow-based APIs",
+    "DataStore preferences handle dark mode toggle and profile selection",
+    "All DAOs return Flow for observable queries"
+  ],
+  "verification": [
+    "Read all Room files and verify annotations and SQL queries are syntactically correct",
+    "Verify database version and entity registration",
+    "Verify DataStore key definitions are correct"
+  ],
+  "blocked_reason": null,
+  "findings": "All 10 data layer files created successfully. Room dependencies and KSP already configured in build.gradle.kts. minSdk=26 allows use of java.time without desugaring. Cannot run Gradle build locally due to INTEGRATIONS_ONLY network mode, but code follows standard Room/DataStore patterns and should compile correctly in CI."
+}
