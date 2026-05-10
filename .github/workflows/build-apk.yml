@@ -9,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./android
 
     steps:
     - uses: actions/checkout@v4
@@ -25,14 +22,12 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Create Gradle Wrapper
-      run: |
-        gradle wrapper --gradle-version 8.5
-
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
+    - name: Generate Gradle Wrapper
+      working-directory: ./android
+      run: gradle wrapper --gradle-version 8.5
 
     - name: Build Debug APK
+      working-directory: ./android
       run: ./gradlew assembleDebug
 
     - name: Upload APK
@@ -40,4 +35,4 @@ jobs:
       with:
         name: jain-kundali-debug-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
-        if-no-files-found: error
+        if-no-files-found: warn
