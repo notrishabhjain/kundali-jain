@@ -9,28 +9,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.jainkundali.app.data.AppDatabase
-import com.jainkundali.app.data.preferences.AppPreferences
-import com.jainkundali.app.data.repository.ProfileRepository
-import com.jainkundali.app.data.repository.SadhanaRepository
 import com.jainkundali.app.ui.screens.*
 import com.jainkundali.app.ui.viewmodels.*
 
 @Composable
 fun JainKundaliApp() {
     val context = LocalContext.current
+    val application = context.applicationContext as JainKundaliApplication
+    val container = application.container
 
-    // Manual DI: create repositories and ViewModels
-    val database = remember { AppDatabase.getInstance(context) }
-    val appPreferences = remember { AppPreferences(context) }
-    val profileRepository = remember { ProfileRepository(database.profileDao()) }
-    val sadhanaRepository = remember { SadhanaRepository(database.jaapDao(), database.meditationDao()) }
-
-    val kundaliViewModel = remember { KundaliViewModel(profileRepository) }
-    val jaapViewModel = remember { JaapViewModel(sadhanaRepository) }
-    val meditationViewModel = remember { MeditationViewModel(sadhanaRepository) }
+    val kundaliViewModel = remember { KundaliViewModel(container.profileRepository) }
+    val jaapViewModel = remember { JaapViewModel(container.sadhanaRepository) }
+    val meditationViewModel = remember { MeditationViewModel(container.sadhanaRepository) }
     val mantraViewModel = remember { MantraViewModel() }
-    val profileViewModel = remember { ProfileViewModel(profileRepository, appPreferences) }
+    val profileViewModel = remember { ProfileViewModel(container.profileRepository, container.appPreferences) }
 
     val navController = rememberNavController()
 
@@ -94,7 +86,7 @@ fun JainKundaliApp() {
             }
             composable("settings") {
                 SettingsScreen(
-                    appPreferences = appPreferences,
+                    appPreferences = container.appPreferences,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple lotus shape for Jain app -->
+    <path
+        android:fillColor="#FF9933"
+        android:pathData="M54,20 C54,20 64,35 64,45 C64,52 59,56 54,56 C49,56 44,52 44,45 C44,35 54,20 54,20 Z"/>
+    <path
+        android:fillColor="#FFB347"
+        android:pathData="M54,56 C54,56 68,52 72,60 C76,68 70,75 63,75 C56,75 54,68 54,68 Z"/>
+    <path
+        android:fillColor="#FFB347"
+        android:pathData="M54,56 C54,56 40,52 36,60 C32,68 38,75 45,75 C52,75 54,68 54,68 Z"/>
+    <path
+        android:fillColor="#FF9933"
+        android:pathData="M54,68 C54,68 54,88 54,88"/>
+    <path
+        android:fillColor="#800020"
+        android:pathData="M54,75 L54,90"
+        android:strokeWidth="3"
+        android:strokeColor="#800020"/>
+</vector>
