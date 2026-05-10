@@ -7,7 +7,7 @@ import com.jainkundali.app.domain.models.KarmaType
 val NAKSHATRAS: List<Nakshatra> = listOf(
     Nakshatra(
         index = 0, name = "Ashvini", hindiName = "अश्विनी",
-        startDeg = 0, endDeg = 13.333,
+        startDeg = 0.0, endDeg = 13.333,
         nature = NakshatraNature.SHUBHA,
         karmaType = KarmaType.GYANAVARANIYA,
         tirthankarasBorn = listOf("कुन्थुनाथ (17)", "नमिनाथ (21)"),
@@ -31,7 +31,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 2, name = "Krittika", hindiName = "कृत्तिका",
-        startDeg = 26.667, endDeg = 40,
+        startDeg = 26.667, endDeg = 40.0,
         nature = NakshatraNature.MISHRA,
         karmaType = KarmaType.NAAM,
         tirthankarasBorn = listOf("सुमतिनाथ (5)"),
@@ -43,7 +43,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 3, name = "Rohini", hindiName = "रोहिणी",
-        startDeg = 40, endDeg = 53.333,
+        startDeg = 40.0, endDeg = 53.333,
         nature = NakshatraNature.PARAM_SHUBHA,
         karmaType = KarmaType.GYANAVARANIYA,
         tirthankarasBorn = listOf("अजितनाथ (2)"),
@@ -67,7 +67,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 5, name = "Ardra", hindiName = "आर्द्रा",
-        startDeg = 66.667, endDeg = 80,
+        startDeg = 66.667, endDeg = 80.0,
         nature = NakshatraNature.ASHUBHA,
         karmaType = KarmaType.MOHANIYA,
         tirthankarasBorn = listOf(),
@@ -79,7 +79,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 6, name = "Punarvasu", hindiName = "पुनर्वसु",
-        startDeg = 80, endDeg = 93.333,
+        startDeg = 80.0, endDeg = 93.333,
         nature = NakshatraNature.SHUBHA,
         karmaType = KarmaType.NAAM,
         tirthankarasBorn = listOf("अभिनन्दननाथ (4)"),
@@ -103,7 +103,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 8, name = "Ashlesha", hindiName = "आश्लेषा",
-        startDeg = 106.667, endDeg = 120,
+        startDeg = 106.667, endDeg = 120.0,
         nature = NakshatraNature.ASHUBHA,
         karmaType = KarmaType.MOHANIYA,
         tirthankarasBorn = listOf(),
@@ -115,7 +115,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 9, name = "Magha", hindiName = "मघा",
-        startDeg = 120, endDeg = 133.333,
+        startDeg = 120.0, endDeg = 133.333,
         nature = NakshatraNature.MISHRA,
         karmaType = KarmaType.GOTRA,
         tirthankarasBorn = listOf(),
@@ -139,7 +139,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 11, name = "Uttara Phalguni", hindiName = "उत्तर फाल्गुनी",
-        startDeg = 146.667, endDeg = 160,
+        startDeg = 146.667, endDeg = 160.0,
         nature = NakshatraNature.PARAM_SHUBHA,
         karmaType = KarmaType.GYANAVARANIYA,
         tirthankarasBorn = listOf("महावीर स्वामी (24)", "विमलनाथ (13)"),
@@ -151,7 +151,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 12, name = "Hasta", hindiName = "हस्त",
-        startDeg = 160, endDeg = 173.333,
+        startDeg = 160.0, endDeg = 173.333,
         nature = NakshatraNature.SHUBHA,
         karmaType = KarmaType.ANTARAYA,
         tirthankarasBorn = listOf(),
@@ -175,7 +175,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 14, name = "Swati", hindiName = "स्वाति",
-        startDeg = 186.667, endDeg = 200,
+        startDeg = 186.667, endDeg = 200.0,
         nature = NakshatraNature.SHUBHA,
         karmaType = KarmaType.DARSHANAVARANIYA,
         tirthankarasBorn = listOf(),
@@ -187,7 +187,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 15, name = "Vishakha", hindiName = "विशाखा",
-        startDeg = 200, endDeg = 213.333,
+        startDeg = 200.0, endDeg = 213.333,
         nature = NakshatraNature.PARAM_SHUBHA,
         karmaType = KarmaType.CHARITRA_MOHANIYA,
         tirthankarasBorn = listOf("सुपार्श्वनाथ (7)", "शीतलनाथ (10)", "पार्श्वनाथ (23)"),
@@ -211,7 +211,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 17, name = "Jyeshtha", hindiName = "ज्येष्ठा",
-        startDeg = 226.667, endDeg = 240,
+        startDeg = 226.667, endDeg = 240.0,
         nature = NakshatraNature.ASHUBHA,
         karmaType = KarmaType.ANTARAYA,
         tirthankarasBorn = listOf(),
@@ -223,7 +223,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 18, name = "Mula", hindiName = "मूला",
-        startDeg = 240, endDeg = 253.333,
+        startDeg = 240.0, endDeg = 253.333,
         nature = NakshatraNature.ASHUBHA,
         karmaType = KarmaType.MOHANIYA,
         tirthankarasBorn = listOf("सुविधिनाथ (9)"),
@@ -247,7 +247,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 20, name = "Uttara Ashadha", hindiName = "उत्तराषाढ़ा",
-        startDeg = 266.667, endDeg = 280,
+        startDeg = 266.667, endDeg = 280.0,
         nature = NakshatraNature.PARAM_SHUBHA,
         karmaType = KarmaType.GYANAVARANIYA,
         tirthankarasBorn = listOf("ऋषभनाथ (1)", "अरनाथ (18)"),
@@ -259,7 +259,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 21, name = "Shravana", hindiName = "श्रवण",
-        startDeg = 280, endDeg = 293.333,
+        startDeg = 280.0, endDeg = 293.333,
         nature = NakshatraNature.SHUBHA,
         karmaType = KarmaType.GYANAVARANIYA,
         tirthankarasBorn = listOf("श्रेयांसनाथ (11)", "मुनिसुव्रत (20)"),
@@ -283,7 +283,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 23, name = "Shatabhisha", hindiName = "शतभिषा",
-        startDeg = 306.667, endDeg = 320,
+        startDeg = 306.667, endDeg = 320.0,
         nature = NakshatraNature.MISHRA,
         karmaType = KarmaType.VEDANIYA,
         tirthankarasBorn = listOf("वासुपूज्य (12)"),
@@ -295,7 +295,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 24, name = "Purva Bhadrapada", hindiName = "पूर्व भाद्रपद",
-        startDeg = 320, endDeg = 333.333,
+        startDeg = 320.0, endDeg = 333.333,
         nature = NakshatraNature.ASHUBHA,
         karmaType = KarmaType.MOHANIYA,
         tirthankarasBorn = listOf(),
@@ -319,7 +319,7 @@ val NAKSHATRAS: List<Nakshatra> = listOf(
     ),
     Nakshatra(
         index = 26, name = "Revati", hindiName = "रेवती",
-        startDeg = 346.667, endDeg = 360,
+        startDeg = 346.667, endDeg = 360.0,
         nature = NakshatraNature.SHUBHA,
         karmaType = KarmaType.MOHANIYA,
         tirthankarasBorn = listOf("अनन्तनाथ (14)"),
