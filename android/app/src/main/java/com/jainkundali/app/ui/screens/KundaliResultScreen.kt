@@ -230,8 +230,9 @@ private fun KarmaCard(karma: KarmaState) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            @Suppress("DEPRECATION")
             LinearProgressIndicator(
-                progress = { karma.intensity / 100f },
+                progress = karma.intensity / 100f,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp),
