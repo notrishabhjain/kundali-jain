@@ -22,7 +22,7 @@ class MantraViewModel : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    val categories = listOf("सभी", "कर्म मंत्र", "तीर्थंकर मंत्र", "हिंदू मंत्र", "नवग्रह मंत्र")
+    val categories = listOf("सभी", "णमोकार/मूल सूत्र", "कर्म मंत्र", "तीर्थंकर मंत्र", "स्तोत्र")
 
     fun filterByCategory(category: String) {
         _selectedCategory.value = category
@@ -40,10 +40,10 @@ class MantraViewModel : ViewModel() {
         if (_selectedCategory.value != "सभी") {
             result = result.filter { mantra ->
                 when (_selectedCategory.value) {
-                    "कर्म मंत्र" -> mantra.category.contains("कर्म") || KARMA_SADHANA.keys.any { mantra.category.contains(it) }
+                    "णमोकार/मूल सूत्र" -> mantra.category.contains("णमोकार") || mantra.category.contains("सूत्र") || mantra.category.contains("खामना") || mantra.category.contains("वंदना") || mantra.category.contains("ध्यान")
+                    "कर्म मंत्र" -> mantra.category.contains("कर्म")
                     "तीर्थंकर मंत्र" -> mantra.category.contains("तीर्थंकर")
-                    "हिंदू मंत्र" -> mantra.category.contains("गायत्री") || mantra.category.contains("गणेश") || mantra.category.contains("हनुमान") || mantra.category.contains("मृत्युंजय")
-                    "नवग्रह मंत्र" -> mantra.category.contains("नवग्रह")
+                    "स्तोत्र" -> mantra.category.contains("स्तोत्र") || mantra.category.contains("भक्तामर") || mantra.category.contains("उवसग्गहरं") || mantra.category.contains("बीज मंत्र")
                     else -> true
                 }
             }
@@ -64,7 +64,7 @@ class MantraViewModel : ViewModel() {
     private fun buildFullMantraList(): List<MantraEntry> {
         val list = mutableListOf<MantraEntry>()
 
-        // Add mantras from MANTRAS data
+        // Add mantras from MANTRAS data (core Jain sutras and stotras)
         list.addAll(MANTRAS)
 
         // Add karma sadhana mantras
