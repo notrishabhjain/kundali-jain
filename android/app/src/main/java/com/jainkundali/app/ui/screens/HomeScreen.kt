@@ -25,7 +25,11 @@ fun HomeScreen(
     onNavigateToMeditation: () -> Unit,
     onNavigateToMantras: () -> Unit,
     onNavigateToProfiles: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToYantraTantra: () -> Unit,
+    onNavigateToDailyPrescription: () -> Unit,
+    onNavigateToMuhurta: () -> Unit,
+    onNavigateToAnushthaan: () -> Unit
 ) {
     val panchang = remember { CalendarEngine.getJainPanchang(Date()) }
 
@@ -118,6 +122,46 @@ fun HomeScreen(
                     title = "मंत्र",
                     emoji = "\uD83D\uDCDC",
                     onClick = onNavigateToMantras,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                QuickActionCard(
+                    title = "आज का विधान",
+                    emoji = "\uD83D\uDCC5",
+                    onClick = onNavigateToDailyPrescription,
+                    modifier = Modifier.weight(1f)
+                )
+                QuickActionCard(
+                    title = "शुभ मुहूर्त",
+                    emoji = "\uD83C\uDF1F",
+                    onClick = onNavigateToMuhurta,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                QuickActionCard(
+                    title = "यंत्र-मंत्र",
+                    emoji = "\uD83D\uDD49",
+                    onClick = onNavigateToYantraTantra,
+                    modifier = Modifier.weight(1f)
+                )
+                QuickActionCard(
+                    title = "अनुष्ठान",
+                    emoji = "\uD83D\uDD25",
+                    onClick = onNavigateToAnushthaan,
                     modifier = Modifier.weight(1f)
                 )
             }
