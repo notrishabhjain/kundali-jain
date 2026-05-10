@@ -29,7 +29,10 @@ fun HomeScreen(
     onNavigateToYantraTantra: () -> Unit,
     onNavigateToDailyPrescription: () -> Unit,
     onNavigateToMuhurta: () -> Unit,
-    onNavigateToAnushthaan: () -> Unit
+    onNavigateToAnushthaan: () -> Unit,
+    onNavigateToKarmaTransit: () -> Unit,
+    onNavigateToKarmaMilan: () -> Unit,
+    onNavigateToVratRecommendations: () -> Unit
 ) {
     val panchang = remember { CalendarEngine.getJainPanchang(Date()) }
 
@@ -178,7 +181,32 @@ fun HomeScreen(
                     onClick = onNavigateToProfiles,
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.weight(1f))
+                QuickActionCard(
+                    title = "कर्म संक्रमण",
+                    emoji = "\u26A0\uFE0F",
+                    onClick = onNavigateToKarmaTransit,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                QuickActionCard(
+                    title = "कर्म मिलान",
+                    emoji = "\uD83E\uDD1D",
+                    onClick = onNavigateToKarmaMilan,
+                    modifier = Modifier.weight(1f)
+                )
+                QuickActionCard(
+                    title = "व्रत मार्गदर्शन",
+                    emoji = "\uD83D\uDE4F",
+                    onClick = onNavigateToVratRecommendations,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }

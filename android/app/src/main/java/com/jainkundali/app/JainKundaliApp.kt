@@ -44,7 +44,10 @@ fun JainKundaliApp() {
                     onNavigateToYantraTantra = { navController.navigate("yantra_tantra") },
                     onNavigateToDailyPrescription = { navController.navigate("daily_prescription") },
                     onNavigateToMuhurta = { navController.navigate("muhurta") },
-                    onNavigateToAnushthaan = { navController.navigate("anushthaan") }
+                    onNavigateToAnushthaan = { navController.navigate("anushthaan") },
+                    onNavigateToKarmaTransit = { navController.navigate("karma_transit") },
+                    onNavigateToKarmaMilan = { navController.navigate("karma_milan") },
+                    onNavigateToVratRecommendations = { navController.navigate("vrat_recommendations") }
                 )
             }
             composable("kundali_form") {
@@ -119,6 +122,26 @@ fun JainKundaliApp() {
             composable("anushthaan") {
                 AnushthaanScreen(
                     viewModel = anushthaanViewModel,
+                    profileRepository = container.profileRepository,
+                    appPreferences = container.appPreferences,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("karma_transit") {
+                KarmaTransitScreen(
+                    profileRepository = container.profileRepository,
+                    appPreferences = container.appPreferences,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("karma_milan") {
+                KarmaMilanScreen(
+                    profileRepository = container.profileRepository,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("vrat_recommendations") {
+                VratRecommendationScreen(
                     profileRepository = container.profileRepository,
                     appPreferences = container.appPreferences,
                     onNavigateBack = { navController.popBackStack() }
