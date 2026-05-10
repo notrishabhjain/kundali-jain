@@ -1,0 +1,43 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "Build all Compose UI screens and ViewModels: Home, Kundali Form + Results, Mantras/Poojas browser, Jaap Counter (108-bead mala), Meditation Timer, Profile Management, and Settings. This is the main UI layer of the app.",
+  "status": "completed",
+  "steps": [
+    "Create android/app/src/main/java/com/jainkundali/app/ui/viewmodels/KundaliViewModel.kt - ViewModel managing: birth form state, profile generation (calling ProfileEngine), kundali results (dasha, karma, predictions, remedies). Uses ProfileRepository for save/load.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/viewmodels/JaapViewModel.kt - ViewModel managing: current count, target count (108/1008/custom), vibration trigger, mala completion, session save to Room via SadhanaRepository.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/viewmodels/MeditationViewModel.kt - ViewModel managing: timer state (start/pause/stop), elapsed time, interval bell, session history, streak calculation, session save.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/viewmodels/MantraViewModel.kt - ViewModel providing: categorized mantras list (by karma type, tirthankara, occasion), search/filter functionality.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/viewmodels/ProfileViewModel.kt - ViewModel managing: profile list, create/delete profiles, switch active profile.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/screens/HomeScreen.kt - Dashboard with: today's panchang (tithi, vara, nakshatra), active profile summary, quick links to kundali/jaap/meditation/mantras. Spiritual greeting.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/screens/KundaliFormScreen.kt - Birth data entry: name TextField, date picker, time picker, city dropdown (searchable from CityData), gender selector. Submit button calls ProfileEngine.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/screens/KundaliResultScreen.kt - Tabbed results display with tabs: Vartaman (today's message + dasha), Birth Chart (nakshatra details), Karma Profile (8 karmas with intensity bars), Predictions (7 domains), Remedies (mantra + yantra + tapasya + puja), Dasha Details. Share/PDF button.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/screens/MantraListScreen.kt - Categorized list of all mantras and poojas. Categories: Jain Karma Mantras, Tirthankara Mantras, Hindu Mantras (Gayatri, Navgraha, etc.). Each shows text, count, timing. Tap to start jaap with that mantra.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/screens/JaapCounterScreen.kt - Mala-style counter UI: circular arrangement of 108 beads (visual), large tap area to increment, vibration on tap (Vibrator service), sound/vibration on mala completion (108), current count display, target selector (108/1008/custom), history button. Associate with selected mantra.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/screens/MeditationTimerScreen.kt - Timer UI: large circular timer display, preset buttons (5/10/15/30 min), custom input, start/pause/stop buttons, interval bell toggle, session complete bell. History section showing past sessions with dates and streak count.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/screens/ProfileScreen.kt - List of saved profiles with: name, DOB, birth place. Options to: add new, switch active, delete. Active profile highlighted.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/screens/SettingsScreen.kt - Dark mode toggle, about section with app version, credits.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/components/KarmaAshtadal.kt - 8-petal lotus visualization using Canvas composable showing 8 karmas with their intensities (inspired by KarmaAshtadal.tsx).",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/components/BeadCounter.kt - Single circular bead composable with filled/unfilled state for the mala visualization.",
+    "Create android/app/src/main/java/com/jainkundali/app/ui/components/PdfGenerator.kt - Utility using Android PdfDocument API to generate kundali report PDF with: header, birth details, nakshatra info, karma profile, predictions, remedies. Uses Canvas drawing for PDF pages. Share via ShareSheet intent."
+  ],
+  "acceptance_criteria": [
+    "All screens are Compose functions annotated correctly",
+    "ViewModels use StateFlow/MutableStateFlow for UI state",
+    "JaapCounter shows visual mala of 108 beads and supports vibration feedback",
+    "MeditationTimer uses coroutine-based countdown with pause/resume",
+    "KundaliForm integrates with city database for birth place selection",
+    "KundaliResult shows all calculation results in organized tabs",
+    "PDF generation creates multi-page document with all kundali sections",
+    "All UI text is in Hindi following the quality gate requirements",
+    "Theme is applied with saffron/maroon light mode and navy/gold dark mode"
+  ],
+  "verification": [
+    "Read all screen files and verify they follow Compose conventions",
+    "Verify ViewModels correctly inject repositories and call engine functions",
+    "Verify PDF generation uses Android PdfDocument API (not any third-party library)",
+    "Verify all UI strings are in Hindi/Devanagari"
+  ],
+  "blocked_reason": null,
+  "findings": "All UI layer files created: 5 ViewModels, 8 screens, 3 components. Uses manual DI (no Hilt) with remember{} for repositories. FileProvider added for PDF sharing. Dark mode toggle wired through DataStore. All text in Hindi. Cannot verify build locally due to INTEGRATIONS_ONLY network mode - relies on CI. Note: material-icons-core added explicitly and core-ktx for FileProvider support."
+}
