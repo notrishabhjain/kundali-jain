@@ -116,7 +116,7 @@ fun KarmaMilanScreen(
                         expanded = expanded1,
                         onDismissRequest = { expanded1 = false }
                     ) {
-                        profiles.forEach { profile ->
+                        profiles.filter { it.id != selectedProfile2?.id }.forEach { profile ->
                             DropdownMenuItem(
                                 text = { Text("${profile.name} (${profile.dateOfBirth})") },
                                 onClick = {
@@ -152,7 +152,7 @@ fun KarmaMilanScreen(
                         expanded = expanded2,
                         onDismissRequest = { expanded2 = false }
                     ) {
-                        profiles.forEach { profile ->
+                        profiles.filter { it.id != selectedProfile1?.id }.forEach { profile ->
                             DropdownMenuItem(
                                 text = { Text("${profile.name} (${profile.dateOfBirth})") },
                                 onClick = {
@@ -283,30 +283,42 @@ private fun calculateCompatibility(profile1: UserProfile, profile2: UserProfile)
     val details = mutableListOf<MilanDetail>()
     val sharedSadhana = mutableListOf<String>()
 
-    // Same dominant karma: +30
+    val karma1 = KARMA_SADHANA[profile1.dominantKarmaEn]
+    val karma2 = KARMA_SADHANA[profile2.dominantKarmaEn]
+
+    // Karma affinity (same or complementary): +25
     val sameKarma = profile1.dominantKarmaEn == profile2.dominantKarmaEn
+    val complementary = if (karma1 != null && karma2 != null) {
+        karma1.isGhatiya != karma2.isGhatiya
+    } else false
+
     if (sameKarma) {
-        score += 30
+        score += 25
         val sadhana = getKarmaSadhana(profile1.dominantKarmaEn)
         sharedSadhana.add("${sadhana.karmaHindi} कर्म की साझा साधना: ${sadhana.samanyaUpaya}")
+    } else if (complementary) {
+        score += 25
+        if (karma1 != null && karma2 != null) {
+            sharedSadhana.add("पूरक कर्म संयोग: ${karma1.karmaHindi} (${if (karma1.isGhatiya) "घातिया" else "अघातिया"}) + ${karma2.karmaHindi} (${if (karma2.isGhatiya) "घातिया" else "अघातिया"})")
+        }
     }
     details.add(
         MilanDetail(
             label = "कर्म सामंजस्य",
-            value = if (sameKarma) "+30" else "भिन्न कर्म",
-            matched = sameKarma
+            value = if (sameKarma) "+25 (समान)" else if (complementary) "+25 (पूरक)" else "भिन्न कर्म",
+            matched = sameKarma || complementary
         )
     )
 
-    // Same mahadasha lord: +20
+    // Same mahadasha lord: +25
     val sameDasha = profile1.currentDasha.lord == profile2.currentDasha.lord
     if (sameDasha) {
-        score += 20
+        score += 25
     }
     details.add(
         MilanDetail(
             label = "दशा तुल्यता",
-            value = if (sameDasha) "+20" else "भिन्न दशा",
+            value = if (sameDasha) "+25" else "भिन्न दशा",
             matched = sameDasha
         )
     )
@@ -324,27 +336,26 @@ private fun calculateCompatibility(profile1: UserProfile, profile2: UserProfile)
         )
     )
 
-    // Complementary karmas (ghatiya paired with aghatiya): +25
-    val karma1 = KARMA_SADHANA[profile1.dominantKarmaEn]
-    val karma2 = KARMA_SADHANA[profile2.dominantKarmaEn]
-    val complementary = if (karma1 != null && karma2 != null) {
-        karma1.isGhatiya != karma2.isGhatiya
+    // Shared shubha tithi: +25
+    val sharedTithi = if (karma1 != null && karma2 != null) {
+        karma1.shubhaTithi.intersect(karma2.shubhaTithi.toSet()).isNotEmpty()
     } else false
-    if (complementary) {
+    if (sharedTithi) {
         score += 25
         if (karma1 != null && karma2 != null) {
-            sharedSadhana.add("पूरक कर्म संयोग: ${karma1.karmaHindi} (${if (karma1.isGhatiya) "घातिया" else "अघातिया"}) + ${karma2.karmaHindi} (${if (karma2.isGhatiya) "घातिया" else "अघातिया"})")
+            val common = karma1.shubhaTithi.intersect(karma2.shubhaTithi.toSet())
+            sharedSadhana.add("साझा शुभ तिथि: ${common.joinToString(", ")}")
         }
     }
     details.add(
         MilanDetail(
-            label = "पूरक कर्म",
-            value = if (complementary) "+25" else "समान वर्ग",
-            matched = complementary
+            label = "शुभ तिथि मेल",
+            value = if (sharedTithi) "+25" else "भिन्न तिथि",
+            matched = sharedTithi
         )
     )
 
-    // Shared sadhana from common karma
+    // Shared sadhana from different karmas
     if (!sameKarma && karma1 != null && karma2 != null) {
         sharedSadhana.add("प्रथम व्यक्ति: ${karma1.karmaHindi} - ${karma1.pratahNiyam}")
         sharedSadhana.add("द्वितीय व्यक्ति: ${karma2.karmaHindi} - ${karma2.pratahNiyam}")

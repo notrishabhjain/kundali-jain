@@ -21,6 +21,6 @@ interface AnushthaanDao {
     @Query("SELECT * FROM anushthaans WHERE profileId = :profileId AND status = 'active'")
     suspend fun getActiveByProfileId(profileId: Long): List<AnushthaanEntity>
 
-    @Query("UPDATE anushthaans SET completedDays = completedDays + 1, lastCompletedDate = :date, status = CASE WHEN completedDays + 1 >= totalDays THEN 'completed' ELSE status END WHERE id = :id")
+    @Query("UPDATE anushthaans SET completedDays = completedDays + 1, lastCompletedDate = :date, status = CASE WHEN completedDays + 1 >= totalDays THEN 'completed' ELSE status END WHERE id = :id AND (lastCompletedDate IS NULL OR lastCompletedDate != :date)")
     suspend fun markDayCompleted(id: Long, date: String)
 }

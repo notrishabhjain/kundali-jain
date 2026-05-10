@@ -19,7 +19,9 @@ import com.jainkundali.app.domain.engine.MuhurtaEngine
 import com.jainkundali.app.domain.engine.PersonalizedMuhurta
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,27 +35,29 @@ fun KarmaTransitScreen(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        val profileId = appPreferences.selectedProfileId.firstOrNull()
-        if (profileId != null) {
-            val entity = profileRepository.getById(profileId)
-            if (entity != null) {
-                val formData = BirthFormData(
-                    fullName = entity.name,
-                    dob = entity.dateOfBirth,
-                    time = entity.birthTime,
-                    place = entity.birthPlace,
-                    lat = entity.latitude.toString(),
-                    lng = entity.longitude.toString(),
-                    gender = entity.gender
-                )
-                val profile = ProfileEngine.generateUserProfile(formData)
-                userProfile = profile
-                upcomingMuhurtas = MuhurtaEngine.getPersonalizedMuhurtas(
-                    profile.dominantKarmaEn, 90
-                ).take(10)
+        withContext(Dispatchers.Default) {
+            val profileId = appPreferences.selectedProfileId.firstOrNull()
+            if (profileId != null) {
+                val entity = profileRepository.getById(profileId)
+                if (entity != null) {
+                    val formData = BirthFormData(
+                        fullName = entity.name,
+                        dob = entity.dateOfBirth,
+                        time = entity.birthTime,
+                        place = entity.birthPlace,
+                        lat = entity.latitude.toString(),
+                        lng = entity.longitude.toString(),
+                        gender = entity.gender
+                    )
+                    val profile = ProfileEngine.generateUserProfile(formData)
+                    userProfile = profile
+                    upcomingMuhurtas = MuhurtaEngine.getPersonalizedMuhurtas(
+                        profile.dominantKarmaEn, 90
+                    ).take(10)
+                }
             }
+            isLoading = false
         }
-        isLoading = false
     }
 
     Scaffold(

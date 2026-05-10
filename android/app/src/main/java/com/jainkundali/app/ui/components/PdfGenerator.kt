@@ -370,12 +370,15 @@ object PdfGenerator {
             textSize = 11f
         }
 
+        val yLimit = PAGE_HEIGHT - MARGIN
+
         var y = MARGIN + 30f
 
         canvas.drawText("यंत्र-मंत्र-तंत्र विधान", PAGE_WIDTH / 2f, y, titlePaint)
         y += 40f
 
         // Section 1: Yantra Vidhan
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("यंत्र विधान", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
@@ -391,6 +394,7 @@ object PdfGenerator {
             val maxCharsPerLine = 70
             var startIdx = 0
             while (startIdx < line.length) {
+                if (y > yLimit) { document.finishPage(page); return }
                 val endIdx = minOf(startIdx + maxCharsPerLine, line.length)
                 canvas.drawText(line.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
                 y += LINE_HEIGHT - 4f
@@ -401,6 +405,7 @@ object PdfGenerator {
         y += 15f
 
         // Section 2: Mantra Vidhan
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("मंत्र विधान", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
@@ -416,6 +421,7 @@ object PdfGenerator {
             val maxCharsPerLine = 70
             var startIdx = 0
             while (startIdx < line.length) {
+                if (y > yLimit) { document.finishPage(page); return }
                 val endIdx = minOf(startIdx + maxCharsPerLine, line.length)
                 canvas.drawText(line.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
                 y += LINE_HEIGHT - 4f
@@ -426,6 +432,7 @@ object PdfGenerator {
         y += 15f
 
         // Section 3: Secondary Mantra
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("द्वितीयक मंत्र", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
@@ -446,6 +453,7 @@ object PdfGenerator {
             val maxCharsPerLine = 70
             var startIdx = 0
             while (startIdx < line.length) {
+                if (y > yLimit) { document.finishPage(page); return }
                 val endIdx = minOf(startIdx + maxCharsPerLine, line.length)
                 canvas.drawText(line.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
                 y += LINE_HEIGHT - 4f
@@ -482,12 +490,15 @@ object PdfGenerator {
             textSize = 11f
         }
 
+        val yLimit = PAGE_HEIGHT - MARGIN
+
         var y = MARGIN + 30f
 
         canvas.drawText("व्यक्तिगत साधना कैलेंडर", PAGE_WIDTH / 2f, y, titlePaint)
         y += 40f
 
         // Section 1: Shubha Tithis
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("शुभ तिथियाँ", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
@@ -501,6 +512,7 @@ object PdfGenerator {
         val maxCharsPerLine = 70
         var startIdx = 0
         while (startIdx < tithiLine.length) {
+            if (y > yLimit) { document.finishPage(page); return }
             val endIdx = minOf(startIdx + maxCharsPerLine, tithiLine.length)
             canvas.drawText(tithiLine.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
             y += LINE_HEIGHT - 4f
@@ -509,11 +521,13 @@ object PdfGenerator {
         y += 15f
 
         // Section 2: Pratah Niyam
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("प्रातः नियम", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
         startIdx = 0
         while (startIdx < sadhana.pratahNiyam.length) {
+            if (y > yLimit) { document.finishPage(page); return }
             val endIdx = minOf(startIdx + maxCharsPerLine, sadhana.pratahNiyam.length)
             canvas.drawText(sadhana.pratahNiyam.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
             y += LINE_HEIGHT - 4f
@@ -522,11 +536,13 @@ object PdfGenerator {
         y += 15f
 
         // Section 3: Saayam Niyam
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("सायं नियम", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
         startIdx = 0
         while (startIdx < sadhana.saayamNiyam.length) {
+            if (y > yLimit) { document.finishPage(page); return }
             val endIdx = minOf(startIdx + maxCharsPerLine, sadhana.saayamNiyam.length)
             canvas.drawText(sadhana.saayamNiyam.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
             y += LINE_HEIGHT - 4f
@@ -535,11 +551,13 @@ object PdfGenerator {
         y += 15f
 
         // Section 4: Vishesh Upaya
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("विशेष उपाय", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
         startIdx = 0
         while (startIdx < sadhana.visheshUpaya.length) {
+            if (y > yLimit) { document.finishPage(page); return }
             val endIdx = minOf(startIdx + maxCharsPerLine, sadhana.visheshUpaya.length)
             canvas.drawText(sadhana.visheshUpaya.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
             y += LINE_HEIGHT - 4f
@@ -548,6 +566,7 @@ object PdfGenerator {
         y += 15f
 
         // Section 5: Dasha Sadhana
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("दशा साधना", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
@@ -555,16 +574,19 @@ object PdfGenerator {
         val dashaSadhanaText = dashaSadhana.dashaSadhana
         startIdx = 0
         while (startIdx < dashaSadhanaText.length) {
+            if (y > yLimit) { document.finishPage(page); return }
             val endIdx = minOf(startIdx + maxCharsPerLine, dashaSadhanaText.length)
             canvas.drawText(dashaSadhanaText.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
             y += LINE_HEIGHT - 4f
             startIdx = endIdx
         }
         y += 4f
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("श्रेष्ठ तिथि: ${dashaSadhana.bestTithi}", MARGIN + 10f, y, bodyPaint)
         y += 15f + LINE_HEIGHT
 
         // Section 6: Puja Vidhan
+        if (y > yLimit) { document.finishPage(page); return }
         canvas.drawText("पूजा विधान", MARGIN, y, headerPaint)
         y += LINE_HEIGHT + 5f
 
@@ -575,6 +597,7 @@ object PdfGenerator {
         )
 
         pujaDetails.forEach { line ->
+            if (y > yLimit) { document.finishPage(page); return }
             canvas.drawText(line, MARGIN + 10f, y, bodyPaint)
             y += LINE_HEIGHT
         }

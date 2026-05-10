@@ -18,7 +18,9 @@ import com.jainkundali.app.domain.engine.AstronomyUtils
 import com.jainkundali.app.domain.engine.CalendarEngine
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Date
 import kotlin.math.floor
@@ -39,36 +41,38 @@ fun DailyPrescriptionScreen(
     val panchang = remember { CalendarEngine.getJainPanchang(Date()) }
 
     LaunchedEffect(Unit) {
-        // Calculate today's raw tithi
-        val now = Calendar.getInstance()
-        val dateStr = "${now.get(Calendar.YEAR)}-${(now.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}-${now.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')}"
-        val jde = AstronomyUtils.toJulianDay(dateStr, "06:00")
-        val sunLong = AstronomyUtils.getSunLongitude(jde)
-        val moonLong = AstronomyUtils.getMoonTropicalLongitude(jde)
-        val elongation = AstronomyUtils.normDeg(moonLong - sunLong)
-        todayTithiRaw = floor(elongation / 12.0).toInt()
+        withContext(Dispatchers.Default) {
+            // Calculate today's raw tithi
+            val now = Calendar.getInstance()
+            val dateStr = "${now.get(Calendar.YEAR)}-${(now.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}-${now.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')}"
+            val jde = AstronomyUtils.toJulianDay(dateStr, "06:00")
+            val sunLong = AstronomyUtils.getSunLongitude(jde)
+            val moonLong = AstronomyUtils.getMoonTropicalLongitude(jde)
+            val elongation = AstronomyUtils.normDeg(moonLong - sunLong)
+            todayTithiRaw = floor(elongation / 12.0).toInt()
 
-        val profileId = appPreferences.selectedProfileId.firstOrNull()
-        if (profileId != null) {
-            val entity = profileRepository.getById(profileId)
-            if (entity != null) {
-                val formData = BirthFormData(
-                    fullName = entity.name,
-                    dob = entity.dateOfBirth,
-                    time = entity.birthTime,
-                    place = entity.birthPlace,
-                    lat = entity.latitude.toString(),
-                    lng = entity.longitude.toString(),
-                    gender = entity.gender
-                )
-                val profile = ProfileEngine.generateUserProfile(formData)
-                userProfile = profile
-                val karmaSadhana = getKarmaSadhana(profile.dominantKarmaEn)
-                sadhana = karmaSadhana
-                isPowerDay = todayTithiRaw in karmaSadhana.shubhaTithi
+            val profileId = appPreferences.selectedProfileId.firstOrNull()
+            if (profileId != null) {
+                val entity = profileRepository.getById(profileId)
+                if (entity != null) {
+                    val formData = BirthFormData(
+                        fullName = entity.name,
+                        dob = entity.dateOfBirth,
+                        time = entity.birthTime,
+                        place = entity.birthPlace,
+                        lat = entity.latitude.toString(),
+                        lng = entity.longitude.toString(),
+                        gender = entity.gender
+                    )
+                    val profile = ProfileEngine.generateUserProfile(formData)
+                    userProfile = profile
+                    val karmaSadhana = getKarmaSadhana(profile.dominantKarmaEn)
+                    sadhana = karmaSadhana
+                    isPowerDay = todayTithiRaw in karmaSadhana.shubhaTithi
+                }
             }
+            isLoading = false
         }
-        isLoading = false
     }
 
     Scaffold(
