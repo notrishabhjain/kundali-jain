@@ -1,0 +1,43 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Port all data files from TypeScript to Kotlin data classes and objects. This includes tirthankaras, nakshatras, aras, grahas, sadhana (karma sadhana, dasha sadhana, festivals), and city database. Also port all calculation engines (analysisSynthesizer, dashaEngine, karmaEngine, predictionEngine, remedyEngine, calendarEngine).",
+  "status": "completed",
+  "steps": [
+    "Create android/app/src/main/java/com/jainkundali/app/domain/models/ package with data classes: Tirthankara, Nakshatra (with NakshatraNature enum, KarmaType enum), Ara, Graha, KarmaSadhana (with sub-classes for PrimaryMantra, SecondaryMantra, Yantra, Puja, Tapasya), DashaSadhana, JainFestival, BirthProfile, DashaInfo (with AntardashaInfo, PratyantardashInfo), KarmaState, LifeDomainPrediction, CombinedRemedy, JainPanchang, UpcomingVrat.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/data/TirthankaraData.kt porting all 24 tirthankaras from src/data/tirthankaras.ts with ALL fields including Hindi names, mantras, stotras, karma_addressed, puja_benefit, notes.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/data/NakshatraData.kt porting all 27 nakshatras + Abhijit from src/data/nakshatras.ts with ALL fields. Include getNakshatraByDegree(), getNakshatraPada(), getNakshatraByName() utility functions.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/data/AraData.kt porting all 6 aras from src/data/aras.ts.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/data/GrahaData.kt porting all 9 grahas from src/data/grahas.ts with VIMSHOTTARI_ORDER, VIMSHOTTARI_YEARS, VIMSHOTTARI_HINDI maps.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/data/SadhanaData.kt porting the complete KARMA_SADHANA map (all 9 entries: Gyanavaraniya, Darshanavaraniya, Vedaniya, Mohaniya, Charitra Mohaniya, Antaraya, Naam, Gotra, Ayushya, Sarva karma kshay), DASHA_SADHANA map (all entries for both Vimshottari lords and Jain karma lords), and JAIN_ANNUAL_FESTIVALS list.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/data/CityData.kt with top 300 Indian cities (name in Hindi and English, state, latitude, longitude). Include major cities like Delhi, Mumbai, Bangalore, Chennai, Kolkata, Hyderabad, Ahmedabad, Pune, Jaipur, Lucknow, Indore, Bhopal, Udaipur, Varanasi, and 286 more covering all states.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/data/MantraData.kt with additional Hindu mantras: Namokar Mantra (full with meaning), Gayatri Mantra, Hanuman Chalisa (first few verses), Ganesh Mantra, Navgraha Mantras. Each with: text, recommended count, timing, category.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/engine/AstronomyUtils.kt porting: toJulianDay(), getMoonTropicalLongitude(), getLahiriAyanamsa(), getSiderealLongitude(), getSunLongitude(), normDeg(), toRad() from analysisSynthesizer.ts and calendarEngine.ts.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/engine/DashaEngine.kt porting calculateDasha() with JAIN_DASHA_ORDER, JAIN_DASHA_YEARS, JAIN_DASHA_HINDI from src/lib/dashaEngine.ts.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/engine/KarmaEngine.kt porting calculateKarmaProfile() from src/lib/karmaEngine.ts.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/engine/PredictionEngine.kt porting generatePredictions() with all 7 domain predictions from src/lib/predictionEngine.ts.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/engine/RemedyEngine.kt porting generateRemedies() from src/lib/remedyEngine.ts.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/engine/CalendarEngine.kt porting getJainPanchang() and getUpcomingVratDates() from src/lib/calendarEngine.ts and analysisSynthesizer.ts.",
+    "Create android/app/src/main/java/com/jainkundali/app/domain/engine/ProfileEngine.kt porting generateUserProfile() (the main analysis function) from src/lib/analysisSynthesizer.ts including Moon longitude calculation, nakshatra determination, rashi mapping, tirthankara affinity, gunasthana estimation, and narrative generation."
+  ],
+  "acceptance_criteria": [
+    "All 24 tirthankaras ported with complete data (mantras, Hindi names, karma connections)",
+    "All 27+1 nakshatras ported with all fields (karma_type, nature, sadhana, deity_note)",
+    "All 9 karma sadhana entries ported with complete sub-objects (primaryMantra, secondaryMantra, yantra, puja, tapasya)",
+    "All dasha sadhana entries (both Vimshottari and Jain karma lords) ported",
+    "All 7 annual festivals ported",
+    "City database contains 300 Indian cities with coordinates",
+    "DashaEngine calculates 3-layer dasha (mahadasha, antardasha, pratyantardasha)",
+    "KarmaEngine produces intensity scores for all 8 karmas",
+    "PredictionEngine generates predictions for all 7 life domains",
+    "Moon longitude calculation uses Meeus Ch. 47 major terms",
+    "All string literals in Hindi/Sanskrit are preserved exactly from source"
+  ],
+  "verification": [
+    "Read all created Kotlin files and verify data completeness against TypeScript sources",
+    "Verify calculation logic matches TypeScript implementation (same formulas, same constants)",
+    "Verify all Hindi text is preserved without any English placeholders"
+  ],
+  "blocked_reason": null,
+  "findings": "All 15 Kotlin files created successfully. Data parsed from TypeScript source using Python regex extraction. SadhanaData uses single-quote field extraction from TS source. Hindi text preserved directly in UTF-8 Kotlin files. INTEGRATIONS_ONLY mode means no local Gradle build verification possible - syntax verified structurally (balanced braces/parens after string stripping). 300 cities include all state capitals, major metro areas, and important Jain pilgrimage sites (Shikharji, Palitana, Ranakpur, etc.)."
+}
