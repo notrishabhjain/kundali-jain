@@ -26,11 +26,11 @@ object CalendarEngine {
 
         val tithiRaw = floor(elongation / 12.0).toInt()
         val paksha = if (elongation < 180) "शुक्ल" else "कृष्ण"
-        val tithiNum = if (tithiRaw < 15) tithiRaw + 1 else tithiRaw - 14
+        val tithiNum = (tithiRaw % 15) + 1
 
         val tithiName = when {
-            tithiRaw == 29 -> "अमावस्या"
             tithiRaw == 14 -> "पूर्णिमा"
+            tithiRaw == 29 -> "अमावस्या"
             else -> TITHI_NAMES.getOrElse(tithiNum) { "एकादशी" }
         }
         val masaIndex = floor(sunLong / 30.0).toInt()
@@ -78,8 +78,12 @@ object CalendarEngine {
             val elongation = AstronomyUtils.normDeg(moonTropical - sunLong)
             val tithiRaw = floor(elongation / 12.0).toInt()
             val paksha = if (elongation < 180) "shukla" else "krishna"
-            val tithiNum = if (tithiRaw < 15) tithiRaw + 1 else tithiRaw - 14
-            val tithiHindi = if (tithiRaw == 29) "अमावस्या" else TITHI_NAMES_HINDI.getOrElse(tithiNum - 1) { "एकादशी" }
+            val tithiNum = (tithiRaw % 15) + 1
+            val tithiHindi = when {
+                tithiRaw == 14 -> "पूर्णिमा"
+                tithiRaw == 29 -> "अमावस्या"
+                else -> TITHI_NAMES_HINDI.getOrElse(tithiNum - 1) { "एकादशी" }
+            }
 
             val sidereal = AstronomyUtils.getSiderealLongitude(jde)
             val nakshatraIdx = minOf(floor(AstronomyUtils.normDeg(sidereal) / 13.333333).toInt(), 26)

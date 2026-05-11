@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.jainkundali.app.data.entities.ProfileEntity
 import com.jainkundali.app.domain.models.City
 import com.jainkundali.app.ui.viewmodels.KundaliViewModel
 import java.util.Calendar
@@ -34,6 +35,7 @@ fun KundaliFormScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val citySearchResults by viewModel.citySearchResults.collectAsState()
     val selectedCity by viewModel.selectedCity.collectAsState()
+    val savedProfiles by viewModel.savedProfiles.collectAsState()
 
     val context = LocalContext.current
 
@@ -62,6 +64,48 @@ fun KundaliFormScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Saved profiles section
+            if (savedProfiles.isNotEmpty()) {
+                Text(
+                    text = "सेव किए गए प्रोफ़ाइल",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        savedProfiles.forEach { profile ->
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.fillFromProfile(profile) }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = profile.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Text(
+                                        text = profile.birthPlace,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
+                            @Suppress("DEPRECATION")
+                            Divider()
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             Text(
                 text = "जन्म विवरण भरें",
                 style = MaterialTheme.typography.titleLarge,
