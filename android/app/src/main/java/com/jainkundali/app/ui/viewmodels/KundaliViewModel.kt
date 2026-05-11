@@ -8,13 +8,18 @@ import com.jainkundali.app.domain.engine.*
 import com.jainkundali.app.domain.models.*
 import com.jainkundali.app.domain.data.CITIES
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class KundaliViewModel(
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
+
+    val savedProfiles: StateFlow<List<ProfileEntity>> = profileRepository.allProfiles
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _fullName = MutableStateFlow("")
     val fullName: StateFlow<String> = _fullName.asStateFlow()
@@ -144,7 +149,7 @@ class KundaliViewModel(
         }
     }
 
-    fun loadProfileFromEntity(entity: ProfileEntity) {
+    private fun populateFromEntity(entity: ProfileEntity) {
         _fullName.value = entity.name
         _dob.value = entity.dateOfBirth
         _time.value = entity.birthTime
@@ -154,7 +159,14 @@ class KundaliViewModel(
         val city = CITIES.find { it.hindiName == entity.birthPlace }
             ?: City(entity.birthPlace, entity.birthPlace, "", entity.latitude, entity.longitude)
         _selectedCity.value = city
+    }
 
+    fun loadProfileFromEntity(entity: ProfileEntity) {
+        populateFromEntity(entity)
         generateKundali()
+    }
+
+    fun fillFromProfile(entity: ProfileEntity) {
+        populateFromEntity(entity)
     }
 }

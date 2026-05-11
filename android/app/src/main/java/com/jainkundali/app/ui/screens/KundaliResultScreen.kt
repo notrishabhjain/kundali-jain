@@ -1,10 +1,14 @@
 package com.jainkundali.app.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.jainkundali.app.domain.data.getDashaSadhana
+import com.jainkundali.app.domain.data.getKarmaSadhana
+import com.jainkundali.app.domain.data.getNakshatraByName
 import com.jainkundali.app.domain.models.*
 import com.jainkundali.app.ui.components.KarmaAshtadal
 import com.jainkundali.app.ui.components.PdfGenerator
@@ -91,7 +98,7 @@ fun KundaliResultScreen(
                     1 -> BirthChartTab(profile)
                     2 -> KarmaProfileTab(karmaProfile)
                     3 -> PredictionsTab(predictions)
-                    4 -> RemediesTab(remedies)
+                    4 -> RemediesTab(remedies, profile)
                     5 -> DashaTab(profile.currentDasha)
                 }
             } ?: Box(
@@ -176,6 +183,136 @@ private fun BirthChartTab(profile: UserProfile) {
                 InfoRow("गुणस्थान", profile.gunasthana.toString())
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Nakshatra Details Card
+        val nakshatra = getNakshatraByName(profile.birthNakshatra)
+        if (nakshatra != null) {
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "नक्षत्र विस्तृत विवरण",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "आध्यात्मिक गुण",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = nakshatra.spiritualTraits,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    @Suppress("DEPRECATION")
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "कर्म प्रभाव",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = nakshatra.karmaManifestation,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    @Suppress("DEPRECATION")
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "साधना",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = nakshatra.sadhana,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    @Suppress("DEPRECATION")
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "जैन ज्योतिषी देव",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = nakshatra.deityNote,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    if (nakshatra.tirthankarasBorn.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        @Suppress("DEPRECATION")
+                        Divider()
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "इस नक्षत्र में जन्मे तीर्थंकर",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        nakshatra.tirthankarasBorn.forEach { t ->
+                            Text(
+                                text = "• $t",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Tirthankara Connection Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "तीर्थंकर संबंध",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = profile.tirthankarAffinityHindi,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Rashi Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "राशि विवरण",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "आपकी राशि ${profile.birthRashi} है। यह राशि चन्द्र अंश ${String.format("%.2f", profile.moonLongitude)}° पर आधारित है।",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
     }
 }
 
@@ -210,7 +347,14 @@ private fun KarmaCard(karma: KarmaState) {
         else -> karma.state
     }
 
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    var expanded by remember { mutableStateOf(false) }
+    val karmaSadhana = getKarmaSadhana(karma.karmaEn)
+
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = !expanded }
+    ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -222,10 +366,16 @@ private fun KarmaCard(karma: KarmaState) {
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
-                AssistChip(
-                    onClick = {},
-                    label = { Text(stateLabel, style = MaterialTheme.typography.labelSmall) }
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AssistChip(
+                        onClick = {},
+                        label = { Text(stateLabel, style = MaterialTheme.typography.labelSmall) }
+                    )
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (expanded) "संक्षिप्त" else "विस्तार"
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -254,6 +404,85 @@ private fun KarmaCard(karma: KarmaState) {
                 text = karma.manifestation,
                 style = MaterialTheme.typography.bodySmall
             )
+
+            AnimatedVisibility(visible = expanded) {
+                Column {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    @Suppress("DEPRECATION")
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "दैनिक अभिव्यक्ति",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = karmaSadhana.dailyManifestation,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "वर्तमान स्थिति",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = if (karma.intensity >= 70) karmaSadhana.statusWhenDominant else karmaSadhana.statusWhenNormal,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "सामान्य उपाय",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = karmaSadhana.samanyaUpaya,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    if (karma.intensity >= 70) {
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "प्रातः नियम",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = karmaSadhana.pratahNiyam,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "सायं नियम",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = karmaSadhana.saayamNiyam,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -307,7 +536,7 @@ private fun PredictionCard(prediction: LifeDomainPrediction) {
 }
 
 @Composable
-private fun RemediesTab(remedies: CombinedRemedy?) {
+private fun RemediesTab(remedies: CombinedRemedy?, profile: UserProfile) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -319,6 +548,9 @@ private fun RemediesTab(remedies: CombinedRemedy?) {
             return@Column
         }
 
+        val karmaSadhana = getKarmaSadhana(profile.dominantKarmaEn)
+        val dashaSadhana = getDashaSadhana(profile.currentDasha.lord)
+
         Text(
             text = "उपाय एवं साधना",
             style = MaterialTheme.typography.titleMedium,
@@ -326,37 +558,182 @@ private fun RemediesTab(remedies: CombinedRemedy?) {
         )
         Spacer(modifier = Modifier.height(12.dp))
 
-        RemedySection("प्रमुख साधना", remedies.primarySadhana)
-        RemedySection("दशा उपाय", remedies.dashaRemedy)
-        RemedySection("कर्म उपाय", remedies.karmaRemedy)
-        RemedySection("यंत्र", remedies.yantraRecommendation)
-        RemedySection("तपस्या", remedies.tapasyaRecommendation)
-        RemedySection("शुभ तिथि", remedies.recommendedTithi)
-    }
-}
+        // Primary Mantra Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "प्रमुख मंत्र",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = karmaSadhana.primaryMantra.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                InfoRow("जाप संख्या", "${karmaSadhana.primaryMantra.count} बार")
+                InfoRow("समय", karmaSadhana.primaryMantra.timing)
+                InfoRow("माला", karmaSadhana.primaryMantra.maala)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = karmaSadhana.primaryMantra.karmaEffect,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
 
-@Composable
-private fun RemedySection(title: String, content: String) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = content,
-                style = MaterialTheme.typography.bodySmall
-            )
+        // Secondary Mantra Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "गौण मंत्र / स्तोत्र",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                InfoRow("स्तोत्र", karmaSadhana.secondaryMantra.stotraName)
+                Text(
+                    text = karmaSadhana.secondaryMantra.shloka,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                InfoRow("जाप संख्या", "${karmaSadhana.secondaryMantra.count} बार")
+                InfoRow("समय", karmaSadhana.secondaryMantra.timing)
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Yantra Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "यंत्र",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                InfoRow("नाम", karmaSadhana.yantra.name)
+                InfoRow("सामग्री", karmaSadhana.yantra.material)
+                InfoRow("स्थापना", karmaSadhana.yantra.installation)
+                InfoRow("आकार", karmaSadhana.yantra.dimension)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "प्रभाव: ${karmaSadhana.yantra.effect}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Puja Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "पूजा",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                InfoRow("पूजा", karmaSadhana.puja.name)
+                InfoRow("तीर्थंकर", karmaSadhana.puja.tirthankara)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "विधि: ${karmaSadhana.puja.vidhi}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                InfoRow("लाभ", karmaSadhana.puja.benefit)
+                InfoRow("तिथि", karmaSadhana.puja.tithi)
+                InfoRow("स्तोत्र", karmaSadhana.puja.stotra)
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Tapasya Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "तपस्या",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                InfoRow("नाम", karmaSadhana.tapasya.name)
+                Text(
+                    text = karmaSadhana.tapasya.description,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                InfoRow("तिथि", karmaSadhana.tapasya.tithi)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "अनुष्ठान: ${karmaSadhana.tapasya.anusthana}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Dasha Remedy Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "दशा उपाय",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                InfoRow("वर्तमान दशा", dashaSadhana.lordHindi)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = dashaSadhana.dashaSadhana,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                InfoRow("श्रेष्ठ तिथि", dashaSadhana.bestTithi)
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Shubha Tithi Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "शुभ तिथि",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "इस कर्म की साधना हेतु शुभ तिथियाँ:",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = karmaSadhana.shubhaTithi.joinToString(", ") { "तिथि $it" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
-    Spacer(modifier = Modifier.height(8.dp))
 }
 
 @Composable
 private fun DashaTab(dasha: DashaInfo) {
+    val dashaSadhana = getDashaSadhana(dasha.lord)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -368,6 +745,68 @@ private fun DashaTab(dasha: DashaInfo) {
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Dasha Nature & Sadhana Card
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "दशा का स्वभाव एवं साधना",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "दशा का स्वभाव",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = dashaSadhana.natureDescription,
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                @Suppress("DEPRECATION")
+                Divider()
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "आप पर प्रभाव",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = dashaSadhana.dashaEffect,
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                @Suppress("DEPRECATION")
+                Divider()
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "अनुशंसित साधना",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = dashaSadhana.dashaSadhana,
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                @Suppress("DEPRECATION")
+                Divider()
+                Spacer(modifier = Modifier.height(8.dp))
+
+                InfoRow("श्रेष्ठ तिथि", dashaSadhana.bestTithi)
+            }
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         ElevatedCard(modifier = Modifier.fillMaxWidth()) {

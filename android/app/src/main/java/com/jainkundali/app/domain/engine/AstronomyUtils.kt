@@ -30,7 +30,7 @@ object AstronomyUtils {
     fun getMoonTropicalLongitude(jde: Double): Double {
         val T = (jde - 2451545.0) / 36525.0
 
-        val L = 218.3164477 + 481267.88123421 * T
+        val L = normDeg(218.3164477 + 481267.88123421 * T)
         val M = normDeg(357.5291092 + 35999.0502909 * T)
         val Mm = normDeg(134.9633964 + 477198.8675055 * T)
         val D = normDeg(297.8501921 + 445267.1114034 * T)
