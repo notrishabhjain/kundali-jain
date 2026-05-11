@@ -43,25 +43,29 @@ fun AnushthaanScreen(
     val completedAnushthaans by viewModel.completedAnushthaans.collectAsState()
 
     LaunchedEffect(Unit) {
-        val selectedId = appPreferences.selectedProfileId.firstOrNull()
-        if (selectedId != null) {
-            profileId = selectedId
-            viewModel.setProfileId(selectedId)
-            val entity = profileRepository.getById(selectedId)
-            if (entity != null) {
-                val formData = BirthFormData(
-                    fullName = entity.name,
-                    dob = entity.dateOfBirth,
-                    time = entity.birthTime,
-                    place = entity.birthPlace,
-                    lat = entity.latitude.toString(),
-                    lng = entity.longitude.toString(),
-                    gender = entity.gender
-                )
-                val profile = ProfileEngine.generateUserProfile(formData)
-                userProfile = profile
-                sadhana = getKarmaSadhana(profile.dominantKarmaEn)
+        try {
+            val selectedId = appPreferences.selectedProfileId.firstOrNull()
+            if (selectedId != null) {
+                profileId = selectedId
+                viewModel.setProfileId(selectedId)
+                val entity = profileRepository.getById(selectedId)
+                if (entity != null) {
+                    val formData = BirthFormData(
+                        fullName = entity.name,
+                        dob = entity.dateOfBirth,
+                        time = entity.birthTime,
+                        place = entity.birthPlace,
+                        lat = entity.latitude.toString(),
+                        lng = entity.longitude.toString(),
+                        gender = entity.gender
+                    )
+                    val profile = ProfileEngine.generateUserProfile(formData)
+                    userProfile = profile
+                    sadhana = getKarmaSadhana(profile.dominantKarmaEn)
+                }
             }
+        } catch (e: Exception) {
+            // Silently handle - will show "no profile" state
         }
         isLoading = false
     }

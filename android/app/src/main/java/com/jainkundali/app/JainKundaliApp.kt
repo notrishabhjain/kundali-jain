@@ -18,7 +18,7 @@ fun JainKundaliApp() {
     val application = context.applicationContext as JainKundaliApplication
     val container = application.container
 
-    val kundaliViewModel = remember { KundaliViewModel(container.profileRepository) }
+    val kundaliViewModel = remember { KundaliViewModel(container.profileRepository, container.appPreferences) }
     val jaapViewModel = remember { JaapViewModel(container.sadhanaRepository) }
     val meditationViewModel = remember { MeditationViewModel(container.sadhanaRepository) }
     val mantraViewModel = remember { MantraViewModel() }

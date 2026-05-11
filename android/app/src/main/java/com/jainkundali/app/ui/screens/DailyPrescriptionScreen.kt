@@ -18,9 +18,7 @@ import com.jainkundali.app.domain.engine.AstronomyUtils
 import com.jainkundali.app.domain.engine.CalendarEngine
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Date
 import kotlin.math.floor
@@ -41,7 +39,7 @@ fun DailyPrescriptionScreen(
     val panchang = remember { CalendarEngine.getJainPanchang(Date()) }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        try {
             // Calculate today's raw tithi
             val now = Calendar.getInstance()
             val dateStr = "${now.get(Calendar.YEAR)}-${(now.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}-${now.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')}"
@@ -71,8 +69,10 @@ fun DailyPrescriptionScreen(
                     isPowerDay = todayTithiRaw in karmaSadhana.shubhaTithi
                 }
             }
-            isLoading = false
+        } catch (e: Exception) {
+            // Silently handle - will show "no profile" state
         }
+        isLoading = false
     }
 
     Scaffold(
