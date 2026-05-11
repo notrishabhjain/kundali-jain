@@ -193,7 +193,7 @@ fun MuhurtaScreen(
                                     )
                                 }
                                 if (items.indexOf(muhurta) < items.take(5).size - 1) {
-                                    HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+                                    Divider(modifier = Modifier.padding(vertical = 2.dp))
                                 }
                             }
                         }
