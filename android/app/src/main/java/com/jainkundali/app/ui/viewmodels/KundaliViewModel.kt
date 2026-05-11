@@ -149,7 +149,7 @@ class KundaliViewModel(
         }
     }
 
-    fun loadProfileFromEntity(entity: ProfileEntity) {
+    private fun populateFromEntity(entity: ProfileEntity) {
         _fullName.value = entity.name
         _dob.value = entity.dateOfBirth
         _time.value = entity.birthTime
@@ -159,19 +159,14 @@ class KundaliViewModel(
         val city = CITIES.find { it.hindiName == entity.birthPlace }
             ?: City(entity.birthPlace, entity.birthPlace, "", entity.latitude, entity.longitude)
         _selectedCity.value = city
+    }
 
+    fun loadProfileFromEntity(entity: ProfileEntity) {
+        populateFromEntity(entity)
         generateKundali()
     }
 
     fun fillFromProfile(entity: ProfileEntity) {
-        _fullName.value = entity.name
-        _dob.value = entity.dateOfBirth
-        _time.value = entity.birthTime
-        _place.value = entity.birthPlace
-        _gender.value = entity.gender
-
-        val city = CITIES.find { it.hindiName == entity.birthPlace }
-            ?: City(entity.birthPlace, entity.birthPlace, "", entity.latitude, entity.longitude)
-        _selectedCity.value = city
+        populateFromEntity(entity)
     }
 }
