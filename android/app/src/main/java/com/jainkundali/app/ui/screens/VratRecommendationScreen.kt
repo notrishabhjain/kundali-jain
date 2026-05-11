@@ -30,21 +30,25 @@ fun VratRecommendationScreen(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        val profileId = appPreferences.selectedProfileId.firstOrNull()
-        if (profileId != null) {
-            val entity = profileRepository.getById(profileId)
-            if (entity != null) {
-                val formData = BirthFormData(
-                    fullName = entity.name,
-                    dob = entity.dateOfBirth,
-                    time = entity.birthTime,
-                    place = entity.birthPlace,
-                    lat = entity.latitude.toString(),
-                    lng = entity.longitude.toString(),
-                    gender = entity.gender
-                )
-                userProfile = ProfileEngine.generateUserProfile(formData)
+        try {
+            val profileId = appPreferences.selectedProfileId.firstOrNull()
+            if (profileId != null) {
+                val entity = profileRepository.getById(profileId)
+                if (entity != null) {
+                    val formData = BirthFormData(
+                        fullName = entity.name,
+                        dob = entity.dateOfBirth,
+                        time = entity.birthTime,
+                        place = entity.birthPlace,
+                        lat = entity.latitude.toString(),
+                        lng = entity.longitude.toString(),
+                        gender = entity.gender
+                    )
+                    userProfile = ProfileEngine.generateUserProfile(formData)
+                }
             }
+        } catch (e: Exception) {
+            // Silently handle - will show "no profile" state
         }
         isLoading = false
     }

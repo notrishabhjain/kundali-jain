@@ -35,7 +35,7 @@ fun KarmaTransitScreen(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        try {
             val profileId = appPreferences.selectedProfileId.firstOrNull()
             if (profileId != null) {
                 val entity = profileRepository.getById(profileId)
@@ -49,15 +49,22 @@ fun KarmaTransitScreen(
                         lng = entity.longitude.toString(),
                         gender = entity.gender
                     )
-                    val profile = ProfileEngine.generateUserProfile(formData)
-                    userProfile = profile
-                    upcomingMuhurtas = MuhurtaEngine.getPersonalizedMuhurtas(
-                        profile.dominantKarmaEn, 90
-                    ).take(10)
+                    val computedProfile = withContext(Dispatchers.Default) {
+                        ProfileEngine.generateUserProfile(formData)
+                    }
+                    val computedMuhurtas = withContext(Dispatchers.Default) {
+                        MuhurtaEngine.getPersonalizedMuhurtas(
+                            computedProfile.dominantKarmaEn, 90
+                        ).take(10)
+                    }
+                    userProfile = computedProfile
+                    upcomingMuhurtas = computedMuhurtas
                 }
             }
-            isLoading = false
+        } catch (e: Exception) {
+            // Silently handle - will show "no profile" state
         }
+        isLoading = false
     }
 
     Scaffold(

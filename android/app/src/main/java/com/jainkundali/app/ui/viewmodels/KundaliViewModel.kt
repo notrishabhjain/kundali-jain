@@ -3,6 +3,7 @@ package com.jainkundali.app.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jainkundali.app.data.entities.ProfileEntity
+import com.jainkundali.app.data.preferences.AppPreferences
 import com.jainkundali.app.data.repository.ProfileRepository
 import com.jainkundali.app.domain.engine.*
 import com.jainkundali.app.domain.models.*
@@ -15,7 +16,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class KundaliViewModel(
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
 
     val savedProfiles: StateFlow<List<ProfileEntity>> = profileRepository.allProfiles
@@ -127,6 +129,8 @@ class KundaliViewModel(
 
                 val dayContext = ProfileEngine.getTodayContext()
                 _todaysMessage.value = AnalysisSynthesizer.generateTodaysMessage(profile, dayContext)
+
+                saveProfile()
             } finally {
                 _isLoading.value = false
             }
@@ -145,7 +149,8 @@ class KundaliViewModel(
                 longitude = city.longitude,
                 gender = _gender.value
             )
-            profileRepository.insert(entity)
+            val id = profileRepository.insert(entity)
+            appPreferences.setSelectedProfileId(id)
         }
     }
 

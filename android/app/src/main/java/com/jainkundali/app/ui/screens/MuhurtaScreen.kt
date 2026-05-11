@@ -37,7 +37,7 @@ fun MuhurtaScreen(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        try {
             val profileId = appPreferences.selectedProfileId.firstOrNull()
             if (profileId != null) {
                 val entity = profileRepository.getById(profileId)
@@ -51,13 +51,20 @@ fun MuhurtaScreen(
                         lng = entity.longitude.toString(),
                         gender = entity.gender
                     )
-                    val profile = ProfileEngine.generateUserProfile(formData)
-                    userProfile = profile
-                    muhurtas = MuhurtaEngine.getPersonalizedMuhurtas(profile.dominantKarmaEn)
+                    val computedProfile = withContext(Dispatchers.Default) {
+                        ProfileEngine.generateUserProfile(formData)
+                    }
+                    val computedMuhurtas = withContext(Dispatchers.Default) {
+                        MuhurtaEngine.getPersonalizedMuhurtas(computedProfile.dominantKarmaEn)
+                    }
+                    userProfile = computedProfile
+                    muhurtas = computedMuhurtas
                 }
             }
-            isLoading = false
+        } catch (e: Exception) {
+            // Silently handle - will show "no profile" state
         }
+        isLoading = false
     }
 
     Scaffold(
