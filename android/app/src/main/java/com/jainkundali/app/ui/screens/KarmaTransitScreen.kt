@@ -37,8 +37,10 @@ fun KarmaTransitScreen(
     LaunchedEffect(Unit) {
         try {
             val profileId = appPreferences.selectedProfileId.firstOrNull()
-            if (profileId != null) {
-                val entity = profileRepository.getById(profileId)
+            if (profileId != null && profileId > 0L) {
+                val entity = withContext(Dispatchers.IO) {
+                    profileRepository.getById(profileId)
+                }
                 if (entity != null) {
                     val formData = BirthFormData(
                         fullName = entity.name,
@@ -61,10 +63,11 @@ fun KarmaTransitScreen(
                     upcomingMuhurtas = computedMuhurtas
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Silently handle - will show "no profile" state
+        } finally {
+            isLoading = false
         }
-        isLoading = false
     }
 
     Scaffold(
