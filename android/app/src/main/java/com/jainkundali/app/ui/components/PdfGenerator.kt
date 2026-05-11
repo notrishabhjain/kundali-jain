@@ -6,6 +6,8 @@ import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import androidx.core.content.FileProvider
+import com.jainkundali.app.domain.data.getKarmaSadhana
+import com.jainkundali.app.domain.data.getDashaSadhana
 import com.jainkundali.app.domain.models.*
 import java.io.File
 import java.io.FileOutputStream
@@ -43,6 +45,13 @@ object PdfGenerator {
 
             // Page 5: Dasha details
             drawPage5(document, profile.currentDasha)
+
+            // Page 6: Yantra-Mantra-Tantra prescription
+            val karmaSadhana = getKarmaSadhana(profile.dominantKarmaEn)
+            drawPage6YantraPrescription(document, karmaSadhana)
+
+            // Page 7: Personalized Sadhana Calendar
+            drawPage7SadhanaCalendar(document, karmaSadhana, profile)
 
             val file = File(context.cacheDir, "kundali_${profile.name.replace(" ", "_")}.pdf")
             FileOutputStream(file).use { outputStream ->
@@ -332,6 +341,266 @@ object PdfGenerator {
         canvas.drawText("समाप्ति: ${dasha.pratyantardasha.endDate}", MARGIN + 10f, y, bodyPaint)
         y += LINE_HEIGHT
         canvas.drawText("शेष दिन: ${dasha.pratyantardasha.daysRemaining}", MARGIN + 10f, y, bodyPaint)
+
+        document.finishPage(page)
+    }
+
+    private fun drawPage6YantraPrescription(document: PdfDocument, sadhana: KarmaSadhana) {
+        val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 6).create()
+        val page = document.startPage(pageInfo)
+        val canvas = page.canvas
+
+        val titlePaint = Paint().apply {
+            textSize = 20f
+            isFakeBoldText = true
+            textAlign = Paint.Align.CENTER
+        }
+
+        val headerPaint = Paint().apply {
+            textSize = 15f
+            isFakeBoldText = true
+        }
+
+        val subHeaderPaint = Paint().apply {
+            textSize = 13f
+            isFakeBoldText = true
+        }
+
+        val bodyPaint = Paint().apply {
+            textSize = 11f
+        }
+
+        val yLimit = PAGE_HEIGHT - MARGIN
+
+        var y = MARGIN + 30f
+
+        canvas.drawText("यंत्र-मंत्र-तंत्र विधान", PAGE_WIDTH / 2f, y, titlePaint)
+        y += 40f
+
+        // Section 1: Yantra Vidhan
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("यंत्र विधान", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        val yantraDetails = listOf(
+            "नाम: ${sadhana.yantra.name}",
+            "सामग्री: ${sadhana.yantra.material}",
+            "स्थापना: ${sadhana.yantra.installation}",
+            "माप: ${sadhana.yantra.dimension}",
+            "प्रभाव: ${sadhana.yantra.effect}"
+        )
+
+        yantraDetails.forEach { line ->
+            val maxCharsPerLine = 70
+            var startIdx = 0
+            while (startIdx < line.length) {
+                if (y > yLimit) { document.finishPage(page); return }
+                val endIdx = minOf(startIdx + maxCharsPerLine, line.length)
+                canvas.drawText(line.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
+                y += LINE_HEIGHT - 4f
+                startIdx = endIdx
+            }
+            y += 4f
+        }
+        y += 15f
+
+        // Section 2: Mantra Vidhan
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("मंत्र विधान", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        val mantraDetails = listOf(
+            "मंत्र: ${sadhana.primaryMantra.text}",
+            "जाप संख्या: ${sadhana.primaryMantra.count}",
+            "समय: ${sadhana.primaryMantra.timing}",
+            "माला: ${sadhana.primaryMantra.maala}",
+            "कर्म प्रभाव: ${sadhana.primaryMantra.karmaEffect}"
+        )
+
+        mantraDetails.forEach { line ->
+            val maxCharsPerLine = 70
+            var startIdx = 0
+            while (startIdx < line.length) {
+                if (y > yLimit) { document.finishPage(page); return }
+                val endIdx = minOf(startIdx + maxCharsPerLine, line.length)
+                canvas.drawText(line.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
+                y += LINE_HEIGHT - 4f
+                startIdx = endIdx
+            }
+            y += 4f
+        }
+        y += 15f
+
+        // Section 3: Secondary Mantra
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("द्वितीयक मंत्र", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        val shlokaText = if (sadhana.secondaryMantra.shloka.length > 60) {
+            sadhana.secondaryMantra.shloka.substring(0, 60) + "..."
+        } else {
+            sadhana.secondaryMantra.shloka
+        }
+
+        val secondaryDetails = listOf(
+            "स्तोत्र: ${sadhana.secondaryMantra.stotraName}",
+            "श्लोक: $shlokaText",
+            "जाप संख्या: ${sadhana.secondaryMantra.count}",
+            "समय: ${sadhana.secondaryMantra.timing}"
+        )
+
+        secondaryDetails.forEach { line ->
+            val maxCharsPerLine = 70
+            var startIdx = 0
+            while (startIdx < line.length) {
+                if (y > yLimit) { document.finishPage(page); return }
+                val endIdx = minOf(startIdx + maxCharsPerLine, line.length)
+                canvas.drawText(line.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
+                y += LINE_HEIGHT - 4f
+                startIdx = endIdx
+            }
+            y += 4f
+        }
+
+        document.finishPage(page)
+    }
+
+    private fun drawPage7SadhanaCalendar(document: PdfDocument, sadhana: KarmaSadhana, profile: UserProfile) {
+        val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 7).create()
+        val page = document.startPage(pageInfo)
+        val canvas = page.canvas
+
+        val titlePaint = Paint().apply {
+            textSize = 20f
+            isFakeBoldText = true
+            textAlign = Paint.Align.CENTER
+        }
+
+        val headerPaint = Paint().apply {
+            textSize = 15f
+            isFakeBoldText = true
+        }
+
+        val subHeaderPaint = Paint().apply {
+            textSize = 13f
+            isFakeBoldText = true
+        }
+
+        val bodyPaint = Paint().apply {
+            textSize = 11f
+        }
+
+        val yLimit = PAGE_HEIGHT - MARGIN
+
+        var y = MARGIN + 30f
+
+        canvas.drawText("व्यक्तिगत साधना कैलेंडर", PAGE_WIDTH / 2f, y, titlePaint)
+        y += 40f
+
+        // Section 1: Shubha Tithis
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("शुभ तिथियाँ", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        val tithiDescriptions = sadhana.shubhaTithi.map { tithi ->
+            when {
+                tithi <= 15 -> "शुक्ल $tithi"
+                else -> "कृष्ण ${tithi - 15}"
+            }
+        }
+        val tithiLine = "तिथि: ${tithiDescriptions.joinToString(", ")}"
+        val maxCharsPerLine = 70
+        var startIdx = 0
+        while (startIdx < tithiLine.length) {
+            if (y > yLimit) { document.finishPage(page); return }
+            val endIdx = minOf(startIdx + maxCharsPerLine, tithiLine.length)
+            canvas.drawText(tithiLine.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
+            y += LINE_HEIGHT - 4f
+            startIdx = endIdx
+        }
+        y += 15f
+
+        // Section 2: Pratah Niyam
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("प्रातः नियम", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        startIdx = 0
+        while (startIdx < sadhana.pratahNiyam.length) {
+            if (y > yLimit) { document.finishPage(page); return }
+            val endIdx = minOf(startIdx + maxCharsPerLine, sadhana.pratahNiyam.length)
+            canvas.drawText(sadhana.pratahNiyam.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
+            y += LINE_HEIGHT - 4f
+            startIdx = endIdx
+        }
+        y += 15f
+
+        // Section 3: Saayam Niyam
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("सायं नियम", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        startIdx = 0
+        while (startIdx < sadhana.saayamNiyam.length) {
+            if (y > yLimit) { document.finishPage(page); return }
+            val endIdx = minOf(startIdx + maxCharsPerLine, sadhana.saayamNiyam.length)
+            canvas.drawText(sadhana.saayamNiyam.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
+            y += LINE_HEIGHT - 4f
+            startIdx = endIdx
+        }
+        y += 15f
+
+        // Section 4: Vishesh Upaya
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("विशेष उपाय", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        startIdx = 0
+        while (startIdx < sadhana.visheshUpaya.length) {
+            if (y > yLimit) { document.finishPage(page); return }
+            val endIdx = minOf(startIdx + maxCharsPerLine, sadhana.visheshUpaya.length)
+            canvas.drawText(sadhana.visheshUpaya.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
+            y += LINE_HEIGHT - 4f
+            startIdx = endIdx
+        }
+        y += 15f
+
+        // Section 5: Dasha Sadhana
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("दशा साधना", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        val dashaSadhana = getDashaSadhana(profile.currentDasha.lord)
+        val dashaSadhanaText = dashaSadhana.dashaSadhana
+        startIdx = 0
+        while (startIdx < dashaSadhanaText.length) {
+            if (y > yLimit) { document.finishPage(page); return }
+            val endIdx = minOf(startIdx + maxCharsPerLine, dashaSadhanaText.length)
+            canvas.drawText(dashaSadhanaText.substring(startIdx, endIdx), MARGIN + 10f, y, bodyPaint)
+            y += LINE_HEIGHT - 4f
+            startIdx = endIdx
+        }
+        y += 4f
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("श्रेष्ठ तिथि: ${dashaSadhana.bestTithi}", MARGIN + 10f, y, bodyPaint)
+        y += 15f + LINE_HEIGHT
+
+        // Section 6: Puja Vidhan
+        if (y > yLimit) { document.finishPage(page); return }
+        canvas.drawText("पूजा विधान", MARGIN, y, headerPaint)
+        y += LINE_HEIGHT + 5f
+
+        val pujaDetails = listOf(
+            "पूजा: ${sadhana.puja.name}",
+            "तीर्थंकर: ${sadhana.puja.tirthankara}",
+            "तिथि: ${sadhana.puja.tithi}"
+        )
+
+        pujaDetails.forEach { line ->
+            if (y > yLimit) { document.finishPage(page); return }
+            canvas.drawText(line, MARGIN + 10f, y, bodyPaint)
+            y += LINE_HEIGHT
+        }
 
         document.finishPage(page)
     }
