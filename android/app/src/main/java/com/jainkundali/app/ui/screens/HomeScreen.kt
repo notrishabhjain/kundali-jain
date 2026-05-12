@@ -27,13 +27,7 @@ fun HomeScreen(
     onNavigateToMantras: () -> Unit,
     onNavigateToProfiles: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToYantraTantra: () -> Unit,
-    onNavigateToDailyPrescription: () -> Unit,
-    onNavigateToMuhurta: () -> Unit,
-    onNavigateToAnushthaan: () -> Unit,
-    onNavigateToKarmaTransit: () -> Unit,
-    onNavigateToKarmaMilan: () -> Unit,
-    onNavigateToVratRecommendations: () -> Unit
+    onNavigateToKarmaMilan: () -> Unit
 ) {
     val panchang = remember {
         try {
@@ -151,75 +145,15 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 QuickActionCard(
-                    title = "आज का विधान",
-                    emoji = "\uD83D\uDCC5",
-                    onClick = onNavigateToDailyPrescription,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionCard(
-                    title = "शुभ मुहूर्त",
-                    emoji = "\uD83C\uDF1F",
-                    onClick = onNavigateToMuhurta,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                QuickActionCard(
-                    title = "यंत्र-मंत्र",
-                    emoji = "\uD83D\uDD49",
-                    onClick = onNavigateToYantraTantra,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionCard(
-                    title = "अनुष्ठान",
-                    emoji = "\uD83D\uDD25",
-                    onClick = onNavigateToAnushthaan,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                QuickActionCard(
                     title = "प्रोफ़ाइल",
                     emoji = "\uD83D\uDC64",
                     onClick = onNavigateToProfiles,
                     modifier = Modifier.weight(1f)
                 )
                 QuickActionCard(
-                    title = "कर्म संक्रमण",
-                    emoji = "\u26A0\uFE0F",
-                    onClick = onNavigateToKarmaTransit,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                QuickActionCard(
                     title = "कर्म मिलान",
                     emoji = "\uD83E\uDD1D",
                     onClick = onNavigateToKarmaMilan,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionCard(
-                    title = "व्रत मार्गदर्शन",
-                    emoji = "\uD83D\uDE4F",
-                    onClick = onNavigateToVratRecommendations,
                     modifier = Modifier.weight(1f)
                 )
             }
