@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -140,17 +141,24 @@ class KundaliViewModel(
     fun saveProfile() {
         val city = _selectedCity.value ?: return
         viewModelScope.launch {
-            val entity = ProfileEntity(
-                name = _fullName.value,
-                dateOfBirth = _dob.value,
-                birthTime = _time.value,
-                birthPlace = city.hindiName,
-                latitude = city.latitude,
-                longitude = city.longitude,
-                gender = _gender.value
-            )
-            val id = profileRepository.insert(entity)
-            appPreferences.setSelectedProfileId(id)
+            val existing = profileRepository.allProfiles.firstOrNull()?.find { p ->
+                p.name == _fullName.value && p.dateOfBirth == _dob.value && p.birthPlace == city.hindiName
+            }
+            if (existing != null) {
+                appPreferences.setSelectedProfileId(existing.id)
+            } else {
+                val entity = ProfileEntity(
+                    name = _fullName.value,
+                    dateOfBirth = _dob.value,
+                    birthTime = _time.value,
+                    birthPlace = city.hindiName,
+                    latitude = city.latitude,
+                    longitude = city.longitude,
+                    gender = _gender.value
+                )
+                val id = profileRepository.insert(entity)
+                appPreferences.setSelectedProfileId(id)
+            }
         }
     }
 

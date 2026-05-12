@@ -23,7 +23,6 @@ fun JainKundaliApp() {
     val meditationViewModel = remember { MeditationViewModel(container.sadhanaRepository) }
     val mantraViewModel = remember { MantraViewModel() }
     val profileViewModel = remember { ProfileViewModel(container.profileRepository, container.appPreferences) }
-    val anushthaanViewModel = remember { AnushthaanViewModel(container.anushthaanRepository) }
 
     val navController = rememberNavController()
 
@@ -41,13 +40,7 @@ fun JainKundaliApp() {
                     onNavigateToMantras = { navController.navigate("mantras") },
                     onNavigateToProfiles = { navController.navigate("profiles") },
                     onNavigateToSettings = { navController.navigate("settings") },
-                    onNavigateToYantraTantra = { navController.navigate("yantra_tantra") },
-                    onNavigateToDailyPrescription = { navController.navigate("daily_prescription") },
-                    onNavigateToMuhurta = { navController.navigate("muhurta") },
-                    onNavigateToAnushthaan = { navController.navigate("anushthaan") },
-                    onNavigateToKarmaTransit = { navController.navigate("karma_transit") },
-                    onNavigateToKarmaMilan = { navController.navigate("karma_milan") },
-                    onNavigateToVratRecommendations = { navController.navigate("vrat_recommendations") }
+                    onNavigateToKarmaMilan = { navController.navigate("karma_milan") }
                 )
             }
             composable("kundali_form") {
@@ -98,52 +91,9 @@ fun JainKundaliApp() {
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
-            composable("yantra_tantra") {
-                YantraTantraScreen(
-                    profileRepository = container.profileRepository,
-                    appPreferences = container.appPreferences,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
-            composable("daily_prescription") {
-                DailyPrescriptionScreen(
-                    profileRepository = container.profileRepository,
-                    appPreferences = container.appPreferences,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
-            composable("muhurta") {
-                MuhurtaScreen(
-                    profileRepository = container.profileRepository,
-                    appPreferences = container.appPreferences,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
-            composable("anushthaan") {
-                AnushthaanScreen(
-                    viewModel = anushthaanViewModel,
-                    profileRepository = container.profileRepository,
-                    appPreferences = container.appPreferences,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
-            composable("karma_transit") {
-                KarmaTransitScreen(
-                    profileRepository = container.profileRepository,
-                    appPreferences = container.appPreferences,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
             composable("karma_milan") {
                 KarmaMilanScreen(
                     profileRepository = container.profileRepository,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
-            composable("vrat_recommendations") {
-                VratRecommendationScreen(
-                    profileRepository = container.profileRepository,
-                    appPreferences = container.appPreferences,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
