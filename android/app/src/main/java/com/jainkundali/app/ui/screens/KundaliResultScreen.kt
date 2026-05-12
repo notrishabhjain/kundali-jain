@@ -38,7 +38,7 @@ fun KundaliResultScreen(
     val todaysMessage by viewModel.todaysMessage.collectAsState()
     val context = LocalContext.current
 
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("वर्तमान", "जन्म कुंडली", "कर्म प्रोफ़ाइल", "भविष्य", "उपाय", "दशा")
 
     Scaffold(

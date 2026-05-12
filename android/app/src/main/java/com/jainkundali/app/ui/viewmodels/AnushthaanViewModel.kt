@@ -19,6 +19,7 @@ class AnushthaanViewModel(
     val anushthaans: StateFlow<List<AnushthaanEntity>> = _profileId
         .filterNotNull()
         .flatMapLatest { id -> anushthaanRepository.getByProfileId(id) }
+        .catch { emit(emptyList()) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val activeAnushthaans: StateFlow<List<AnushthaanEntity>> = anushthaans

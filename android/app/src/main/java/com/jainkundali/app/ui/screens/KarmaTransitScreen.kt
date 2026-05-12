@@ -19,6 +19,7 @@ import com.jainkundali.app.domain.engine.MuhurtaEngine
 import com.jainkundali.app.domain.engine.PersonalizedMuhurta
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import com.jainkundali.app.ui.components.WithProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -30,46 +31,6 @@ fun KarmaTransitScreen(
     appPreferences: AppPreferences,
     onNavigateBack: () -> Unit
 ) {
-    var userProfile by remember { mutableStateOf<UserProfile?>(null) }
-    var upcomingMuhurtas by remember { mutableStateOf<List<PersonalizedMuhurta>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        try {
-            val profileId = appPreferences.selectedProfileId.firstOrNull()
-            if (profileId != null && profileId > 0L) {
-                val entity = withContext(Dispatchers.IO) {
-                    profileRepository.getById(profileId)
-                }
-                if (entity != null) {
-                    val formData = BirthFormData(
-                        fullName = entity.name,
-                        dob = entity.dateOfBirth,
-                        time = entity.birthTime,
-                        place = entity.birthPlace,
-                        lat = entity.latitude.toString(),
-                        lng = entity.longitude.toString(),
-                        gender = entity.gender
-                    )
-                    val computedProfile = withContext(Dispatchers.Default) {
-                        ProfileEngine.generateUserProfile(formData)
-                    }
-                    val computedMuhurtas = withContext(Dispatchers.Default) {
-                        MuhurtaEngine.getPersonalizedMuhurtas(
-                            computedProfile.dominantKarmaEn, 90
-                        ).take(10)
-                    }
-                    userProfile = computedProfile
-                    upcomingMuhurtas = computedMuhurtas
-                }
-            }
-        } catch (_: Exception) {
-            // Silently handle - will show "no profile" state
-        } finally {
-            isLoading = false
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -87,26 +48,43 @@ fun KarmaTransitScreen(
             )
         }
     ) { padding ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        WithProfile(
+            profileRepository = profileRepository,
+            appPreferences = appPreferences,
+            loadingContent = {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            },
+            noProfileContent = {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "कृपया पहले प्रोफ़ाइल बनाएं",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
-        } else if (userProfile == null) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "कृपया पहले प्रोफ़ाइल बनाएं",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        } else {
-            val profile = userProfile!!
+        ) { loadResult ->
+            val profile = loadResult.profile
             val dasha = profile.currentDasha
+            var upcomingMuhurtas by remember { mutableStateOf<List<PersonalizedMuhurta>>(emptyList()) }
+
+            LaunchedEffect(profile) {
+                try {
+                    val computedMuhurtas = withContext(Dispatchers.Default) {
+                        MuhurtaEngine.getPersonalizedMuhurtas(profile.dominantKarmaEn, 90).take(10)
+                    }
+                    upcomingMuhurtas = computedMuhurtas
+                } catch (_: Exception) {
+                    // Keep empty list
+                }
+            }
 
             Column(
                 modifier = Modifier

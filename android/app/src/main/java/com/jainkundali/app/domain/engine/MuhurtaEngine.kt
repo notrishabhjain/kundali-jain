@@ -29,39 +29,43 @@ object MuhurtaEngine {
         var prevTithiRaw = -1
 
         for (i in 0 until daysAhead) {
-            val d = Calendar.getInstance()
-            d.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH) + i)
-            val dateStr = "${d.get(Calendar.YEAR)}-${(d.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}-${d.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')}"
-            val jde = AstronomyUtils.toJulianDay(dateStr, "06:00")
+            try {
+                val d = Calendar.getInstance()
+                d.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH) + i)
+                val dateStr = "${d.get(Calendar.YEAR)}-${(d.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}-${d.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')}"
+                val jde = AstronomyUtils.toJulianDay(dateStr, "06:00")
 
-            val moonTropical = AstronomyUtils.getMoonTropicalLongitude(jde)
-            val sunLong = AstronomyUtils.getSunLongitude(jde)
-            val elongation = AstronomyUtils.normDeg(moonTropical - sunLong)
-            val tithiRaw = floor(elongation / 12.0).toInt()
+                val moonTropical = AstronomyUtils.getMoonTropicalLongitude(jde)
+                val sunLong = AstronomyUtils.getSunLongitude(jde)
+                val elongation = AstronomyUtils.normDeg(moonTropical - sunLong)
+                val tithiRaw = floor(elongation / 12.0).toInt()
 
-            if (tithiRaw != prevTithiRaw && tithiRaw in shubhaTithis) {
-                val tithiNum = if (tithiRaw < 15) tithiRaw + 1 else tithiRaw - 14
-                val tithiName = when {
-                    tithiRaw == 29 -> "अमावस्या"
-                    tithiRaw == 14 -> "पूर्णिमा"
-                    else -> TITHI_NAMES_HINDI.getOrElse(tithiNum - 1) { "तिथि" }
-                }
-                val paksha = if (elongation < 180) "शुक्ल" else "कृष्ण"
-                val fullTithiName = "$paksha $tithiName"
+                if (tithiRaw != prevTithiRaw && tithiRaw in shubhaTithis) {
+                    val tithiNum = if (tithiRaw < 15) tithiRaw + 1 else tithiRaw - 14
+                    val tithiName = when {
+                        tithiRaw == 29 -> "अमावस्या"
+                        tithiRaw == 14 -> "पूर्णिमा"
+                        else -> TITHI_NAMES_HINDI.getOrElse(tithiNum - 1) { "तिथि" }
+                    }
+                    val paksha = if (elongation < 180) "शुक्ल" else "कृष्ण"
+                    val fullTithiName = "$paksha $tithiName"
 
-                val activity = getActivityForTithi(tithiRaw)
+                    val activity = getActivityForTithi(tithiRaw)
 
-                results.add(
-                    PersonalizedMuhurta(
-                        date = d.timeInMillis,
-                        dateString = dateStr,
-                        tithiName = fullTithiName,
-                        tithiRaw = tithiRaw,
-                        activity = activity
+                    results.add(
+                        PersonalizedMuhurta(
+                            date = d.timeInMillis,
+                            dateString = dateStr,
+                            tithiName = fullTithiName,
+                            tithiRaw = tithiRaw,
+                            activity = activity
+                        )
                     )
-                )
+                }
+                prevTithiRaw = tithiRaw
+            } catch (_: Exception) {
+                // Skip this day if computation fails
             }
-            prevTithiRaw = tithiRaw
         }
 
         return results.sortedBy { it.date }
