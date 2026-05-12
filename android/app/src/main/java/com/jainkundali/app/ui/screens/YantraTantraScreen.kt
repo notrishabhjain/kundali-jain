@@ -16,6 +16,7 @@ import com.jainkundali.app.data.repository.ProfileRepository
 import com.jainkundali.app.domain.data.getKarmaSadhana
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import com.jainkundali.app.ui.components.WithProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -27,41 +28,6 @@ fun YantraTantraScreen(
     appPreferences: AppPreferences,
     onNavigateBack: () -> Unit
 ) {
-    var userProfile by remember { mutableStateOf<UserProfile?>(null) }
-    var sadhana by remember { mutableStateOf<KarmaSadhana?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        try {
-            val profileId = appPreferences.selectedProfileId.firstOrNull()
-            if (profileId != null && profileId > 0L) {
-                val entity = withContext(Dispatchers.IO) {
-                    profileRepository.getById(profileId)
-                }
-                if (entity != null) {
-                    val formData = BirthFormData(
-                        fullName = entity.name,
-                        dob = entity.dateOfBirth,
-                        time = entity.birthTime,
-                        place = entity.birthPlace,
-                        lat = entity.latitude.toString(),
-                        lng = entity.longitude.toString(),
-                        gender = entity.gender
-                    )
-                    val profile = withContext(Dispatchers.Default) {
-                        ProfileEngine.generateUserProfile(formData)
-                    }
-                    userProfile = profile
-                    sadhana = getKarmaSadhana(profile.dominantKarmaEn)
-                }
-            }
-        } catch (_: Exception) {
-            // Silently handle - will show "no profile" state
-        } finally {
-            isLoading = false
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -79,26 +45,31 @@ fun YantraTantraScreen(
             )
         }
     ) { padding ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        WithProfile(
+            profileRepository = profileRepository,
+            appPreferences = appPreferences,
+            loadingContent = {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            },
+            noProfileContent = {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "कृपया पहले एक प्रोफ़ाइल चुनें",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
-        } else if (userProfile == null || sadhana == null) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "कृपया पहले एक प्रोफ़ाइल चुनें",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        } else {
-            val profile = userProfile!!
-            val karma = sadhana!!
+        ) { loadResult ->
+            val profile = loadResult.profile
+            val karma = remember(profile) { getKarmaSadhana(profile.dominantKarmaEn) }
 
             Column(
                 modifier = Modifier

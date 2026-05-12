@@ -9,22 +9,27 @@ object AstronomyUtils {
     fun normDeg(d: Double): Double = ((d % 360.0) + 360.0) % 360.0
 
     fun toJulianDay(dateStr: String, timeStr: String): Double {
-        val dateParts = dateStr.split("-").map { it.toInt() }
-        val timeParts = timeStr.split(":").map { it.toInt() }
-        val year0 = dateParts[0]
-        val month0 = dateParts[1]
-        val day = dateParts[2]
-        val hh = timeParts[0]
-        val mm = if (timeParts.size > 1) timeParts[1] else 0
-        // IST = UTC+5:30
-        val utcHour = ((hh + mm / 60.0 - 5.5) + 24.0) % 24.0
+        return try {
+            val dateParts = dateStr.split("-").map { it.toInt() }
+            val timeParts = timeStr.split(":").map { it.toInt() }
+            val year0 = dateParts[0]
+            val month0 = dateParts[1]
+            val day = dateParts[2]
+            val hh = timeParts[0]
+            val mm = if (timeParts.size > 1) timeParts[1] else 0
+            // IST = UTC+5:30
+            val utcHour = ((hh + mm / 60.0 - 5.5) + 24.0) % 24.0
 
-        var Y = year0
-        var M = month0
-        if (M <= 2) { Y -= 1; M += 12 }
-        val A = Y / 100
-        val B = 2 - A + A / 4
-        return floor(365.25 * (Y + 4716)) + floor(30.6001 * (M + 1)) + day + utcHour / 24.0 + B - 1524.5
+            var Y = year0
+            var M = month0
+            if (M <= 2) { Y -= 1; M += 12 }
+            val A = Y / 100
+            val B = 2 - A + A / 4
+            floor(365.25 * (Y + 4716)) + floor(30.6001 * (M + 1)) + day + utcHour / 24.0 + B - 1524.5
+        } catch (e: Exception) {
+            // Return JDE for J2000.0 epoch as safe fallback
+            2451545.0
+        }
     }
 
     fun getMoonTropicalLongitude(jde: Double): Double {

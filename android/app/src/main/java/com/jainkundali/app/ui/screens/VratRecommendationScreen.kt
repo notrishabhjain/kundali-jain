@@ -17,6 +17,7 @@ import com.jainkundali.app.domain.data.getDashaSadhana
 import com.jainkundali.app.domain.data.getKarmaSadhana
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import com.jainkundali.app.ui.components.WithProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -28,38 +29,6 @@ fun VratRecommendationScreen(
     appPreferences: AppPreferences,
     onNavigateBack: () -> Unit
 ) {
-    var userProfile by remember { mutableStateOf<UserProfile?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        try {
-            val profileId = appPreferences.selectedProfileId.firstOrNull()
-            if (profileId != null && profileId > 0L) {
-                val entity = withContext(Dispatchers.IO) {
-                    profileRepository.getById(profileId)
-                }
-                if (entity != null) {
-                    val formData = BirthFormData(
-                        fullName = entity.name,
-                        dob = entity.dateOfBirth,
-                        time = entity.birthTime,
-                        place = entity.birthPlace,
-                        lat = entity.latitude.toString(),
-                        lng = entity.longitude.toString(),
-                        gender = entity.gender
-                    )
-                    userProfile = withContext(Dispatchers.Default) {
-                        ProfileEngine.generateUserProfile(formData)
-                    }
-                }
-            }
-        } catch (_: Exception) {
-            // Silently handle - will show "no profile" state
-        } finally {
-            isLoading = false
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,30 +46,37 @@ fun VratRecommendationScreen(
             )
         }
     ) { padding ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        WithProfile(
+            profileRepository = profileRepository,
+            appPreferences = appPreferences,
+            loadingContent = {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            },
+            noProfileContent = {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "कृपया पहले प्रोफ़ाइल बनाएं",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
-        } else if (userProfile == null) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "कृपया पहले प्रोफ़ाइल बनाएं",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+        ) { loadResult ->
+            val profile = loadResult.profile
+            val karmaSadhana = remember(profile) { getKarmaSadhana(profile.dominantKarmaEn) }
+            val dashaSadhana = remember(profile) { getDashaSadhana(profile.currentDasha.lord) }
+            val dashaKarmaSadhana = remember(profile) {
+                if (profile.currentDasha.lord != profile.dominantKarmaEn) {
+                    getKarmaSadhana(profile.currentDasha.lord)
+                } else null
             }
-        } else {
-            val profile = userProfile!!
-            val karmaSadhana = getKarmaSadhana(profile.dominantKarmaEn)
-            val dashaSadhana = getDashaSadhana(profile.currentDasha.lord)
-            val dashaKarmaSadhana = if (profile.currentDasha.lord != profile.dominantKarmaEn) {
-                getKarmaSadhana(profile.currentDasha.lord)
-            } else null
 
             Column(
                 modifier = Modifier

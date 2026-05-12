@@ -19,6 +19,7 @@ import com.jainkundali.app.data.repository.ProfileRepository
 import com.jainkundali.app.domain.data.getKarmaSadhana
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import com.jainkundali.app.ui.components.WithProfile
 import com.jainkundali.app.ui.viewmodels.AnushthaanViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -35,47 +36,12 @@ fun AnushthaanScreen(
     appPreferences: AppPreferences,
     onNavigateBack: () -> Unit
 ) {
-    var userProfile by remember { mutableStateOf<UserProfile?>(null) }
-    var sadhana by remember { mutableStateOf<KarmaSadhana?>(null) }
-    var profileId by remember { mutableStateOf<Long?>(null) }
     var showNewDialog by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
+    var dialogSadhana by remember { mutableStateOf<KarmaSadhana?>(null) }
+    var dialogProfileId by remember { mutableStateOf<Long?>(null) }
 
     val activeAnushthaans by viewModel.activeAnushthaans.collectAsState()
     val completedAnushthaans by viewModel.completedAnushthaans.collectAsState()
-
-    LaunchedEffect(Unit) {
-        try {
-            val selectedId = appPreferences.selectedProfileId.firstOrNull()
-            if (selectedId != null && selectedId > 0L) {
-                profileId = selectedId
-                viewModel.setProfileId(selectedId)
-                val entity = withContext(Dispatchers.IO) {
-                    profileRepository.getById(selectedId)
-                }
-                if (entity != null) {
-                    val formData = BirthFormData(
-                        fullName = entity.name,
-                        dob = entity.dateOfBirth,
-                        time = entity.birthTime,
-                        place = entity.birthPlace,
-                        lat = entity.latitude.toString(),
-                        lng = entity.longitude.toString(),
-                        gender = entity.gender
-                    )
-                    val profile = withContext(Dispatchers.Default) {
-                        ProfileEngine.generateUserProfile(formData)
-                    }
-                    userProfile = profile
-                    sadhana = getKarmaSadhana(profile.dominantKarmaEn)
-                }
-            }
-        } catch (_: Exception) {
-            // Silently handle - will show "no profile" state
-        } finally {
-            isLoading = false
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -94,31 +60,45 @@ fun AnushthaanScreen(
             )
         },
         floatingActionButton = {
-            if (userProfile != null) {
+            if (dialogSadhana != null) {
                 FloatingActionButton(onClick = { showNewDialog = true }) {
                     Icon(Icons.Default.Add, contentDescription = "नया अनुष्ठान")
                 }
             }
         }
     ) { padding ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        WithProfile(
+            profileRepository = profileRepository,
+            appPreferences = appPreferences,
+            loadingContent = {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            },
+            noProfileContent = {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "कृपया पहले एक प्रोफ़ाइल चुनें",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
-        } else if (userProfile == null) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "कृपया पहले एक प्रोफ़ाइल चुनें",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+        ) { loadResult ->
+            val profile = loadResult.profile
+            val sadhana = remember(profile) { getKarmaSadhana(profile.dominantKarmaEn) }
+
+            LaunchedEffect(loadResult.profileId) {
+                viewModel.setProfileId(loadResult.profileId)
+                dialogSadhana = sadhana
+                dialogProfileId = loadResult.profileId
             }
-        } else {
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -185,12 +165,12 @@ fun AnushthaanScreen(
         }
     }
 
-    if (showNewDialog && sadhana != null && profileId != null) {
+    if (showNewDialog && dialogSadhana != null && dialogProfileId != null) {
         NewAnushthaanDialog(
-            sadhana = sadhana!!,
+            sadhana = dialogSadhana!!,
             onDismiss = { showNewDialog = false },
             onStartAnushthaan = { type, mantraText, mantraCount ->
-                viewModel.startNewAnushthaan(profileId!!, type, mantraText, mantraCount)
+                viewModel.startNewAnushthaan(dialogProfileId!!, type, mantraText, mantraCount)
                 showNewDialog = false
             }
         )

@@ -83,46 +83,71 @@ object ProfileEngine {
     }
 
     fun generateUserProfile(data: BirthFormData): UserProfile {
-        val siderealDeg: Double = try {
-            val jde = AstronomyUtils.toJulianDay(data.dob, data.time.ifEmpty { "12:00" })
-            AstronomyUtils.getSiderealLongitude(jde)
-        } catch (e: Exception) {
-            var hash = 0
-            for (c in data.fullName) {
-                hash = c.code + ((hash shl 5) - hash)
+        return try {
+            val siderealDeg: Double = try {
+                val jde = AstronomyUtils.toJulianDay(data.dob, data.time.ifEmpty { "12:00" })
+                AstronomyUtils.getSiderealLongitude(jde)
+            } catch (e: Exception) {
+                var hash = 0
+                for (c in data.fullName) {
+                    hash = c.code + ((hash shl 5) - hash)
+                }
+                (Math.abs(hash) % 360).toDouble()
             }
-            (Math.abs(hash) % 360).toDouble()
+
+            val nakshatra = getNakshatraByDegree(siderealDeg)
+            val pada = getNakshatraPada(siderealDeg)
+            val rashi = AstronomyUtils.getRashi(siderealDeg)
+            val dasha = DashaEngine.calculateDasha(siderealDeg, data.dob.ifEmpty { "2000-01-01" })
+            val tirthankar = getTirthankarAffinity(nakshatra)
+            val gunasthana = estimateGunasthana(nakshatra.nature.key, dasha.lord)
+
+            val karmaType = nakshatra.karmaType.key
+            val dominantKarmaHindi = KARMA_HINDI[karmaType] ?: karmaType
+
+            UserProfile(
+                name = data.fullName,
+                gender = data.gender,
+                birthNakshatra = nakshatra.name,
+                birthNakshatraHindi = nakshatra.hindiName,
+                nakshatraPada = pada,
+                birthRashi = rashi,
+                moonLongitude = (siderealDeg * 100).roundToInt() / 100.0,
+                tirthankarAffinity = tirthankar.second,
+                tirthankarAffinityHindi = tirthankar.second,
+                nakshatraKarmaType = karmaType,
+                nakshatraNature = nakshatra.nature.key,
+                nakshatraNatureHindi = NATURE_HINDI[nakshatra.nature.key] ?: nakshatra.nature.key,
+                currentDasha = dasha,
+                dominantKarma = dominantKarmaHindi,
+                dominantKarmaEn = karmaType,
+                gunasthana = gunasthana,
+                formData = data
+            )
+        } catch (e: Exception) {
+            // Safe fallback profile
+            val fallbackNakshatra = NAKSHATRAS[0]
+            val fallbackDasha = DashaEngine.calculateDasha(0.0, data.dob.ifEmpty { "2000-01-01" })
+            UserProfile(
+                name = data.fullName.ifEmpty { "\u0905\u091C\u094D\u091E\u093E\u0924" },
+                gender = data.gender.ifEmpty { "\u092A\u0941\u0930\u0941\u0937" },
+                birthNakshatra = fallbackNakshatra.name,
+                birthNakshatraHindi = fallbackNakshatra.hindiName,
+                nakshatraPada = 1,
+                birthRashi = "\u092E\u0947\u0937 (Aries)",
+                moonLongitude = 0.0,
+                tirthankarAffinity = "\u092E\u0939\u093E\u0935\u0940\u0930 \u0938\u094D\u0935\u093E\u092E\u0940",
+                tirthankarAffinityHindi = "\u092E\u0939\u093E\u0935\u0940\u0930 \u0938\u094D\u0935\u093E\u092E\u0940",
+                nakshatraKarmaType = fallbackNakshatra.karmaType.key,
+                nakshatraNature = fallbackNakshatra.nature.key,
+                nakshatraNatureHindi = "\u0936\u0941\u092D",
+                currentDasha = fallbackDasha,
+                dominantKarma = "\u091C\u094D\u091E\u093E\u0928\u093E\u0935\u0930\u0923\u0940\u092F",
+                dominantKarmaEn = "Gyanavaraniya",
+                gunasthana = 2,
+                formData = data
+            )
         }
-
-        val nakshatra = getNakshatraByDegree(siderealDeg)
-        val pada = getNakshatraPada(siderealDeg)
-        val rashi = AstronomyUtils.getRashi(siderealDeg)
-        val dasha = DashaEngine.calculateDasha(siderealDeg, data.dob)
-        val tirthankar = getTirthankarAffinity(nakshatra)
-        val gunasthana = estimateGunasthana(nakshatra.nature.key, dasha.lord)
-
-        val karmaType = nakshatra.karmaType.key
-        val dominantKarmaHindi = KARMA_HINDI[karmaType] ?: karmaType
-
-        return UserProfile(
-            name = data.fullName,
-            gender = data.gender,
-            birthNakshatra = nakshatra.name,
-            birthNakshatraHindi = nakshatra.hindiName,
-            nakshatraPada = pada,
-            birthRashi = rashi,
-            moonLongitude = (siderealDeg * 100).roundToInt() / 100.0,
-            tirthankarAffinity = tirthankar.second,
-            tirthankarAffinityHindi = tirthankar.second,
-            nakshatraKarmaType = karmaType,
-            nakshatraNature = nakshatra.nature.key,
-            nakshatraNatureHindi = NATURE_HINDI[nakshatra.nature.key] ?: nakshatra.nature.key,
-            currentDasha = dasha,
-            dominantKarma = dominantKarmaHindi,
-            dominantKarmaEn = karmaType,
-            gunasthana = gunasthana,
-            formData = data
-        )
     }
 
     fun getTodayContext(): DayContext {

@@ -32,7 +32,7 @@ object CalendarEngine {
             val tithiName = when {
                 tithiRaw == 14 -> "पूर्णिमा"
                 tithiRaw == 29 -> "अमावस्या"
-                else -> TITHI_NAMES[tithiNum]
+                else -> TITHI_NAMES.getOrElse(tithiNum) { "प्रतिपदा" }
             }
             val masaIndex = floor(sunLong / 30.0).toInt()
             val masa = MASAS[masaIndex % 12]
