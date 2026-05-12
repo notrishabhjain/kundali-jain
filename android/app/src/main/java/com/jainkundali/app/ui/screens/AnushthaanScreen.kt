@@ -20,7 +20,9 @@ import com.jainkundali.app.domain.data.getKarmaSadhana
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
 import com.jainkundali.app.ui.viewmodels.AnushthaanViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,10 +47,12 @@ fun AnushthaanScreen(
     LaunchedEffect(Unit) {
         try {
             val selectedId = appPreferences.selectedProfileId.firstOrNull()
-            if (selectedId != null) {
+            if (selectedId != null && selectedId > 0L) {
                 profileId = selectedId
                 viewModel.setProfileId(selectedId)
-                val entity = profileRepository.getById(selectedId)
+                val entity = withContext(Dispatchers.IO) {
+                    profileRepository.getById(selectedId)
+                }
                 if (entity != null) {
                     val formData = BirthFormData(
                         fullName = entity.name,
@@ -59,15 +63,18 @@ fun AnushthaanScreen(
                         lng = entity.longitude.toString(),
                         gender = entity.gender
                     )
-                    val profile = ProfileEngine.generateUserProfile(formData)
+                    val profile = withContext(Dispatchers.Default) {
+                        ProfileEngine.generateUserProfile(formData)
+                    }
                     userProfile = profile
                     sadhana = getKarmaSadhana(profile.dominantKarmaEn)
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Silently handle - will show "no profile" state
+        } finally {
+            isLoading = false
         }
-        isLoading = false
     }
 
     Scaffold(

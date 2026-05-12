@@ -18,7 +18,9 @@ import com.jainkundali.app.domain.engine.AstronomyUtils
 import com.jainkundali.app.domain.engine.CalendarEngine
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Date
 import kotlin.math.floor
@@ -35,11 +37,24 @@ fun DailyPrescriptionScreen(
     var isLoading by remember { mutableStateOf(true) }
     var isPowerDay by remember { mutableStateOf(false) }
     var todayTithiRaw by remember { mutableIntStateOf(0) }
-
-    val panchang = remember { CalendarEngine.getJainPanchang(Date()) }
+    var panchang by remember { mutableStateOf<JainPanchang?>(null) }
 
     LaunchedEffect(Unit) {
         try {
+            panchang = try {
+                CalendarEngine.getJainPanchang(Date())
+            } catch (_: Exception) {
+                val varas = listOf("रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार")
+                JainPanchang(
+                    tithi = "शुक्ल प्रतिपदा",
+                    vara = varas[Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1],
+                    nakshatra = "अश्विनी",
+                    paksha = "शुक्ल",
+                    masa = "चैत्र",
+                    jainFestival = null
+                )
+            }
+
             // Calculate today's raw tithi
             val now = Calendar.getInstance()
             val dateStr = "${now.get(Calendar.YEAR)}-${(now.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}-${now.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')}"
@@ -50,8 +65,10 @@ fun DailyPrescriptionScreen(
             todayTithiRaw = floor(elongation / 12.0).toInt()
 
             val profileId = appPreferences.selectedProfileId.firstOrNull()
-            if (profileId != null) {
-                val entity = profileRepository.getById(profileId)
+            if (profileId != null && profileId > 0L) {
+                val entity = withContext(Dispatchers.IO) {
+                    profileRepository.getById(profileId)
+                }
                 if (entity != null) {
                     val formData = BirthFormData(
                         fullName = entity.name,
@@ -62,17 +79,20 @@ fun DailyPrescriptionScreen(
                         lng = entity.longitude.toString(),
                         gender = entity.gender
                     )
-                    val profile = ProfileEngine.generateUserProfile(formData)
+                    val profile = withContext(Dispatchers.Default) {
+                        ProfileEngine.generateUserProfile(formData)
+                    }
                     userProfile = profile
                     val karmaSadhana = getKarmaSadhana(profile.dominantKarmaEn)
                     sadhana = karmaSadhana
                     isPowerDay = todayTithiRaw in karmaSadhana.shubhaTithi
                 }
             }
-        } catch (e: Exception) {
-            // Silently handle - will show "no profile" state
+        } catch (_: Exception) {
+            // Show "no profile" state
+        } finally {
+            isLoading = false
         }
-        isLoading = false
     }
 
     Scaffold(
@@ -99,7 +119,7 @@ fun DailyPrescriptionScreen(
             ) {
                 CircularProgressIndicator()
             }
-        } else if (userProfile == null || sadhana == null) {
+        } else if (userProfile == null || sadhana == null || panchang == null) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
@@ -112,6 +132,7 @@ fun DailyPrescriptionScreen(
         } else {
             val profile = userProfile!!
             val karma = sadhana!!
+            val panchangData = panchang!!
 
             Column(
                 modifier = Modifier
@@ -135,11 +156,11 @@ fun DailyPrescriptionScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        PrescriptionRow("तिथि", panchang.tithi)
-                        PrescriptionRow("वार", panchang.vara)
-                        PrescriptionRow("नक्षत्र", panchang.nakshatra)
-                        PrescriptionRow("मास", panchang.masa)
-                        panchang.jainFestival?.let {
+                        PrescriptionRow("तिथि", panchangData.tithi)
+                        PrescriptionRow("वार", panchangData.vara)
+                        PrescriptionRow("नक्षत्र", panchangData.nakshatra)
+                        PrescriptionRow("मास", panchangData.masa)
+                        panchangData.jainFestival?.let {
                             PrescriptionRow("पर्व", it)
                         }
                     }

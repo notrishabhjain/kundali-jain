@@ -16,7 +16,9 @@ import com.jainkundali.app.data.repository.ProfileRepository
 import com.jainkundali.app.domain.data.getKarmaSadhana
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,8 +34,10 @@ fun YantraTantraScreen(
     LaunchedEffect(Unit) {
         try {
             val profileId = appPreferences.selectedProfileId.firstOrNull()
-            if (profileId != null) {
-                val entity = profileRepository.getById(profileId)
+            if (profileId != null && profileId > 0L) {
+                val entity = withContext(Dispatchers.IO) {
+                    profileRepository.getById(profileId)
+                }
                 if (entity != null) {
                     val formData = BirthFormData(
                         fullName = entity.name,
@@ -44,15 +48,18 @@ fun YantraTantraScreen(
                         lng = entity.longitude.toString(),
                         gender = entity.gender
                     )
-                    val profile = ProfileEngine.generateUserProfile(formData)
+                    val profile = withContext(Dispatchers.Default) {
+                        ProfileEngine.generateUserProfile(formData)
+                    }
                     userProfile = profile
                     sadhana = getKarmaSadhana(profile.dominantKarmaEn)
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Silently handle - will show "no profile" state
+        } finally {
+            isLoading = false
         }
-        isLoading = false
     }
 
     Scaffold(
