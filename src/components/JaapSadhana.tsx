@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, BookOpen, Info, CheckCircle2, RotateCcw } from 'lucide-react';
+import { ChevronDown, ChevronUp, BookOpen, Info, CheckCircle2, RotateCcw, MessageCircle } from 'lucide-react';
 import { UserProfile } from '../lib/analysisSynthesizer';
 import { getKarmaSadhana } from '../data/sadhana';
 
@@ -9,6 +9,7 @@ interface MantraData {
   subtitle: string;
   prakritText: string[];
   romanization: string[];
+  fullHindiMeaning: string;
   meaningTitle: string;
   meaningParts: {
     pada: string;
@@ -59,6 +60,7 @@ const navkarMantra: MantraData = {
     'maṃgalāṇaṃ ca savvesiṃ',
     'paḍhamaṃ havai maṃgalaṃ'
   ],
+  fullHindiMeaning: 'अरिहंतों को नमस्कार। सिद्धों को नमस्कार। आचार्यों को नमस्कार। उपाध्यायों को नमस्कार। लोक के समस्त साधुओं को नमस्कार। ये पाँच नमस्कार समस्त पापों का नाश करने वाले हैं और समस्त मंगलों में यह प्रथम एवं सर्वोच्च मंगल है।',
   meaningTitle: 'पाँचों पद — गहन अर्थ एवं कर्म-निर्जरा विज्ञान',
   meaningParts: [
     {
@@ -182,14 +184,14 @@ function DigitalMala() {
     <div className="bg-amber-50 p-6 rounded-2xl border border-amber-200 shadow-sm text-center">
       <h3 className="text-xl font-bold text-amber-900 mb-2">डिजिटल जाप माला (108 मोती)</h3>
       <p className="text-sm text-amber-700 mb-6">प्रत्येक जाप के बाद नीचे मोती पर टैप करें।</p>
-      
+
       <div className="mb-8">
-        <button 
+        <button
           onClick={handleBeadClick}
           disabled={count >= 108}
           className={`w-32 h-32 mx-auto rounded-full flex flex-col items-center justify-center border-4 shadow-lg transition-all transform active:scale-95 ${
-            count >= 108 
-              ? 'bg-emerald-100 border-emerald-500 text-emerald-700' 
+            count >= 108
+              ? 'bg-emerald-100 border-emerald-500 text-emerald-700'
               : 'bg-gradient-to-br from-amber-400 to-orange-500 border-orange-200 text-white cursor-pointer hover:shadow-orange-500/30'
           }`}
         >
@@ -200,8 +202,8 @@ function DigitalMala() {
 
       <div className="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
         {Array.from({ length: 108 }).map((_, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className={`w-3 h-3 rounded-full transition-colors ${
               i < count ? 'bg-orange-600 shadow-[0_0_5px_rgba(234,88,12,0.5)]' : 'bg-orange-200/50'
             }`}
@@ -210,7 +212,7 @@ function DigitalMala() {
       </div>
 
       {count > 0 && (
-        <button 
+        <button
           onClick={resetMala}
           className="mt-6 flex items-center gap-2 mx-auto text-amber-800 text-sm font-bold bg-amber-100 px-4 py-2 rounded-full hover:bg-amber-200 transition-colors"
         >
@@ -237,6 +239,7 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
   const karmaSadhana = getKarmaSadhana(profile.dominantKarmaEn);
   const dashaLordEn = profile.currentDasha?.lord || '';
   const dashaSadhana = getKarmaSadhana(dashaLordEn);
+  const tirthankarMantraMeaning = `हे श्री ${profile.tirthankarAffinity} भगवन्! आपके दीक्षा-कल्याणक (संसार त्याग कर मुनि-दीक्षा ग्रहण करने का दिव्य अवसर) को मेरा अर्घ्य (पूजन-द्रव्य) समर्पित है। मैं आपको नमस्कार करता हूँ। आपका दीक्षा-स्मरण मेरे ${profile.dominantKarma} कर्म और राग-द्वेष को क्षीण करे, और मुझे भी वीतराग-मार्ग पर अग्रसर करे।`;
 
   return (
     <div className="space-y-8">
@@ -245,9 +248,9 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
           <div className="mb-6 text-gray-800 leading-relaxed bg-orange-50/50 p-6 rounded-xl border border-orange-100">
             <h2 className="text-xl font-bold text-orange-900 mb-3">जाप साधना: अध्यात्म विज्ञान</h2>
             <p>
-              जैन दर्शन में जाप केवल शब्दों का उच्चारण नहीं है, बल्कि अपनी चेतना को उन शब्दों के अर्थ-रूप में परिणत करना है। 
-              जब आप किसी मंत्र का जाप करते हैं, तो ध्वनि-तरंगों से अधिक आपके <span className="font-semibold text-orange-800">भावों की विशुद्धि</span> कार्य करती है। 
-              {profile.dominantKarma} कर्म की सघनता को तोड़ने के लिए आपके लिए विशिष्ट साधनाओं का विधान किया गया है।
+              जैन दर्शन में जाप केवल शब्दों का उच्चारण नहीं है, बल्कि अपनी चेतना को उन शब्दों के अर्थ-रूप में परिणत करना है।
+              जब आप किसी मंत्र का जाप करते हैं, तो ध्वनि-तरंगों से अधिक आपके <span className="font-semibold text-orange-800">भावों की विशुद्धि</span> कार्य करती है।
+              {profile.dominantKarma} कर्म की सघनता को तोड़ने के लिए आपके लिए विशिष्ट साधनाओं का विधान किया गया है।
               सटीक विधि, समय और भावना के साथ किया गया जाप आपके सघन कर्मों में कंपन उत्पन्न कर उन्हें तोड़ने का सामर्थ्य रखता है।
             </p>
           </div>
@@ -257,10 +260,10 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
             <PracticeTimer />
           </div>
 
-          {/* Navkar Mantra Card */}
+          {/* Navkar Mantra Card — Full content in one card */}
           <div className="bg-white rounded-2xl border border-amber-200 overflow-hidden shadow-md">
             {/* Header */}
-            <button 
+            <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 flex justify-between items-center text-left"
             >
@@ -274,7 +277,7 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
             {/* Content */}
             {isExpanded && (
               <div className="p-6 md:p-8 space-y-10">
-                
+
                 {/* Mantra Text & Romanization */}
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="bg-amber-50 p-6 rounded-xl border border-amber-100/50 relative overflow-hidden">
@@ -298,127 +301,130 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
                     </div>
                   </div>
                 </div>
+
+                {/* Quick Hindi Meaning */}
+                <div className="bg-emerald-50 p-5 rounded-xl border-l-4 border-emerald-500">
+                  <h4 className="text-base font-bold text-emerald-900 mb-2 flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5" /> सम्पूर्ण मंत्र का हिंदी अर्थ
+                  </h4>
+                  <p className="text-emerald-950 text-lg leading-relaxed">
+                    {navkarMantra.fullHindiMeaning}
+                  </p>
+                </div>
+
+                {/* Deep Meaning & Karma Science */}
+                <div>
+                  <h4 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <Info className="text-amber-500" />
+                    {navkarMantra.meaningTitle}
+                  </h4>
+                  <div className="space-y-6">
+                    {navkarMantra.meaningParts.map((mp, idx) => (
+                      <div key={idx} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-amber-300 transition-colors shadow-sm">
+                        <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+                          <span className="text-xl font-bold text-amber-800">{mp.pada}</span>
+                        </div>
+                        <div className="p-5 space-y-4 text-gray-800">
+                          <div>
+                            <span className="font-bold text-gray-900">शाब्दिक अर्थ: </span>
+                            {mp.literal}
+                          </div>
+                          <div className="bg-blue-50/30 p-4 rounded-lg border border-blue-100/50">
+                            <span className="font-bold text-blue-900">गहन विवेचन: </span>
+                            <span className="text-gray-700 leading-relaxed">{mp.deep}</span>
+                          </div>
+                          <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+                            <span className="font-bold text-orange-900 uppercase tracking-widest text-xs mb-1 block">कर्म-निर्जरा रहस्य</span>
+                            <span className="text-orange-950 font-medium">{mp.karma}</span>
+                          </div>
+                          <div className="bg-emerald-50/60 p-4 rounded-lg border border-emerald-100 italic text-emerald-900">
+                            <span className="font-bold mr-2 not-italic text-emerald-800">ध्यान-भावना:</span>
+                            "{mp.dhyan}"
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Falashruti & Speciality Grid */}
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">फलश्रुति (अंतिम चार पंक्तियाँ)</h4>
+                    <div className="bg-gray-50 rounded-xl border border-gray-200 p-5 space-y-3">
+                      {navkarMantra.falashruti?.map((fala, idx) => (
+                        <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 border-b border-gray-100 last:border-0 pb-2 last:pb-0">
+                          <span className="font-bold text-amber-800 shrink-0 sm:w-1/2">{fala.text}</span>
+                          <span className="text-gray-700">{fala.meaning}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">जैन दर्शन से विशेषता</h4>
+                    <ul className="space-y-3">
+                      {navkarMantra.speciality.map((item, idx) => (
+                        <li key={idx} className="flex gap-3 text-gray-700">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Practice Instructions */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 md:p-8 rounded-xl border border-amber-200">
+                  <h4 className="text-2xl font-bold text-amber-900 mb-6 text-center border-b border-amber-200/50 pb-4">सटीक जाप साधना विधि</h4>
+
+                  <div className="flex flex-wrap gap-4 mb-8 justify-center">
+                    <div className="bg-white px-4 py-2 rounded-lg border border-amber-100 shadow-sm text-center">
+                      <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">न्यूनतम दैनिक जाप</span>
+                      <span className="text-lg font-bold text-amber-700">{navkarMantra.practice.minimum}</span>
+                    </div>
+                    <div className="bg-white px-4 py-2 rounded-lg border border-amber-100 shadow-sm text-center flex-1 sm:flex-none">
+                      <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">उत्तम जाप</span>
+                      <span className="text-lg font-bold text-amber-700">{navkarMantra.practice.optimal}</span>
+                    </div>
+                    <div className="bg-amber-600 px-4 py-2 rounded-lg shadow-sm text-center w-full sm:w-auto">
+                      <span className="block text-xs font-bold text-amber-200 uppercase tracking-wider mb-1">महा-साधना अनुष्ठान</span>
+                      <span className="text-lg font-bold text-white">{navkarMantra.practice.mahaSadhana}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div>
+                      <h5 className="font-bold text-amber-900 mb-4 px-2">दैनिक विधि:</h5>
+                      <ul className="space-y-3">
+                        {navkarMantra.practice.vidhi.map((step, idx) => (
+                          <li key={idx} className="flex gap-3 bg-white/60 p-3 rounded-lg border border-white">
+                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-200 text-amber-800 font-bold shrink-0 text-sm">
+                              {idx + 1}
+                            </span>
+                            <span className="text-gray-800 font-medium">{step}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="bg-amber-100/50 p-6 rounded-xl border border-amber-300 relative">
+                      <div className="absolute -top-3 -right-3">
+                        <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wider animate-pulse">विशेष</span>
+                      </div>
+                      <h5 className="text-lg font-bold text-amber-900 mb-3">40-दिन की अखंड साधना</h5>
+                      <p className="text-amber-950 font-medium leading-relaxed">
+                        {navkarMantra.practice.specialRoutine}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </>
       )}
 
-      {(!part || part === 2) && (
-        <div className="bg-white rounded-2xl border border-amber-200 overflow-hidden shadow-md">
-          <div className="p-6 md:p-8 space-y-10">
-            {/* Deep Meaning & Karma Science */}
-            <div>
-              <h4 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Info className="text-amber-500" /> 
-                {navkarMantra.meaningTitle}
-              </h4>
-              <div className="space-y-6">
-                {navkarMantra.meaningParts.map((part, idx) => (
-                  <div key={idx} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-amber-300 transition-colors shadow-sm">
-                    <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-                      <span className="text-xl font-bold text-amber-800">{part.pada}</span>
-                    </div>
-                    <div className="p-5 space-y-4 text-gray-800">
-                      <div>
-                        <span className="font-bold text-gray-900">शाब्दिक अर्थ: </span>
-                        {part.literal}
-                      </div>
-                      <div className="bg-blue-50/30 p-4 rounded-lg border border-blue-100/50">
-                        <span className="font-bold text-blue-900">गहन विवेचन: </span>
-                        <span className="text-gray-700 leading-relaxed">{part.deep}</span>
-                      </div>
-                      <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
-                        <span className="font-bold text-orange-900 uppercase tracking-widest text-xs mb-1 block">कर्म-निर्जरा रहस्य</span>
-                        <span className="text-orange-950 font-medium">{part.karma}</span>
-                      </div>
-                      <div className="bg-emerald-50/60 p-4 rounded-lg border border-emerald-100 italic text-emerald-900">
-                        <span className="font-bold mr-2 not-italic text-emerald-800">ध्यान-भावना:</span>
-                        "{part.dhyan}"
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Falashruti & Speciality Grid */}
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">फलश्रुति (अंतिम चार पंक्तियाँ)</h4>
-                <div className="bg-gray-50 rounded-xl border border-gray-200 p-5 space-y-3">
-                  {navkarMantra.falashruti?.map((fala, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 border-b border-gray-100 last:border-0 pb-2 last:pb-0">
-                      <span className="font-bold text-amber-800 shrink-0 sm:w-1/2">{fala.text}</span>
-                      <span className="text-gray-700">{fala.meaning}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">जैन दर्शन से विशेषता</h4>
-                <ul className="space-y-3">
-                  {navkarMantra.speciality.map((item, idx) => (
-                    <li key={idx} className="flex gap-3 text-gray-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Practice Instructions */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 md:p-8 rounded-xl border border-amber-200">
-              <h4 className="text-2xl font-bold text-amber-900 mb-6 text-center border-b border-amber-200/50 pb-4">सटीक जाप साधना विधि</h4>
-              
-              <div className="flex flex-wrap gap-4 mb-8 justify-center">
-                <div className="bg-white px-4 py-2 rounded-lg border border-amber-100 shadow-sm text-center">
-                  <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">न्यूनतम दैनिक जाप</span>
-                  <span className="text-lg font-bold text-amber-700">{navkarMantra.practice.minimum}</span>
-                </div>
-                <div className="bg-white px-4 py-2 rounded-lg border border-amber-100 shadow-sm text-center flex-1 sm:flex-none">
-                  <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">उत्तम जाप</span>
-                  <span className="text-lg font-bold text-amber-700">{navkarMantra.practice.optimal}</span>
-                </div>
-                <div className="bg-amber-600 px-4 py-2 rounded-lg shadow-sm text-center w-full sm:w-auto">
-                  <span className="block text-xs font-bold text-amber-200 uppercase tracking-wider mb-1">महा-साधना अनुष्ठान</span>
-                  <span className="text-lg font-bold text-white">{navkarMantra.practice.mahaSadhana}</span>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <h5 className="font-bold text-amber-900 mb-4 px-2">दैनिक विधि:</h5>
-                  <ul className="space-y-3">
-                    {navkarMantra.practice.vidhi.map((step, idx) => (
-                      <li key={idx} className="flex gap-3 bg-white/60 p-3 rounded-lg border border-white">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-200 text-amber-800 font-bold shrink-0 text-sm">
-                          {idx + 1}
-                        </span>
-                        <span className="text-gray-800 font-medium">{step}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="bg-amber-100/50 p-6 rounded-xl border border-amber-300 relative">
-                  <div className="absolute -top-3 -right-3">
-                    <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wider animate-pulse">विशेष</span>
-                  </div>
-                  <h5 className="text-lg font-bold text-amber-900 mb-3">40-दिन की अखंड साधना</h5>
-                  <p className="text-amber-950 font-medium leading-relaxed">
-                    {navkarMantra.practice.specialRoutine}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-      
       {(!part || part === 2) && (
       <div className="space-y-6">
         {/* Primary karma-specific mantra */}
@@ -427,6 +433,12 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
           <p className="text-sm text-amber-700 mb-5">आपके प्रबल कर्म की निर्जरा हेतु शास्त्र-सम्मत व्यक्तिगत मंत्र</p>
           <div className="bg-white p-5 rounded-xl border-2 border-amber-300 font-serif text-xl font-bold text-center text-amber-950 mb-4 shadow-inner leading-10">
             {karmaSadhana.primaryMantra.text}
+          </div>
+          <div className="bg-emerald-50 p-4 rounded-xl border-l-4 border-emerald-500 mb-4">
+            <span className="block text-xs font-bold text-emerald-700 uppercase mb-1.5 flex items-center gap-1.5">
+              <MessageCircle className="w-3.5 h-3.5" /> हिंदी अर्थ
+            </span>
+            <p className="text-emerald-950 leading-relaxed">{karmaSadhana.primaryMantra.meaning}</p>
           </div>
           <div className="grid sm:grid-cols-3 gap-3 text-sm">
             <div className="bg-white rounded-lg border border-amber-100 p-3">
@@ -454,6 +466,12 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
           <div className="bg-blue-50 p-5 rounded-lg border border-blue-100 text-center">
             <p className="text-lg font-serif text-gray-800 leading-9 whitespace-pre-line">{karmaSadhana.secondaryMantra.shloka}</p>
           </div>
+          <div className="bg-emerald-50 p-4 rounded-xl border-l-4 border-emerald-500 mt-3">
+            <span className="block text-xs font-bold text-emerald-700 uppercase mb-1.5 flex items-center gap-1.5">
+              <MessageCircle className="w-3.5 h-3.5" /> हिंदी अर्थ
+            </span>
+            <p className="text-emerald-950 leading-relaxed">{karmaSadhana.secondaryMantra.meaning}</p>
+          </div>
           <div className="mt-3 flex flex-wrap gap-4 text-sm text-blue-800">
             <span><strong>जाप:</strong> {karmaSadhana.secondaryMantra.count}</span>
             <span><strong>समय:</strong> {karmaSadhana.secondaryMantra.timing}</span>
@@ -468,6 +486,12 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
             <div className="bg-rose-50 p-4 rounded-lg border border-rose-100 font-serif text-lg font-bold text-center text-rose-900 mb-3">
               {dashaSadhana.primaryMantra.text}
             </div>
+            <div className="bg-emerald-50 p-4 rounded-xl border-l-4 border-emerald-500 mb-3">
+              <span className="block text-xs font-bold text-emerald-700 uppercase mb-1.5 flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5" /> हिंदी अर्थ
+              </span>
+              <p className="text-emerald-950 leading-relaxed">{dashaSadhana.primaryMantra.meaning}</p>
+            </div>
             <p className="text-sm text-rose-800"><strong>जाप:</strong> {dashaSadhana.primaryMantra.count} | <strong>समय:</strong> {dashaSadhana.primaryMantra.timing}</p>
           </div>
         )}
@@ -478,6 +502,12 @@ export default function JaapSadhana({ profile, part }: JaapSadhanaProps) {
           <p className="text-sm text-amber-800 mb-4 text-center">जन्म-नक्षत्र ({profile.birthNakshatraHindi || profile.birthNakshatra}) आधारित आपके इष्ट तीर्थंकर:</p>
           <div className="bg-white p-5 rounded-xl border-2 border-amber-300 font-serif text-lg font-bold text-center text-amber-950 mb-3 shadow-inner">
             ॐ ह्रीं श्री {profile.tirthankarAffinity} भगवतो दीक्षा-कल्याणकाय अर्घ्यं निर्वपामि नमः
+          </div>
+          <div className="bg-emerald-50 p-4 rounded-xl border-l-4 border-emerald-500 mb-3">
+            <span className="block text-xs font-bold text-emerald-700 uppercase mb-1.5 flex items-center gap-1.5">
+              <MessageCircle className="w-3.5 h-3.5" /> हिंदी अर्थ
+            </span>
+            <p className="text-emerald-950 leading-relaxed">{tirthankarMantraMeaning}</p>
           </div>
           <p className="text-sm font-medium text-amber-700 text-center">इसे प्रतिदिन अपनी मुख्य पूजा में अवश्य सम्मिलित करें।</p>
         </div>
