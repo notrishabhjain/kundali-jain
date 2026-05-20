@@ -72,6 +72,7 @@ class MantraViewModel : ViewModel() {
             list.add(
                 MantraEntry(
                     text = sadhana.primaryMantra.text,
+                    meaning = sadhana.primaryMantra.meaning,
                     recommendedCount = sadhana.primaryMantra.count,
                     timing = sadhana.primaryMantra.timing,
                     category = "कर्म मंत्र - ${sadhana.karmaHindi}",
@@ -85,6 +86,7 @@ class MantraViewModel : ViewModel() {
             list.add(
                 MantraEntry(
                     text = tirthankara.mantra,
+                    meaning = "श्री ${tirthankara.hindiName} भगवान् (${tirthankara.id}वें तीर्थंकर) को नमस्कार। ${tirthankara.pujaBenefit}",
                     recommendedCount = 108,
                     timing = "प्रातःकाल देव-दर्शन के समय",
                     category = "तीर्थंकर मंत्र - ${tirthankara.hindiName}",
