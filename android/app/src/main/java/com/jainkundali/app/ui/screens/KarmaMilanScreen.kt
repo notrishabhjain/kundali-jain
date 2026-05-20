@@ -285,93 +285,164 @@ private fun calculateCompatibility(profile1: UserProfile, profile2: UserProfile)
 
     val karma1 = KARMA_SADHANA[profile1.dominantKarmaEn]
     val karma2 = KARMA_SADHANA[profile2.dominantKarmaEn]
+    val name1 = profile1.name.ifBlank { "प्रथम" }
+    val name2 = profile2.name.ifBlank { "द्वितीय" }
 
-    // Karma affinity (same or complementary): +25
+    // ── Dimension 1: Karma sameness / complementarity (15 pts) ─────────────────
     val sameKarma = profile1.dominantKarmaEn == profile2.dominantKarmaEn
     val complementary = if (karma1 != null && karma2 != null) {
         karma1.isGhatiya != karma2.isGhatiya
     } else false
-
+    val karmaPoints = when {
+        sameKarma -> 15
+        complementary -> 12
+        else -> 5
+    }
+    score += karmaPoints
     if (sameKarma) {
-        score += 25
         val sadhana = getKarmaSadhana(profile1.dominantKarmaEn)
-        sharedSadhana.add("${sadhana.karmaHindi} कर्म की साझा साधना: ${sadhana.samanyaUpaya}")
-    } else if (complementary) {
-        score += 25
-        if (karma1 != null && karma2 != null) {
-            sharedSadhana.add("पूरक कर्म संयोग: ${karma1.karmaHindi} (${if (karma1.isGhatiya) "घातिया" else "अघातिया"}) + ${karma2.karmaHindi} (${if (karma2.isGhatiya) "घातिया" else "अघातिया"})")
-        }
+        sharedSadhana.add("दोनों का प्रबल कर्म ${sadhana.karmaHindi} है — साझा साधना: ${sadhana.samanyaUpaya}")
+    } else if (complementary && karma1 != null && karma2 != null) {
+        sharedSadhana.add("पूरक कर्म: ${name1} (${karma1.karmaHindi}, ${if (karma1.isGhatiya) "घातिया" else "अघातिया"}) ↔ ${name2} (${karma2.karmaHindi}, ${if (karma2.isGhatiya) "घातिया" else "अघातिया"})")
     }
-    details.add(
-        MilanDetail(
-            label = "कर्म सामंजस्य",
-            value = if (sameKarma) "+25 (समान)" else if (complementary) "+25 (पूरक)" else "भिन्न कर्म",
-            matched = sameKarma || complementary
-        )
-    )
+    details.add(MilanDetail("कर्म-सामंजस्य", "$karmaPoints/15 अंक — ${if (sameKarma) "समान" else if (complementary) "पूरक" else "भिन्न"}", karmaPoints >= 10))
 
-    // Same mahadasha lord: +25
-    val sameDasha = profile1.currentDasha.lord == profile2.currentDasha.lord
-    if (sameDasha) {
-        score += 25
+    // ── Dimension 2: Mahadasha lord (12 pts) ──────────────────────────────────
+    val sameDashaLord = profile1.currentDasha.lord == profile2.currentDasha.lord
+    val dashaPoints = if (sameDashaLord) 12 else 4
+    score += dashaPoints
+    details.add(MilanDetail("दशा-तुल्यता", "$dashaPoints/12 — ${if (sameDashaLord) "समान महादशा (${profile1.currentDasha.lordHindi})" else "${profile1.currentDasha.lordHindi} ↔ ${profile2.currentDasha.lordHindi}"}", sameDashaLord))
+
+    // ── Dimension 3: Antardasha overlap (8 pts) ───────────────────────────────
+    val antarLord1 = profile1.currentDasha.antardashaInfo.lord
+    val antarLord2 = profile2.currentDasha.antardashaInfo.lord
+    val antarSame = antarLord1 == antarLord2
+    val antarCross = antarLord1 == profile2.currentDasha.lord || antarLord2 == profile1.currentDasha.lord
+    val antarPoints = when {
+        antarSame -> 8
+        antarCross -> 5
+        else -> 2
     }
-    details.add(
-        MilanDetail(
-            label = "दशा तुल्यता",
-            value = if (sameDasha) "+25" else "भिन्न दशा",
-            matched = sameDasha
-        )
-    )
+    score += antarPoints
+    details.add(MilanDetail("अंतर्दशा-संयोग", "$antarPoints/8 — ${if (antarSame) "समान अंतर्दशा" else if (antarCross) "अन्तर्क्रिया" else "स्वतंत्र"}", antarPoints >= 5))
 
-    // Same nakshatra nature: +25
-    val sameNature = profile1.nakshatraNature == profile2.nakshatraNature
-    if (sameNature) {
-        score += 25
+    // ── Dimension 4: Nakshatra nature (10 pts) ────────────────────────────────
+    val nature1 = profile1.nakshatraNature
+    val nature2 = profile2.nakshatraNature
+    val natureScore = nakshatraNatureCompat(nature1, nature2)
+    score += natureScore
+    details.add(MilanDetail("नक्षत्र-प्रकृति", "$natureScore/10 — ${profile1.nakshatraNatureHindi} ↔ ${profile2.nakshatraNatureHindi}", natureScore >= 7))
+
+    // ── Dimension 5: Same / sister nakshatra (10 pts) ─────────────────────────
+    val sameNakshatra = profile1.birthNakshatra == profile2.birthNakshatra
+    val sameKarmaTypeFromNakshatra = profile1.nakshatraKarmaType == profile2.nakshatraKarmaType
+    val nakshatraPoints = when {
+        sameNakshatra -> 10
+        sameKarmaTypeFromNakshatra -> 6
+        else -> 2
     }
-    details.add(
-        MilanDetail(
-            label = "नक्षत्र अनुकूलता",
-            value = if (sameNature) "+25" else "भिन्न प्रकृति",
-            matched = sameNature
-        )
-    )
+    score += nakshatraPoints
+    details.add(MilanDetail("नक्षत्र-मेल", "$nakshatraPoints/10 — ${if (sameNakshatra) "समान नक्षत्र (${profile1.birthNakshatraHindi})" else "${profile1.birthNakshatraHindi} ↔ ${profile2.birthNakshatraHindi}"}", nakshatraPoints >= 6))
 
-    // Shared shubha tithi: +25
-    val sharedTithi = if (karma1 != null && karma2 != null) {
-        karma1.shubhaTithi.intersect(karma2.shubhaTithi.toSet()).isNotEmpty()
-    } else false
-    if (sharedTithi) {
-        score += 25
-        if (karma1 != null && karma2 != null) {
-            val common = karma1.shubhaTithi.intersect(karma2.shubhaTithi.toSet())
-            sharedSadhana.add("साझा शुभ तिथि: ${common.joinToString(", ")}")
-        }
+    // ── Dimension 6: Gunasthana proximity (10 pts) ────────────────────────────
+    val gunDiff = kotlin.math.abs(profile1.gunasthana - profile2.gunasthana)
+    val gunPoints = when (gunDiff) {
+        0 -> 10
+        1 -> 7
+        2 -> 4
+        else -> 2
     }
-    details.add(
-        MilanDetail(
-            label = "शुभ तिथि मेल",
-            value = if (sharedTithi) "+25" else "भिन्न तिथि",
-            matched = sharedTithi
-        )
-    )
+    score += gunPoints
+    details.add(MilanDetail("गुणस्थान-निकटता", "$gunPoints/10 — गुणस्थान ${profile1.gunasthana} ↔ ${profile2.gunasthana}", gunPoints >= 7))
 
-    // Shared sadhana from different karmas
-    if (!sameKarma && karma1 != null && karma2 != null) {
-        sharedSadhana.add("प्रथम व्यक्ति: ${karma1.karmaHindi} - ${karma1.pratahNiyam}")
-        sharedSadhana.add("द्वितीय व्यक्ति: ${karma2.karmaHindi} - ${karma2.pratahNiyam}")
+    // ── Dimension 7: Shared shubha tithi (10 pts) ─────────────────────────────
+    val tithiOverlap = if (karma1 != null && karma2 != null)
+        karma1.shubhaTithi.intersect(karma2.shubhaTithi.toSet())
+    else emptySet()
+    val tithiPoints = when {
+        tithiOverlap.size >= 3 -> 10
+        tithiOverlap.size == 2 -> 7
+        tithiOverlap.size == 1 -> 4
+        else -> 0
+    }
+    score += tithiPoints
+    if (tithiOverlap.isNotEmpty()) {
+        sharedSadhana.add("साझा शुभ तिथियाँ (इन दिनों दोनों मिलकर साधना करें): ${tithiOverlap.sorted().joinToString(", ")}")
+    }
+    details.add(MilanDetail("शुभ-तिथि मेल", "$tithiPoints/10 — ${tithiOverlap.size} साझा तिथि", tithiPoints >= 4))
+
+    // ── Dimension 8: Tirthankara affinity (8 pts) ─────────────────────────────
+    val sameTirthankara = profile1.tirthankarAffinity == profile2.tirthankarAffinity
+    val tirthankarPoints = if (sameTirthankara) 8 else 3
+    score += tirthankarPoints
+    details.add(MilanDetail("इष्ट तीर्थंकर", "$tirthankarPoints/8 — ${if (sameTirthankara) "एक ही (श्री ${profile1.tirthankarAffinityHindi})" else "श्री ${profile1.tirthankarAffinityHindi} ↔ श्री ${profile2.tirthankarAffinityHindi}"}", sameTirthankara))
+
+    // ── Dimension 9: Same rashi (5 pts) ───────────────────────────────────────
+    val sameRashi = profile1.birthRashi == profile2.birthRashi
+    val rashiPoints = if (sameRashi) 5 else 1
+    score += rashiPoints
+    details.add(MilanDetail("राशि-मेल", "$rashiPoints/5 — ${if (sameRashi) "समान राशि" else "${profile1.birthRashi} ↔ ${profile2.birthRashi}"}", sameRashi))
+
+    // ── Dimension 10: Same pada (mild — 4 pts) ────────────────────────────────
+    val samePada = profile1.nakshatraPada == profile2.nakshatraPada
+    val padaPoints = if (samePada) 4 else 1
+    score += padaPoints
+    details.add(MilanDetail("पाद-मेल", "$padaPoints/4 — पाद ${profile1.nakshatraPada} ↔ ${profile2.nakshatraPada}", samePada))
+
+    // ── Dimension 11: Pratyantardasha freshness (8 pts) ───────────────────────
+    val praty1 = profile1.currentDasha.pratyantardasha.lord
+    val praty2 = profile2.currentDasha.pratyantardasha.lord
+    val prSame = praty1 == praty2
+    val prPoints = if (prSame) 8 else 3
+    score += prPoints
+    details.add(MilanDetail("प्रत्यन्तर्दशा", "$prPoints/8 — ${if (prSame) "समान" else "${profile1.currentDasha.pratyantardasha.lordHindi} ↔ ${profile2.currentDasha.pratyantardasha.lordHindi}"}", prSame))
+
+    // Score is now out of 100 (15+12+8+10+10+10+10+8+5+4+8 = 100)
+    score = score.coerceIn(0, 100)
+
+    // ── Personalised shared-sadhana suggestions ───────────────────────────────
+    if (karma1 != null && karma2 != null && !sameKarma) {
+        sharedSadhana.add("${name1} (${karma1.karmaHindi} कर्म) के लिए: ${karma1.pratahNiyam}")
+        sharedSadhana.add("${name2} (${karma2.karmaHindi} कर्म) के लिए: ${karma2.pratahNiyam}")
+    }
+    if (sameTirthankara) {
+        sharedSadhana.add("एक ही इष्ट तीर्थंकर — दोनों मिलकर श्री ${profile1.tirthankarAffinityHindi} की प्रतिमा के समक्ष अभिषेक करें।")
+    } else {
+        sharedSadhana.add("भिन्न इष्ट तीर्थंकर — सम्मिलित अनुष्ठान में दोनों तीर्थंकरों (श्री ${profile1.tirthankarAffinityHindi} एवं श्री ${profile2.tirthankarAffinityHindi}) का अष्टद्रव्य पूजन एक साथ करें।")
+    }
+    if (gunDiff >= 2) {
+        sharedSadhana.add("गुणस्थान अंतर ${gunDiff} है — उच्चतर साथी निम्नतर साथी को स्वाध्याय में मार्गदर्शन दें।")
+    }
+    if (sameDashaLord) {
+        val dashaSadhana = com.jainkundali.app.domain.data.getDashaSadhana(profile1.currentDasha.lord)
+        sharedSadhana.add("समान दशा (${profile1.currentDasha.lordHindi}) — दोनों के लिए: ${dashaSadhana.dashaSadhana}")
+    }
+    if (tithiOverlap.isEmpty() && karma1 != null && karma2 != null) {
+        sharedSadhana.add("कोई साझा शुभ तिथि नहीं — दोनों के लिए सर्व-कल्याणक अष्टमी और चतुर्दशी पर सम्मिलित साधना करें।")
     }
 
     val overallMessage = when {
-        score >= 75 -> "उत्तम अनुकूलता - साझा साधना से दोनों को लाभ"
-        score >= 50 -> "मध्यम अनुकूलता - परस्पर सहयोग से उन्नति संभव"
-        score >= 25 -> "सामान्य अनुकूलता - व्यक्तिगत साधना पर ध्यान दें"
-        else -> "न्यून अनुकूलता - स्वतंत्र साधना मार्ग उचित"
+        score >= 80 -> "उत्तम कर्म-अनुकूलता — दोनों आत्माओं का साधना-संयोग बहुत बलवान है। साझा अनुष्ठान से दोनों को विशेष लाभ।"
+        score >= 60 -> "अच्छी अनुकूलता — परस्पर सहयोग से कर्म-निर्जरा सम्भव है। साथ में दैनिक नियम पालन करें।"
+        score >= 40 -> "मध्यम अनुकूलता — मूलभूत संयोग है, किंतु प्रत्येक की कर्म-स्थिति भिन्न है। व्यक्तिगत साधना के साथ सायं प्रतिक्रमण साझा करें।"
+        score >= 25 -> "साधारण अनुकूलता — अधिकांश आयामों में भिन्नता है। स्वतंत्र साधना मार्ग उचित, संयुक्त धर्म-चर्चा से लाभ।"
+        else -> "न्यून अनुकूलता — कर्म-स्थिति और दशा-पथ बहुत भिन्न हैं। प्रत्येक अपने मार्ग पर दृढ़ रहे, पर्व-दिन ही साथ साधना करें।"
     }
 
-    return MilanResult(
-        score = score,
-        overallMessage = overallMessage,
-        details = details,
-        sharedSadhana = sharedSadhana
-    )
+    return MilanResult(score = score, overallMessage = overallMessage, details = details, sharedSadhana = sharedSadhana)
+}
+
+/** Score 0–10 for compatibility of two nakshatra natures.
+ *  param_shubha > shubha > mishra > ashubha. */
+private fun nakshatraNatureCompat(n1: String, n2: String): Int {
+    val rank = mapOf("param_shubha" to 4, "shubha" to 3, "mishra" to 2, "ashubha" to 1)
+    val r1 = rank[n1] ?: 2
+    val r2 = rank[n2] ?: 2
+    return when {
+        r1 == 4 && r2 == 4 -> 10
+        r1 == r2 -> 8
+        kotlin.math.abs(r1 - r2) == 1 -> 6
+        kotlin.math.abs(r1 - r2) == 2 -> 4
+        else -> 2
+    }
 }

@@ -100,55 +100,74 @@ private fun MantraCard(mantra: MantraEntry, onStartJaap: () -> Unit) {
             .clickable { expanded = !expanded }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = mantra.category,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = mantra.category,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = if (expanded) "▲" else "▼ पूरा देखें",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
+            // Always show full mantra text — no truncation. Collapsed view limits lines visually.
             Text(
-                text = mantra.text.take(80) + if (mantra.text.length > 80) "..." else "",
+                text = mantra.text,
                 style = MaterialTheme.typography.bodySmall,
-                maxLines = if (expanded) Int.MAX_VALUE else 2
+                maxLines = if (expanded) Int.MAX_VALUE else 3
             )
 
             AnimatedVisibility(visible = expanded) {
                 Column {
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (mantra.text.length > 80) {
+                    if (mantra.meaning.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        @Suppress("DEPRECATION")
+                        Divider()
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = mantra.text,
+                            text = "हिंदी अर्थ",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = mantra.meaning,
                             style = MaterialTheme.typography.bodySmall
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(
-                                text = "जाप संख्या: ${mantra.recommendedCount}",
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Text(
-                                text = "समय: ${mantra.timing}",
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
+                    @Suppress("DEPRECATION")
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = mantra.karmaEffect,
+                        text = "जाप संख्या: ${mantra.recommendedCount}",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        text = "समय: ${mantra.timing}",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "कर्म-प्रभाव: ${mantra.karmaEffect}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))

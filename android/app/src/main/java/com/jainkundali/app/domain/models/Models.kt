@@ -99,6 +99,7 @@ data class Graha(
 
 data class PrimaryMantra(
     val text: String,
+    val meaning: String = "",
     val count: Int,
     val timing: String,
     val maala: String,
@@ -108,6 +109,7 @@ data class PrimaryMantra(
 data class SecondaryMantra(
     val stotraName: String,
     val shloka: String,
+    val meaning: String = "",
     val count: Int,
     val timing: String
 )
@@ -297,6 +299,7 @@ data class DayContext(
 
 data class MantraEntry(
     val text: String,
+    val meaning: String,
     val recommendedCount: Int,
     val timing: String,
     val category: String,

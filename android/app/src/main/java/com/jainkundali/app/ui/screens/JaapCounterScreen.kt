@@ -91,25 +91,56 @@ fun JaapCounterScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Selected mantra display
+            // Selected mantra display — full text + Hindi meaning
             selectedMantra?.let { mantra ->
+                var mantraExpanded by remember { mutableStateOf(true) }
                 ElevatedCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
+                        .clickable { mantraExpanded = !mantraExpanded }
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = mantra.category,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = if (mantraExpanded) "▲ छिपाएँ" else "▼ पूरा देखें",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = mantra.category,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            text = mantra.text,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = if (mantraExpanded) Int.MAX_VALUE else 4
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = mantra.text.take(100),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        if (mantraExpanded && mantra.meaning.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            @Suppress("DEPRECATION")
+                            Divider()
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "हिंदी अर्थ",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = mantra.meaning,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }

@@ -123,6 +123,31 @@ private fun VartamanTab(message: String, profile: UserProfile) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
+        // Pancham Kaal context banner — Digambar Jain doctrinal frame
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Text(
+                    text = "पंचम काल (दिगम्बर मान्यता)",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "हम वर्तमान में पंचम काल (दुषमा) में हैं। दिगम्बर परम्परा के अनुसार इस काल में मोक्ष असम्भव है — परन्तु आपके लिए सम्यग्दर्शन, पुण्य-बन्ध और देव-गति का बन्ध सम्भव है। यही आपकी इस कुंडली का लक्ष्य है।",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         ElevatedCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -577,7 +602,20 @@ private fun RemediesTab(remedies: CombinedRemedy?, profile: UserProfile) {
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                if (karmaSadhana.primaryMantra.meaning.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "हिंदी अर्थ",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = karmaSadhana.primaryMantra.meaning,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
                 InfoRow("जाप संख्या", "${karmaSadhana.primaryMantra.count} बार")
                 InfoRow("समय", karmaSadhana.primaryMantra.timing)
                 InfoRow("माला", karmaSadhana.primaryMantra.maala)
@@ -606,7 +644,20 @@ private fun RemediesTab(remedies: CombinedRemedy?, profile: UserProfile) {
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                if (karmaSadhana.secondaryMantra.meaning.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "हिंदी अर्थ",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = karmaSadhana.secondaryMantra.meaning,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
                 InfoRow("जाप संख्या", "${karmaSadhana.secondaryMantra.count} बार")
                 InfoRow("समय", karmaSadhana.secondaryMantra.timing)
             }
