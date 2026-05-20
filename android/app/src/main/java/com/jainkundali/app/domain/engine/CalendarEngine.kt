@@ -40,14 +40,39 @@ object CalendarEngine {
             val sidereal = AstronomyUtils.getSiderealLongitude(jde)
             val nak = getNakshatraByDegree(sidereal)
 
-            // Jain Festivals
+            // Jain Festivals — Digambar tradition only
             var jainFestival: String? = null
+            // अष्टान्हिका: last 8 days (अष्टमी to पूर्णिमा) of चैत्र, आषाढ़, कार्तिक — सिद्धचक्र विधान
             if ((masa == "चैत्र" || masa == "आषाढ़" || masa == "कार्तिक") && paksha == "शुक्ल" && tithiNum in 8..15) {
                 jainFestival = "अष्टान्हिका महापर्व (सिद्धचक्र विधान)"
-            } else if ((masa == "चैत्र" || masa == "भाद्रपद" || masa == "माघ") && paksha == "शुक्ल" && tithiNum in 5..14) {
-                jainFestival = "दशलक्षण महापर्व"
-            } else if (paksha == "शुक्ल" && tithiNum == 11) {
-                jainFestival = "निर्वाण/मोक्ष कल्याणक (अनेक तीर्थंकरों का)"
+            }
+            // दशलक्षण: 10 days, भाद्रपद शुक्ल ५ से चतुर्दशी (Digambar only — स्थापना of दशलक्षण धर्म)
+            else if (masa == "भाद्रपद" && paksha == "शुक्ल" && tithiNum in 5..14) {
+                jainFestival = "दशलक्षण महापर्व (दिगम्बर पर्युषण — १० दिन के दस लक्षण धर्म)"
+            }
+            // क्षमावाणी: भाद्रपद शुक्ल पूर्णिमा (दिगम्बर) — closing day of दशलक्षण
+            else if (masa == "भाद्रपद" && paksha == "शुक्ल" && tithiNum == 15) {
+                jainFestival = "क्षमावाणी पर्व (दिगम्बर)"
+            }
+            // महावीर निर्वाण: कार्तिक कृष्ण अमावस्या (दीपावली)
+            else if (masa == "कार्तिक" && paksha == "कृष्ण" && tithiRaw == 29) {
+                jainFestival = "महावीर निर्वाण कल्याणक (दीपावली)"
+            }
+            // ज्ञान पंचमी: कार्तिक शुक्ल ५
+            else if (masa == "कार्तिक" && paksha == "शुक्ल" && tithiNum == 5) {
+                jainFestival = "ज्ञान पंचमी (श्रुत-ज्ञान आराधना)"
+            }
+            // महावीर जयंती: चैत्र शुक्ल त्रयोदशी
+            else if (masa == "चैत्र" && paksha == "शुक्ल" && tithiNum == 13) {
+                jainFestival = "महावीर जयन्ती (२४वें तीर्थंकर का जन्म-कल्याणक)"
+            }
+            // अक्षय तृतीया: वैशाख शुक्ल ३ (ऋषभदेव के प्रथम आहार-दान का दिन)
+            else if (masa == "वैशाख" && paksha == "शुक्ल" && tithiNum == 3) {
+                jainFestival = "अक्षय तृतीया (ऋषभदेव प्रथम आहार-दान)"
+            }
+            // मौन एकादशी: मार्गशीर्ष शुक्ल ११
+            else if (masa == "मार्गशीर्ष" && paksha == "शुक्ल" && tithiNum == 11) {
+                jainFestival = "मौन एकादशी"
             }
 
             JainPanchang(

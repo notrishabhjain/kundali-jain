@@ -21,12 +21,16 @@ object KarmaEngine {
     )
 
     fun calculateKarmaProfile(dominantKarmaEn: String, dashaLord: String, gunasthana: Int): List<KarmaState> {
+        // "Charitra Mohaniya" is a sub-type of Mohaniya — it does not appear among the 8
+        // primary karmas. Map it onto Mohaniya so the प्रबल-boost still lands.
+        val effectiveDominant = if (dominantKarmaEn == "Charitra Mohaniya") "Mohaniya" else dominantKarmaEn
+
         return ALL_KARMAS.map { karma ->
             val sadhana = KARMA_SADHANA[karma.en]
             var intensity = karma.base
             var state = "Satta"
 
-            if (karma.en == dominantKarmaEn) {
+            if (karma.en == effectiveDominant) {
                 intensity += 30
                 state = "Udaya"
             }
@@ -43,14 +47,22 @@ object KarmaEngine {
 
             intensity = max(10, min(100, intensity))
 
-            val manifestation = if (sadhana != null) {
-                if (intensity >= 70) sadhana.statusWhenDominant else sadhana.statusWhenNormal
+            // Use the user's actual dominant Hindi name (which may be "चारित्र मोहनीय") when
+            // rendering the manifestation for the Mohaniya row — so the user sees their own kāraṇa.
+            val effectiveSadhana = if (
+                karma.en == "Mohaniya" && dominantKarmaEn == "Charitra Mohaniya"
+            ) {
+                KARMA_SADHANA["Charitra Mohaniya"] ?: sadhana
+            } else sadhana
+
+            val manifestation = if (effectiveSadhana != null) {
+                if (intensity >= 70) effectiveSadhana.statusWhenDominant else effectiveSadhana.statusWhenNormal
             } else {
                 karma.hi
             }
 
-            val nirjaraPractice = if (sadhana != null) {
-                "${sadhana.primaryMantra.count} बार ${sadhana.primaryMantra.text} (${sadhana.primaryMantra.timing})। ${sadhana.samanyaUpaya}"
+            val nirjaraPractice = if (effectiveSadhana != null) {
+                "${effectiveSadhana.primaryMantra.count} बार ${effectiveSadhana.primaryMantra.text} (${effectiveSadhana.primaryMantra.timing})। ${effectiveSadhana.samanyaUpaya}"
             } else {
                 "णमोकार मंत्र का जाप।"
             }

@@ -32,7 +32,7 @@ object ProfileEngine {
         "संभवनाथ" to "Sambhavanatha", "अभिनन्दननाथ" to "Abhinandananatha",
         "सुमतिनाथ" to "Sumatinatha", "पद्मप्रभु" to "Padmaprabhu",
         "सुपार्श्वनाथ" to "Suparshvanatha", "चन्द्रप्रभु" to "Chandraprabhu",
-        "सुविधिनाथ" to "Suvidhinate", "शीतलनाथ" to "Shitalnatha",
+        "सुविधिनाथ" to "Suvidhinatha", "शीतलनाथ" to "Shitalnatha",
         "श्रेयांसनाथ" to "Shreyamsanatha", "वासुपूज्यनाथ" to "Vasupujyanatha",
         "विमलनाथ" to "Vimalnatha", "अनंतनाथ" to "Anantnatha",
         "धर्मनाथ" to "Dharmanatha", "शान्तिनाथ" to "Shantinatha",
@@ -144,7 +144,9 @@ object ProfileEngine {
                 currentDasha = fallbackDasha,
                 dominantKarma = "\u091C\u094D\u091E\u093E\u0928\u093E\u0935\u0930\u0923\u0940\u092F",
                 dominantKarmaEn = "Gyanavaraniya",
-                gunasthana = 2,
+                // Default to 1st gunasthana (Mithy\u0101d\u1E5B\u1E63\u1E6Di) \u2014 2nd (S\u0101s\u0101dana) is a rare
+                // transition state, not where most j\u012Bvas in pa\u00F1cham k\u0101la begin.
+                gunasthana = 1,
                 formData = data
             )
         }
