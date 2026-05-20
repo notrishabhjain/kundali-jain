@@ -654,21 +654,21 @@ val JAIN_ANNUAL_FESTIVALS: List<JainFestival> = listOf(
         color = "bg-orange-100 text-orange-800 border-orange-200"
     ),
     JainFestival(
-        name = "पर्युषण पर्व (प्रारंभ)",
+        name = "दशलक्षण महापर्व (प्रारम्भ)",
         tithiShuklaKrishna = "shukla",
         tithiNum = 5,
         approxMonth = "भाद्रपद",
-        karmaBenefit = "मोहनीय और चारित्र मोहनीय — 8 दिन का महापर्व",
-        sadhana = "प्रतिदिन सामायिक, प्रतिक्रमण, स्वाध्याय, तप",
+        karmaBenefit = "मोहनीय एवं चारित्र मोहनीय — दिगम्बर परम्परा का १० दिन का महापर्व, दस लक्षण धर्म की आराधना",
+        sadhana = "प्रतिदिन एक धर्म पर ध्यान (उत्तम क्षमा, मार्दव, आर्जव, शौच, सत्य, संयम, तप, त्याग, आकिंचन्य, ब्रह्मचर्य) + प्रतिक्रमण",
         color = "bg-rose-100 text-rose-800 border-rose-200"
     ),
     JainFestival(
-        name = "संवत्सरी (क्षमापना)",
+        name = "क्षमावाणी पर्व",
         tithiShuklaKrishna = "shukla",
-        tithiNum = 13,
+        tithiNum = 15,
         approxMonth = "भाद्रपद",
-        karmaBenefit = "चारित्र मोहनीय क्षय — वार्षिक क्षमा-पर्व",
-        sadhana = "सभी से क्षमा माँगना, सभी को क्षमा देना, उपवास",
+        karmaBenefit = "मोहनीय (क्रोध कषाय) क्षय — दिगम्बर परम्परा का वार्षिक क्षमा-पर्व, दशलक्षण का अंतिम दिन",
+        sadhana = "समस्त जीवों से क्षमा माँगना, समस्त जीवों को क्षमा देना, उपवास, मिच्छामि दुक्कडम्",
         color = "bg-emerald-100 text-emerald-800 border-emerald-200"
     ),
     JainFestival(
