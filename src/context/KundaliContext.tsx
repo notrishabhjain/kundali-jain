@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { UserProfile, DayContext, getTodayContext } from '../lib/analysisSynthesizer';
+import { UserProfile, DayContext, getTodayContext } from '../lib/engineFacade';
 
 interface KundaliContextValue {
   profile: UserProfile | null;
