@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { AnalysisSynthesizer, UserProfile, getTodayContext } from '../lib/engineFacade';
 import { KarmaAshtadal, KarmaPetalData } from './KarmaAshtadal';
 import { KARMA_SADHANA } from '../data/sadhana';
@@ -114,6 +115,9 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
                 आधार: {decision.fallbackUsed ? 'नियम-आधारित निर्णय' : 'नियम + मॉडल सहायक'}
               </p>
               <DecisionTraceCard decision={decision} compact />
+              <p className="text-xs text-gray-500">
+                आधार: {decision.fallbackUsed ? 'नियम-आधारित निर्णय' : 'नियम + मॉडल सहायक'}
+              </p>
             </section>
           )}
 

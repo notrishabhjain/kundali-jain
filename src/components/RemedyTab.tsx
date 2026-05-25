@@ -5,6 +5,7 @@ import ViseshPujas from './ViseshPujas';
 import TantraSadhana from './TantraSadhana';
 import { BookOpen, Layers, Flower2, Flame, ShieldCheck } from 'lucide-react';
 import { UserProfile, getTodayContext } from '../lib/engineFacade';
+import { UserProfile } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
 import { generateRemedies } from '../lib/remedyEngine';
 import { calculateRuleScore } from '../lib/intelligence/ruleScoring';
