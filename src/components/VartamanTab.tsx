@@ -1,9 +1,11 @@
-import React from 'react';
-import { AnalysisSynthesizer, UserProfile, getTodayContext } from '../lib/analysisSynthesizer';
+import React, { useEffect, useState } from 'react';
+import { AnalysisSynthesizer, UserProfile, getTodayContext } from '../lib/engineFacade';
 import { KarmaAshtadal, KarmaPetalData } from './KarmaAshtadal';
 import { KARMA_SADHANA } from '../data/sadhana';
 
 import { calculateKarmaProfile } from '../lib/karmaEngine';
+import { buildIntelligenceDecision } from '../lib/intelligence/finalDecision';
+import type { IntelligenceDecision } from '../lib/intelligence/types';
 
 const GUNASTHANA_DATA: Record<number, { name: string; description: string; advice: string }> = {
   1: {
@@ -41,6 +43,13 @@ function GunasthanaDescription({ name, gunasthana, dominantKarma, dashaLord }: {
   );
 }
 
+
+const PRIORITY_UI: Record<IntelligenceDecision['priority'], { label: string; badge: string; hint: string }> = {
+  urgent: { label: 'अति-प्राथमिक', badge: 'bg-red-100 text-red-800 border-red-200', hint: 'आज निर्णयों में अधिक संयम और अतिरिक्त आत्म-परीक्षण रखें।' },
+  high: { label: 'उच्च प्राथमिकता', badge: 'bg-orange-100 text-orange-800 border-orange-200', hint: 'आज साधना और व्रत-नियमों पर विशेष अनुशासन बनाएँ।' },
+  medium: { label: 'मध्यम प्राथमिकता', badge: 'bg-blue-100 text-blue-800 border-blue-200', hint: 'नियमित जाप और स्वाध्याय से संतुलन बनाए रखें।' },
+  low: { label: 'सामान्य प्राथमिकता', badge: 'bg-slate-100 text-slate-700 border-slate-200', hint: 'निरंतरता बनाए रखें; स्थिरता आपका बल है।' },
+};
 interface VartamanTabProps {
   profile: UserProfile;
   part?: 1 | 2;
@@ -66,6 +75,17 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
   }));
 
   const dasha = profile.currentDasha;
+  const [decision, setDecision] = useState<IntelligenceDecision | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void buildIntelligenceDecision(profile, today, todaysMessage).then((result) => {
+      if (!cancelled) setDecision(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile, today, todaysMessage]);
 
   return (
     <div className="space-y-8">
@@ -78,6 +98,22 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
               {todaysMessage}
             </div>
           </section>
+
+          {decision && (
+            <section className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm">
+              <h2 className="text-2xl font-bold text-amber-900 mb-4 border-b border-amber-100 pb-2">आज की बुद्धिमान प्राथमिकता</h2>
+              <div className="flex items-center gap-3 mb-3">
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${PRIORITY_UI[decision.priority].badge}`}>
+                  {PRIORITY_UI[decision.priority].label}
+                </span>
+                <span className="text-sm text-gray-600">स्कोर: {(decision.finalScore * 100).toFixed(0)}%</span>
+              </div>
+              <p className="text-gray-800 mb-3">{PRIORITY_UI[decision.priority].hint}</p>
+              <p className="text-xs text-gray-500">
+                आधार: {decision.fallbackUsed ? 'नियम-आधारित निर्णय' : 'नियम + मॉडल सहायक'}
+              </p>
+            </section>
+          )}
 
           {/* SECTION 2: 3-Layer Dasha Narrative */}
           <section className="bg-amber-50/50 p-6 rounded-xl border border-amber-100 shadow-sm">

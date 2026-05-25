@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, CircleDot, Info, CheckCircle2, Star } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
 
 interface YantraData {

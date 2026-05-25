@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Calendar, Clock, MapPin, Navigation, User, Loader2 } from 'lucide-react';
-import { BirthFormData } from '../lib/analysisSynthesizer';
+import { BirthFormData } from '../lib/engineFacade';
 import { getJainPanchang } from '../lib/calendarEngine';
 
 interface BirthDataFormProps {
