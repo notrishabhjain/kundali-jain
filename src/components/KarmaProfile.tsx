@@ -1,8 +1,11 @@
 import React from 'react';
 import { Scale, Info, Zap, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { UserProfile, getTodayContext } from '../lib/engineFacade';
 import { UserProfile } from '../lib/engineFacade';
 import { KARMA_SADHANA } from '../data/sadhana';
 import { calculateKarmaProfile, KarmaState } from '../lib/karmaEngine';
+import { calculateRuleScore } from '../lib/intelligence/ruleScoring';
+import { composeNarrativeBundle } from '../lib/narrativeComposer';
 
 interface KarmaProfileProps {
   profile: UserProfile;
@@ -61,6 +64,9 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
     profile.gunasthana || 1
   );
   const findKs = (en: string) => karmaStates.find(k => k.karmaEn === en);
+  const today = getTodayContext();
+  const decision = calculateRuleScore(profile, today, profile.dominantKarma);
+  const narrative = composeNarrativeBundle(profile, today, decision);
 
   const ghatiyaKarmas: KarmaRow[] = [
     buildRow('Gyanavaraniya',    'ज्ञानावरणीय', 'bg-amber-100 border-amber-300 text-amber-900', 'bg-amber-500', findKs('Gyanavaraniya'),    profile),
@@ -93,6 +99,7 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
           आपकी जन्म-कुण्डली, वर्तमान <strong>{profile.currentDasha?.lord_hindi}</strong> दशा एवं
           <strong> गुणस्थान {profile.gunasthana}</strong> के संयोग से प्रत्येक कर्म की सघनता निम्न प्रकार है।
         </p>
+        <p className="text-rose-700 text-sm mb-2">{narrative.coreSummary}</p>
         <div className="grid sm:grid-cols-3 gap-3 mt-3">
           <div className="bg-white p-3 rounded-lg border border-rose-100">
             <span className="text-[10px] font-bold text-rose-500 uppercase block mb-1">प्रबल कर्म (जन्म आधारित)</span>
@@ -196,6 +203,8 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
                     <div className={`h-full ${k.barColor} rounded-full transition-all duration-700`} style={{ width: `${k.intensity}%` }} />
                   </div>
                   <p className="text-xs leading-relaxed opacity-90">{k.status}</p>
+                  <p className="text-xs leading-relaxed mt-1"><strong>दैनिक प्रभाव:</strong> {findKs(k.karmaEn)?.insight.dailyManifestation}</p>
+                  <p className="text-xs leading-relaxed"><strong>निर्जरा साधना:</strong> {findKs(k.karmaEn)?.insight.sadhanaName} — {findKs(k.karmaEn)?.insight.count} बार ({findKs(k.karmaEn)?.insight.timing})</p>
                 </div>
               ))}
             </div>
@@ -226,6 +235,8 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
                     <div className={`h-full ${k.barColor} rounded-full transition-all duration-700`} style={{ width: `${k.intensity}%` }} />
                   </div>
                   <p className="text-xs leading-relaxed opacity-90">{k.status}</p>
+                  <p className="text-xs leading-relaxed mt-1"><strong>दैनिक प्रभाव:</strong> {findKs(k.karmaEn)?.insight.dailyManifestation}</p>
+                  <p className="text-xs leading-relaxed"><strong>निर्जरा साधना:</strong> {findKs(k.karmaEn)?.insight.sadhanaName} — {findKs(k.karmaEn)?.insight.count} बार ({findKs(k.karmaEn)?.insight.timing})</p>
                 </div>
               ))}
             </div>

@@ -4,9 +4,13 @@ import YantraSadhana from './YantraSadhana';
 import ViseshPujas from './ViseshPujas';
 import TantraSadhana from './TantraSadhana';
 import { BookOpen, Layers, Flower2, Flame, ShieldCheck } from 'lucide-react';
+import { UserProfile, getTodayContext } from '../lib/engineFacade';
 import { UserProfile } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
 import { generateRemedies } from '../lib/remedyEngine';
+import { calculateRuleScore } from '../lib/intelligence/ruleScoring';
+import { composeNarrativeBundle } from '../lib/narrativeComposer';
+import DecisionTraceCard from './DecisionTraceCard';
 
 type RemedySubTab = 'samanya' | 'jaap' | 'yantra' | 'puja' | 'tantra';
 
@@ -23,6 +27,10 @@ export default function RemedyTab({ profile }: RemedyTabProps) {
         ? 'bg-white text-orange-900 shadow-sm border border-orange-200' 
         : 'text-orange-700 hover:bg-orange-100/80'
     }`;
+
+  const today = getTodayContext();
+  const decision = calculateRuleScore(profile, today, profile.dominantKarma);
+  const narrative = composeNarrativeBundle(profile, today, decision);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -49,7 +57,11 @@ export default function RemedyTab({ profile }: RemedyTabProps) {
         {activeSubTab === 'samanya' && (() => {
           const sadhana = getKarmaSadhana(profile.dominantKarmaEn);
           const combined = generateRemedies(profile);
-          return (
+          const today = getTodayContext();
+  const decision = calculateRuleScore(profile, today, profile.dominantKarma);
+  const narrative = composeNarrativeBundle(profile, today, decision);
+
+  return (
             <div className="space-y-6">
               <h3 className="text-xl font-bold text-orange-900 border-b border-orange-200 pb-2">दैनिक जैन जीवन-चर्या (आपके प्रबळ कर्म अनुसार)</h3>
               <p className="text-gray-700">
@@ -81,6 +93,7 @@ export default function RemedyTab({ profile }: RemedyTabProps) {
               <div className="bg-white p-5 rounded-xl border border-rose-200 shadow-sm">
                 <span className="block text-sm font-bold text-rose-600 uppercase mb-2">विशेष व्यक्तिगत उपाय ({profile.dominantKarma} कर्म शमन हेतु)</span>
                 <p className="text-gray-800 font-medium text-sm leading-relaxed">{combined.karmaRemedy}</p>
+                <p className="text-rose-800 text-sm mt-2">{narrative.karmaManifestation}</p>
                 <div className="mt-4 grid sm:grid-cols-2 gap-4">
                   <div className="bg-rose-50 p-3 rounded-lg border border-rose-100">
                     <span className="block text-[11px] font-bold text-rose-500 uppercase mb-1">यंत्र / मंडल स्थापना</span>
@@ -95,6 +108,8 @@ export default function RemedyTab({ profile }: RemedyTabProps) {
                   <strong>सर्वोत्तम तिथियाँ:</strong> {combined.recommendedTithi}
                 </p>
               </div>
+
+              <DecisionTraceCard decision={decision} compact />
             </div>
           );
         })()}

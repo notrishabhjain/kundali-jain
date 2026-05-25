@@ -1,4 +1,5 @@
 import { KARMA_SADHANA } from '../data/sadhana';
+import type { KarmaInsight } from '../types/karmaInsights';
 
 export interface KarmaState {
   id: string;
@@ -8,7 +9,9 @@ export interface KarmaState {
   state: 'Udaya' | 'Satta' | 'Nirjara';
   manifestation: string;
   nirjaraPractice: string;
+  insight: KarmaInsight;
 }
+
 
 const ALL_KARMAS = [
   { en: 'Gyanavaraniya', hi: 'ज्ञानावरणीय', base: 45 },
@@ -48,12 +51,30 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
     intensity = Math.max(10, Math.min(100, intensity));
 
     const manifestation = sadhana
-      ? (intensity >= 70 ? sadhana.statusWhenDominant : sadhana.statusWhenNormal)
+      ? `${sadhana.dailyManifestation} वर्तमान स्थिति: ${intensity >= 70 ? sadhana.statusWhenDominant : sadhana.statusWhenNormal}`
       : karma.hi;
 
     const nirjaraPractice = sadhana
       ? `${sadhana.primaryMantra.count} बार ${sadhana.primaryMantra.text} (${sadhana.primaryMantra.timing})। ${sadhana.samanyaUpaya}`
-      : 'णमोकार मंत्र का जाप।';
+      : '108 बार णमोकार मंत्र का जाप (प्रातःकाल)।';
+
+    const insight: KarmaInsight = sadhana
+      ? {
+          karmaNameDevanagari: sadhana.karmaHindi,
+          dailyManifestation: sadhana.dailyManifestation,
+          sadhanaName: sadhana.primaryMantra.text,
+          count: sadhana.primaryMantra.count,
+          timing: sadhana.primaryMantra.timing,
+          whyThisReducesKarma: sadhana.primaryMantra.karmaEffect,
+        }
+      : {
+          karmaNameDevanagari: karma.hi,
+          dailyManifestation: 'दैनिक जीवन में यह कर्म निर्णय, संबंध और मानसिक स्थिरता को प्रभावित कर सकता है।',
+          sadhanaName: 'णमोकार मंत्र',
+          count: 108,
+          timing: 'प्रातःकाल',
+          whyThisReducesKarma: 'सम्यक् भावना के साथ नियमित जप से कर्म-निर्जरा का मार्ग प्रशस्त होता है।',
+        };
 
     return {
       id: karma.en.toLowerCase().replace(/\s+/g, '_'),
@@ -62,7 +83,8 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
       intensity,
       state,
       manifestation,
-      nirjaraPractice
+      nirjaraPractice,
+      insight
     };
   });
 }

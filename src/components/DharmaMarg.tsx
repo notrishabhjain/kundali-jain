@@ -68,7 +68,7 @@ export default function DharmaMarg({ profile, forExport, part }: DharmaMargProps
           <Compass size={120} />
         </div>
         <h2 className="text-2xl md:text-3xl font-bold text-orange-900 mb-6 border-b border-orange-200 pb-4 relative z-10">
-          आपका आध्यात्मिक मूल्यांकन (Honest Assessment)
+          आपका आध्यात्मिक मूल्यांकन (निष्पक्ष आकलन)
         </h2>
         <div className="space-y-5 text-gray-800 leading-relaxed text-lg relative z-10">
           <p>
@@ -88,7 +88,7 @@ export default function DharmaMarg({ profile, forExport, part }: DharmaMargProps
       {(!part || part === 1) && <section className="bg-white p-6 md:p-10 rounded-2xl border border-gray-200 shadow-sm">
         <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4">
           <Route className="text-amber-600 w-8 h-8" />
-          <h2 className="text-2xl font-bold text-gray-900">१२-माह का आध्यात्मिक रोडमैप</h2>
+          <h2 className="text-2xl font-bold text-gray-900">१२-माह का आध्यात्मिक मार्ग-नक्शा</h2>
         </div>
 
         <div className="space-y-4">
@@ -171,10 +171,10 @@ export default function DharmaMarg({ profile, forExport, part }: DharmaMargProps
           <p className="text-sm text-gray-600 mb-4">यदि नियम टूट जाए या कषाय तीव्र हो जाए, तो आत्मा को शल्य-रहित करने की विधि:</p>
           <ul className="space-y-3 text-sm text-gray-700">
             <li>
-              <strong className="text-gray-900">१. आलोचना (Confession):</strong> गुरु के समक्ष या भगवान के सामने निश्छल भाव से अपना दोष स्वीकार करना। <em className="text-gray-500">"मुझसे यह त्रुटि हुई है।"</em>
+              <strong className="text-gray-900">१. आलोचना (दोष-स्वीकार):</strong> गुरु के समक्ष या भगवान के सामने निश्छल भाव से अपना दोष स्वीकार करना। <em className="text-gray-500">"मुझसे यह त्रुटि हुई है।"</em>
             </li>
             <li>
-              <strong className="text-gray-900">२. प्रतिक्रमण (Retreat):</strong> 'मिच्छामि दुक्कडं' कहकर उस पाप से स्वयं को अलग करना और भविष्य में न करने का संकल्प।
+              <strong className="text-gray-900">२. प्रतिक्रमण (दोष-निवृत्ति संकल्प):</strong> 'मिच्छामि दुक्कडं' कहकर उस पाप से स्वयं को अलग करना और भविष्य में न करने का संकल्प।
             </li>
             <li>
               <strong className="text-gray-900">३. कायोत्सर्ग:</strong> दोष की गंभीरता अनुसार १० से ३० मिनट तक स्थिर बैठकर 'उवसग्गहरं' या 'णमोकार' का ध्यान।
@@ -190,7 +190,7 @@ export default function DharmaMarg({ profile, forExport, part }: DharmaMargProps
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm lg:col-span-1 md:col-span-2">
           <div className="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
             <CalendarIcon className="text-amber-600 w-6 h-6" />
-            <h3 className="text-xl font-bold text-gray-900">९०-दिवसीय एक्शन प्लान</h3>
+            <h3 className="text-xl font-bold text-gray-900">९०-दिवसीय साधना कार्य-योजना</h3>
           </div>
           <p className="text-sm text-gray-600 mb-4">तुरंत आरंभ करने योग्य कर्म-निर्जरा अनुष्ठान:</p>
           

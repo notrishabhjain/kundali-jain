@@ -7,6 +7,7 @@ import { KARMA_SADHANA } from '../data/sadhana';
 import { calculateKarmaProfile } from '../lib/karmaEngine';
 import { buildIntelligenceDecision } from '../lib/intelligence/finalDecision';
 import type { IntelligenceDecision } from '../lib/intelligence/types';
+import DecisionTraceCard from './DecisionTraceCard';
 
 const GUNASTHANA_DATA: Record<number, { name: string; description: string; advice: string }> = {
   1: {
@@ -110,6 +111,10 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
                 <span className="text-sm text-gray-600">स्कोर: {(decision.finalScore * 100).toFixed(0)}%</span>
               </div>
               <p className="text-gray-800 mb-3">{PRIORITY_UI[decision.priority].hint}</p>
+              <p className="text-xs text-gray-500 mb-3">
+                आधार: {decision.fallbackUsed ? 'नियम-आधारित निर्णय' : 'नियम + मॉडल सहायक'}
+              </p>
+              <DecisionTraceCard decision={decision} compact />
               <p className="text-xs text-gray-500">
                 आधार: {decision.fallbackUsed ? 'नियम-आधारित निर्णय' : 'नियम + मॉडल सहायक'}
               </p>
@@ -170,7 +175,7 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
         <>
           {/* SECTION 3: Karma Ashtadal */}
           <section className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm">
-            <h2 className="text-2xl font-bold text-amber-900 mb-6 text-center">अष्ट-कर्म मंडल (Karma Ashtadal)</h2>
+            <h2 className="text-2xl font-bold text-amber-900 mb-6 text-center">अष्ट-कर्म मंडल</h2>
             <p className="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
               यह अष्टदल आपकी आत्मा पर छाए 8 कर्मों के वर्तमान भार (सघनता) को दर्शाता है। प्रत्येक पंखुड़ी पर क्लिक करके जानें कि वह कर्म आज आपके जीवन में किस रूप में प्रकट हो रहा है और उसकी निर्जरा का सटीक मार्ग क्या है।
             </p>
