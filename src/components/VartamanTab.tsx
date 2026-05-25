@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { AnalysisSynthesizer, UserProfile, getTodayContext } from '../lib/engineFacade';
 import { KarmaAshtadal, KarmaPetalData } from './KarmaAshtadal';
 import { KARMA_SADHANA } from '../data/sadhana';
