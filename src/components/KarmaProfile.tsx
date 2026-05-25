@@ -1,7 +1,6 @@
 import React from 'react';
 import { Scale, Info, Zap, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { UserProfile, getTodayContext } from '../lib/engineFacade';
-import { UserProfile } from '../lib/engineFacade';
 import { KARMA_SADHANA } from '../data/sadhana';
 import { calculateKarmaProfile, KarmaState } from '../lib/karmaEngine';
 import { calculateRuleScore } from '../lib/intelligence/ruleScoring';
