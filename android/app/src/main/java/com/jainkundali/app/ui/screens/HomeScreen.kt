@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jainkundali.app.domain.engine.CalendarEngine
 import com.jainkundali.app.domain.models.JainPanchang
+import com.jainkundali.app.ui.theme.NeoPopCard
 import java.util.Calendar
 import java.util.Date
 
@@ -163,38 +164,32 @@ fun HomeScreen(
 
 @Composable
 private fun PanchangCard(panchang: JainPanchang) {
-    ElevatedCard(
+    NeoPopCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+        backgroundColor = MaterialTheme.colorScheme.primaryContainer
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Text(
+            text = "आज का पंचांग",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        PanchangRow("तिथि", panchang.tithi)
+        PanchangRow("वार", panchang.vara)
+        PanchangRow("नक्षत्र", panchang.nakshatra)
+        PanchangRow("पक्ष", panchang.paksha)
+        PanchangRow("मास", panchang.masa)
+
+        panchang.jainFestival?.let { festival ->
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "आज का पंचांग",
-                style = MaterialTheme.typography.titleMedium,
+                text = festival,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            PanchangRow("तिथि", panchang.tithi)
-            PanchangRow("वार", panchang.vara)
-            PanchangRow("नक्षत्र", panchang.nakshatra)
-            PanchangRow("पक्ष", panchang.paksha)
-            PanchangRow("मास", panchang.masa)
-
-            panchang.jainFestival?.let { festival ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = festival,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
         }
     }
 }
@@ -228,14 +223,9 @@ private fun QuickActionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ElevatedCard(
-        modifier = modifier,
-        onClick = onClick
-    ) {
+    NeoPopCard(modifier = modifier, onClick = onClick) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(

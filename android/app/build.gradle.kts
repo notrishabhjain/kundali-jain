@@ -73,4 +73,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // Unit tests for the deterministic domain layer (REFERENCE.md §5 coverage strategy).
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }

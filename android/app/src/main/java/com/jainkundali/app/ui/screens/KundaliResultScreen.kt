@@ -2,6 +2,7 @@ package com.jainkundali.app.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -95,24 +97,42 @@ fun KundaliResultScreen(
                 }
             }
 
-            userProfile?.let { profile ->
-                when (selectedTab) {
-                    0 -> VartamanTab(todaysMessage, profile, intelligence)
-                    1 -> BirthChartTab(profile)
-                    2 -> KarmaProfileTab(karmaProfile)
-                    3 -> PredictionsTab(predictions)
-                    4 -> RemediesTab(remedies, profile)
-                    5 -> DashaTab(profile.currentDasha)
-                    6 -> YantraMantraTab(profile)
-                    7 -> AnushthaanTab(profile)
-                    8 -> KarmaTransitTab(profile)
-                    9 -> VratTab(profile)
-                }
-            } ?: Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+            // Horizontal swipe moves between tabs (REFERENCE.md §7). detectHorizontalDragGestures
+            // waits for horizontal touch-slop, so each tab's vertical scroll is unaffected.
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(selectedTab, tabs.size) {
+                        var totalDrag = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { totalDrag = 0f },
+                            onHorizontalDrag = { _, dragAmount -> totalDrag += dragAmount },
+                            onDragEnd = {
+                                if (totalDrag < -60f && selectedTab < tabs.size - 1) selectedTab += 1
+                                else if (totalDrag > 60f && selectedTab > 0) selectedTab -= 1
+                            }
+                        )
+                    }
             ) {
-                Text("कुंडली उपलब्ध नहीं है। कृपया पहले कुंडली बनाएं।")
+                userProfile?.let { profile ->
+                    when (selectedTab) {
+                        0 -> VartamanTab(todaysMessage, profile, intelligence)
+                        1 -> BirthChartTab(profile)
+                        2 -> KarmaProfileTab(karmaProfile)
+                        3 -> PredictionsTab(predictions)
+                        4 -> RemediesTab(remedies, profile)
+                        5 -> DashaTab(profile.currentDasha)
+                        6 -> YantraMantraTab(profile)
+                        7 -> AnushthaanTab(profile)
+                        8 -> KarmaTransitTab(profile)
+                        9 -> VratTab(profile)
+                    }
+                } ?: Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("कुंडली उपलब्ध नहीं है। कृपया पहले कुंडली बनाएं।")
+                }
             }
         }
     }
