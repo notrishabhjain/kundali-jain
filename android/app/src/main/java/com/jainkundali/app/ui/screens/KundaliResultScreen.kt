@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import com.jainkundali.app.domain.data.getDashaSadhana
 import com.jainkundali.app.domain.data.getKarmaSadhana
 import com.jainkundali.app.domain.data.getNakshatraByName
+import com.jainkundali.app.domain.intelligence.DecisionPriority
+import com.jainkundali.app.domain.intelligence.IntelligenceDecision
 import com.jainkundali.app.domain.models.*
 import com.jainkundali.app.ui.components.KarmaAshtadal
 import com.jainkundali.app.ui.components.PdfGenerator
@@ -36,6 +38,7 @@ fun KundaliResultScreen(
     val predictions by viewModel.predictions.collectAsState()
     val remedies by viewModel.remedies.collectAsState()
     val todaysMessage by viewModel.todaysMessage.collectAsState()
+    val intelligence by viewModel.intelligence.collectAsState()
     val context = LocalContext.current
 
     var selectedTab by remember { mutableStateOf(0) }
@@ -94,7 +97,7 @@ fun KundaliResultScreen(
 
             userProfile?.let { profile ->
                 when (selectedTab) {
-                    0 -> VartamanTab(todaysMessage, profile)
+                    0 -> VartamanTab(todaysMessage, profile, intelligence)
                     1 -> BirthChartTab(profile)
                     2 -> KarmaProfileTab(karmaProfile)
                     3 -> PredictionsTab(predictions)
@@ -116,13 +119,88 @@ fun KundaliResultScreen(
 }
 
 @Composable
-private fun VartamanTab(message: String, profile: UserProfile) {
+private fun DecisionTraceCard(decision: IntelligenceDecision) {
+    val (label, container, onContainer) = when (decision.priority) {
+        DecisionPriority.URGENT -> Triple("अति-प्राथमिक", MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer)
+        DecisionPriority.HIGH -> Triple("उच्च", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
+        DecisionPriority.MEDIUM -> Triple("मध्यम", MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
+        DecisionPriority.LOW -> Triple("सामान्य", MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    var expanded by remember { mutableStateOf(false) }
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+        colors = CardDefaults.elevatedCardColors(containerColor = container)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "आज की साधना-प्राथमिकता",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = onContainer
+                )
+                AssistChip(
+                    onClick = { expanded = !expanded },
+                    label = { Text(label, style = MaterialTheme.typography.labelMedium) }
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "स्कोर: ${(decision.finalScore * 100).toInt()}% • आधार: ${if (decision.fallbackUsed) "नियम-आधारित" else "नियम + मॉडल"}",
+                style = MaterialTheme.typography.bodySmall,
+                color = onContainer
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = if (expanded) "▲ संकेत छिपाएँ" else "▼ कारण देखें (पारदर्शी निर्णय-ट्रेस)",
+                style = MaterialTheme.typography.labelSmall,
+                color = onContainer
+            )
+
+            if (expanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                val active = decision.matchedSignals
+                if (active.isEmpty()) {
+                    Text(
+                        text = "कोई विशेष संकेत सक्रिय नहीं — नियमित साधना निरंतर रखें।",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = onContainer
+                    )
+                } else {
+                    active.forEach { signal ->
+                        val sign = if (signal.polarity > 0) "▲" else "▼"
+                        Text(
+                            text = "$sign ${signal.label} — ${signal.detail}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = onContainer,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VartamanTab(message: String, profile: UserProfile, intelligence: IntelligenceDecision?) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
+        // Rule-first intelligence: transparent "why" trace for today's priority.
+        intelligence?.let {
+            DecisionTraceCard(it)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Pancham Kaal context banner — Digambar Jain doctrinal frame
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),

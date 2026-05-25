@@ -6,6 +6,8 @@ import com.jainkundali.app.data.entities.ProfileEntity
 import com.jainkundali.app.data.preferences.AppPreferences
 import com.jainkundali.app.data.repository.ProfileRepository
 import com.jainkundali.app.domain.engine.*
+import com.jainkundali.app.domain.intelligence.FinalDecision
+import com.jainkundali.app.domain.intelligence.IntelligenceDecision
 import com.jainkundali.app.domain.models.*
 import com.jainkundali.app.domain.data.CITIES
 import kotlinx.coroutines.Job
@@ -59,6 +61,10 @@ class KundaliViewModel(
 
     private val _todaysMessage = MutableStateFlow("")
     val todaysMessage: StateFlow<String> = _todaysMessage.asStateFlow()
+
+    // Rule-first intelligence decision + trace for the current chart (null until generated).
+    private val _intelligence = MutableStateFlow<IntelligenceDecision?>(null)
+    val intelligence: StateFlow<IntelligenceDecision?> = _intelligence.asStateFlow()
 
     private val _citySearchResults = MutableStateFlow<List<City>>(emptyList())
     val citySearchResults: StateFlow<List<City>> = _citySearchResults.asStateFlow()
@@ -134,7 +140,13 @@ class KundaliViewModel(
                 _remedies.value = RemedyEngine.generateRemedies(profile)
 
                 val dayContext = ProfileEngine.getTodayContext()
-                _todaysMessage.value = AnalysisSynthesizer.generateTodaysMessage(profile, dayContext)
+                val rawMessage = AnalysisSynthesizer.generateTodaysMessage(profile, dayContext)
+                // Doctrinal scrub: never let a mokṣa-promising phrase reach the user in Pancham Kaal.
+                val message = PanchamKaalGuard.sanitizeNarrative(rawMessage)
+                _todaysMessage.value = message
+
+                // Rule-first intelligence: transparent signal scoring + graceful model fallback.
+                _intelligence.value = FinalDecision.build(profile, dayContext, message)
 
                 // Single, atomic, idempotent persist — the repository de-duplicates in one
                 // transaction so this can never create a second row for the same person.
