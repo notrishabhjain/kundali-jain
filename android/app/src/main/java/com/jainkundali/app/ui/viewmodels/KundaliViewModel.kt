@@ -8,11 +8,11 @@ import com.jainkundali.app.data.repository.ProfileRepository
 import com.jainkundali.app.domain.engine.*
 import com.jainkundali.app.domain.models.*
 import com.jainkundali.app.domain.data.CITIES
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -100,14 +100,19 @@ class KundaliViewModel(
         }.take(10)
     }
 
+    // Guards against the same generation running twice (double tap / recomposition),
+    // which previously produced duplicate profile rows.
+    private var generateJob: Job? = null
+
     fun generateKundali() {
         val city = _selectedCity.value ?: return
-        _isLoading.value = true
+        if (generateJob?.isActive == true) return
 
-        viewModelScope.launch {
+        _isLoading.value = true
+        generateJob = viewModelScope.launch {
             try {
                 val formData = BirthFormData(
-                    fullName = _fullName.value,
+                    fullName = _fullName.value.trim(),
                     dob = _dob.value,
                     time = _time.value,
                     place = city.hindiName,
@@ -131,35 +136,27 @@ class KundaliViewModel(
                 val dayContext = ProfileEngine.getTodayContext()
                 _todaysMessage.value = AnalysisSynthesizer.generateTodaysMessage(profile, dayContext)
 
-                saveProfile()
+                // Single, atomic, idempotent persist — the repository de-duplicates in one
+                // transaction so this can never create a second row for the same person.
+                persistCurrentProfile(city)
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    fun saveProfile() {
-        val city = _selectedCity.value ?: return
-        viewModelScope.launch {
-            val existing = profileRepository.allProfiles.firstOrNull()?.find { p ->
-                p.name == _fullName.value && p.dateOfBirth == _dob.value && p.birthPlace == city.hindiName
-            }
-            if (existing != null) {
-                appPreferences.setSelectedProfileId(existing.id)
-            } else {
-                val entity = ProfileEntity(
-                    name = _fullName.value,
-                    dateOfBirth = _dob.value,
-                    birthTime = _time.value,
-                    birthPlace = city.hindiName,
-                    latitude = city.latitude,
-                    longitude = city.longitude,
-                    gender = _gender.value
-                )
-                val id = profileRepository.insert(entity)
-                appPreferences.setSelectedProfileId(id)
-            }
-        }
+    private suspend fun persistCurrentProfile(city: City) {
+        val entity = ProfileEntity(
+            name = _fullName.value.trim(),
+            dateOfBirth = _dob.value,
+            birthTime = _time.value,
+            birthPlace = city.hindiName,
+            latitude = city.latitude,
+            longitude = city.longitude,
+            gender = _gender.value
+        )
+        val id = profileRepository.upsert(entity)
+        appPreferences.setSelectedProfileId(id)
     }
 
     private fun populateFromEntity(entity: ProfileEntity) {

@@ -232,8 +232,9 @@ fun KundaliFormScreen(
             // Submit button
             Button(
                 onClick = {
+                    // generateKundali() persists the profile atomically itself — do not also
+                    // call saveProfile() here, that double-save was creating duplicate rows.
                     viewModel.generateKundali()
-                    viewModel.saveProfile()
                     onNavigateToResult()
                 },
                 modifier = Modifier.fillMaxWidth(),
