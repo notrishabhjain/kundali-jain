@@ -1,6 +1,6 @@
 import React from 'react';
 import { Moon, Orbit, Search, Sparkles } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { getNakshatraByName } from '../data/nakshatras';
 import { GRAHAS } from '../data/grahas';
 import { generatePredictions } from '../lib/predictionEngine';

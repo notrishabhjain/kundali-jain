@@ -11,9 +11,13 @@ import VratCalendar from './VratCalendar';
 import TirthaYatra from './TirthaYatra';
 import MuhurtaCalculator from './MuhurtaCalculator';
 import SadhanaDashboard from './SadhanaDashboard';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
+import { getTodayContext } from '../lib/engineFacade';
+import { calculateRuleScore } from '../lib/intelligence/ruleScoring';
+import { composeNarrativeBundle } from '../lib/narrativeComposer';
 import { getKarmaSadhana } from '../data/sadhana';
 import { ShieldCheck } from 'lucide-react';
+import DecisionTraceCard from './DecisionTraceCard';
 
 interface Props {
   profile: UserProfile;
@@ -53,6 +57,9 @@ const ReportPage = ({ children, pageNumber, totalPages }: { children: ReactNode,
 );
 
 const FullPrintableReport = ({ profile, forExport }: Props) => {
+  const today = getTodayContext();
+  const decision = calculateRuleScore(profile, today, profile.dominantKarma);
+  const narrative = composeNarrativeBundle(profile, today, decision);
   return (
     <div className={`${forExport ? 'flex' : 'hidden print:flex'} flex-col bg-white text-black font-sans text-left w-full mx-auto justify-center items-center`} style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact', background: '#f1f5f9' }}>
       
@@ -92,34 +99,34 @@ const FullPrintableReport = ({ profile, forExport }: Props) => {
           <div className="text-center mb-16">
             <h2 className="text-5xl font-bold text-amber-900 inline-block border-b-4 border-amber-300 pb-4 px-12 relative">
                <span className="absolute -left-8 top-1/2 -translate-y-1/2 text-2xl text-amber-400">❖</span>
-               अनुक्रमणिका (Index)
+               अनुक्रमणिका
                <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-2xl text-amber-400">❖</span>
             </h2>
           </div>
           <div className="w-full max-w-3xl mx-auto space-y-6">
             {[
-              { num: '१', title: 'वर्तमान विश्लेषण (Present Analysis)', page: '2' },
-              { num: '२', title: 'अष्ट-कर्म मंडल (Karma Ashtadal)', page: '3' },
-              { num: '३', title: 'जन्म-नक्षत्र विश्लेषण (Nakshatra)', page: '4' },
-              { num: '४', title: 'ग्रह एवं योग (Graha & Yoga)', page: '5' },
-              { num: '५', title: 'कर्म मण्डला (Karma Profile)', page: '6' },
-              { num: '६', title: 'दैनिक चर्या एवं जाप (Routine)', page: '7' },
-              { num: '७', title: 'उन्नत जाप साधना (Jaap Part I)', page: '8' },
-              { num: '८', title: 'उन्नत जाप साधना (Jaap Part II)', page: '9' },
-              { num: '९', title: 'यंत्र साधना भाग १ (Yantra I)', page: '10' },
-              { num: '१०', title: 'यंत्र साधना भाग २ (Yantra II)', page: '11' },
-              { num: '११', title: 'पंच कल्याणक (Visesh Puja I)', page: '12' },
-              { num: '१२', title: 'विशेष पूजा (Visesh Puja II)', page: '13' },
-              { num: '१३', title: 'तंत्र साधना (Tantra Sadhana)', page: '14' },
-              { num: '१४', title: 'धर्ममार्ग भाग १ (Dharma Marg I)', page: '15' },
-              { num: '१५', title: 'धर्ममार्ग भाग २ (Dharma Marg II)', page: '16' },
-              { num: '१६', title: 'पाक्षिक व्रत (Vrat Calendar)', page: '17' },
-              { num: '१७', title: 'तीर्थ यात्रा भाग १ (Pilgrimage I)', page: '18' },
-              { num: '१८', title: 'तीर्थ यात्रा भाग २ (Pilgrimage II)', page: '19' },
-              { num: '१९', title: 'मुहूर्त (Auspicious Timings)', page: '20' },
-              { num: '२०', title: 'साधना ट्रैकर भाग १ (Dashboard I)', page: '21' },
-              { num: '२१', title: 'साधना ट्रैकर भाग २ (Dashboard II)', page: '22' },
-              { num: '२२', title: 'निष्कर्ष (Conclusion)', page: '23' }
+              { num: '१', title: 'वर्तमान विश्लेषण', page: '2' },
+              { num: '२', title: 'अष्ट-कर्म मंडल', page: '3' },
+              { num: '३', title: 'जन्म-नक्षत्र विश्लेषण', page: '4' },
+              { num: '४', title: 'ग्रह एवं योग', page: '5' },
+              { num: '५', title: 'कर्म मण्डला', page: '6' },
+              { num: '६', title: 'दैनिक चर्या एवं जाप', page: '7' },
+              { num: '७', title: 'उन्नत जाप साधना भाग १', page: '8' },
+              { num: '८', title: 'उन्नत जाप साधना भाग २', page: '9' },
+              { num: '९', title: 'यंत्र साधना भाग १', page: '10' },
+              { num: '१०', title: 'यंत्र साधना भाग २', page: '11' },
+              { num: '११', title: 'पंच कल्याणक भाग १', page: '12' },
+              { num: '१२', title: 'विशेष पूजा भाग २', page: '13' },
+              { num: '१३', title: 'तंत्र साधना', page: '14' },
+              { num: '१४', title: 'धर्ममार्ग भाग १', page: '15' },
+              { num: '१५', title: 'धर्ममार्ग भाग २', page: '16' },
+              { num: '१६', title: 'पाक्षिक व्रत', page: '17' },
+              { num: '१७', title: 'तीर्थ यात्रा भाग १', page: '18' },
+              { num: '१८', title: 'तीर्थ यात्रा भाग २', page: '19' },
+              { num: '१९', title: 'मुहूर्त', page: '20' },
+              { num: '२०', title: 'साधना ट्रैकर भाग १', page: '21' },
+              { num: '२१', title: 'साधना ट्रैकर भाग २', page: '22' },
+              { num: '२२', title: 'निष्कर्ष', page: '23' }
             ].map((item, idx) => (
               <div key={idx} className="flex items-center gap-4 group">
                 <span className="text-xl font-bold text-amber-400 min-w-8">{item.num}.</span>
@@ -176,7 +183,12 @@ const FullPrintableReport = ({ profile, forExport }: Props) => {
 
                 <div className="bg-amber-50 p-6 rounded-xl border border-amber-200">
                   <h3 className="text-xl font-bold text-amber-900 mb-3">आज का कर्म-प्रकटन</h3>
-                  <p className="text-lg text-amber-800">{sadhana.dailyManifestation}</p>
+                  <p className="text-lg text-amber-800">{narrative.karmaManifestation}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-blue-900 text-base">{narrative.coreSummary}</p>
+                  <DecisionTraceCard decision={decision} />
                 </div>
               </div>
             </div>

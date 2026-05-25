@@ -8,7 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "check:hindi": "tsx scripts/check-hindi-content.ts",
+    "check:pancham": "tsx scripts/check-pancham-kaal.ts",
+    "check:karma": "tsx scripts/check-karma-quality.ts",
+    "check:pdfparity": "tsx scripts/check-pdf-parity.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

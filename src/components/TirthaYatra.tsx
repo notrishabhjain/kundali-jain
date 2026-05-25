@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Star, Navigation, Shield, Mountain, Heart } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { TIRTHANKARAS } from '../data/tirthankaras';
 
 const KARMA_EN_TO_HI: Record<string, string> = {
