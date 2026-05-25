@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Printer, Download, Fingerprint, Sparkles, Loader2 } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import FullPrintableReport from './FullPrintableReport';
 
 import { toJpeg } from 'html-to-image';

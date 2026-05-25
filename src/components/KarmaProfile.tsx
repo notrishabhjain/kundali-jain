@@ -1,6 +1,6 @@
 import React from 'react';
 import { Scale, Info, Zap, ShieldAlert, AlertTriangle } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { KARMA_SADHANA } from '../data/sadhana';
 import { calculateKarmaProfile, KarmaState } from '../lib/karmaEngine';
 

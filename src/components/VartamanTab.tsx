@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnalysisSynthesizer, UserProfile, getTodayContext } from '../lib/analysisSynthesizer';
+import { AnalysisSynthesizer, UserProfile, getTodayContext } from '../lib/engineFacade';
 import { KarmaAshtadal, KarmaPetalData } from './KarmaAshtadal';
 import { KARMA_SADHANA } from '../data/sadhana';
 

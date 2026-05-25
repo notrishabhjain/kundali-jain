@@ -11,7 +11,7 @@ import TirthaYatra from './TirthaYatra';
 import MuhurtaCalculator from './MuhurtaCalculator';
 import SadhanaDashboard from './SadhanaDashboard';
 import { Compass, BarChart2, Scale, Sparkles, Map, Calendar, Printer, Mountain, Clock, Target, AlertCircle } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { generateRemedies } from '../lib/remedyEngine';
 import { useKundali } from '../context/KundaliContext';
 

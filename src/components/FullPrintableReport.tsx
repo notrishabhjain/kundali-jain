@@ -11,7 +11,7 @@ import VratCalendar from './VratCalendar';
 import TirthaYatra from './TirthaYatra';
 import MuhurtaCalculator from './MuhurtaCalculator';
 import SadhanaDashboard from './SadhanaDashboard';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
 import { ShieldCheck } from 'lucide-react';
 

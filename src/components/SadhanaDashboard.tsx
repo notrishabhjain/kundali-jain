@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Circle, Trophy, Target, Flame, BookOpen, Shield } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
 
 interface SadhanaDashboardProps {

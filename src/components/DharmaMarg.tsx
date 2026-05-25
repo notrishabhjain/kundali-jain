@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Compass, Calendar as CalendarIcon, FileWarning, Route, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
 
 interface DharmaMargProps {

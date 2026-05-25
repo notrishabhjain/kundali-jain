@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, BookOpen, Info, CheckCircle2, RotateCcw, MessageCircle } from 'lucide-react';
-import { UserProfile } from '../lib/analysisSynthesizer';
+import { UserProfile } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
 
 interface MantraData {

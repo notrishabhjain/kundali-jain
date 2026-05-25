@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Calendar, Moon, Sun, AlertCircle, Star } from 'lucide-react';
-import { UserProfile, getUpcomingVratDates, UpcomingVrat } from '../lib/analysisSynthesizer';
+import { UserProfile, getUpcomingVratDates, UpcomingVrat } from '../lib/engineFacade';
 import { NAKSHATRAS } from '../data/nakshatras';
 import { JAIN_ANNUAL_FESTIVALS } from '../data/sadhana';
 
