@@ -8,16 +8,21 @@ class ProfileRepository(private val profileDao: ProfileDao) {
 
     val allProfiles: Flow<List<ProfileEntity>> = profileDao.getAll()
 
-    suspend fun insert(profile: ProfileEntity): Long {
-        return profileDao.insert(profile)
+    /**
+     * Idempotent persist. Returns the canonical profile id whether the person already existed
+     * or was newly created. Safe to call repeatedly / concurrently — never duplicates.
+     */
+    suspend fun upsert(profile: ProfileEntity): Long {
+        return profileDao.findOrCreate(profile)
     }
 
     suspend fun update(profile: ProfileEntity) {
         profileDao.update(profile)
     }
 
+    /** Soft delete — preserves the row so history and re-creation (revive) keep working. */
     suspend fun delete(profile: ProfileEntity) {
-        profileDao.delete(profile)
+        profileDao.softDelete(profile.id, System.currentTimeMillis())
     }
 
     suspend fun getById(id: Long): ProfileEntity? {

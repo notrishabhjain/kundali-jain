@@ -12,8 +12,8 @@ android {
         applicationId = "com.jainkundali.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "2.5.0"
+        versionCode = 3
+        versionName = "2.6.0"
     }
 
     buildTypes {
