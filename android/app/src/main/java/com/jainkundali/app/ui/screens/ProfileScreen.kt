@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jainkundali.app.data.entities.ProfileEntity
+import com.jainkundali.app.ui.theme.NeoPopCard
 import com.jainkundali.app.ui.viewmodels.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,17 +98,13 @@ private fun ProfileCard(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    ElevatedCard(
+    NeoPopCard(
         modifier = Modifier.fillMaxWidth(),
         onClick = onSelect,
-        colors = if (isActive) CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ) else CardDefaults.elevatedCardColors()
+        backgroundColor = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
