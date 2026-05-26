@@ -41,6 +41,7 @@ fun KundaliResultScreen(
     val remedies by viewModel.remedies.collectAsState()
     val todaysMessage by viewModel.todaysMessage.collectAsState()
     val intelligence by viewModel.intelligence.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val context = LocalContext.current
 
     var selectedTab by remember { mutableStateOf(0) }
@@ -131,7 +132,15 @@ fun KundaliResultScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("कुंडली उपलब्ध नहीं है। कृपया पहले कुंडली बनाएं।")
+                    if (isLoading) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("कुंडली बन रही है...")
+                        }
+                    } else {
+                        Text("कुंडली उपलब्ध नहीं है। कृपया पहले कुंडली बनाएं।")
+                    }
                 }
             }
         }
