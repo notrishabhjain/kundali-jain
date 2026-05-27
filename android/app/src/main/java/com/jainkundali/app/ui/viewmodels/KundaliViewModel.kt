@@ -1,5 +1,6 @@
 package com.jainkundali.app.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jainkundali.app.data.entities.ProfileEntity
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -24,6 +26,7 @@ class KundaliViewModel(
 ) : ViewModel() {
 
     val savedProfiles: StateFlow<List<ProfileEntity>> = profileRepository.allProfiles
+        .catch { e -> Log.e("KundaliViewModel", "Loading saved profiles failed", e); emit(emptyList()) }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _fullName = MutableStateFlow("")
@@ -127,30 +130,60 @@ class KundaliViewModel(
                     gender = _gender.value
                 )
 
+                // The compute pipeline must never crash the app. Every engine already has an
+                // internal fallback, but we wrap the orchestration too so an unforeseen throw in
+                // any one layer still yields a renderable chart instead of an uncaught exception.
                 val profile = ProfileEngine.generateUserProfile(formData)
                 _userProfile.value = profile
 
-                _karmaProfile.value = KarmaEngine.calculateKarmaProfile(
-                    profile.dominantKarmaEn,
-                    profile.currentDasha.lord,
-                    profile.gunasthana
-                )
+                _karmaProfile.value = runCatching {
+                    KarmaEngine.calculateKarmaProfile(
+                        profile.dominantKarmaEn,
+                        profile.currentDasha.lord,
+                        profile.gunasthana
+                    )
+                }.getOrDefault(emptyList())
 
-                _predictions.value = PredictionEngine.generatePredictions(profile)
-                _remedies.value = RemedyEngine.generateRemedies(profile)
+                _predictions.value = runCatching {
+                    PredictionEngine.generatePredictions(profile)
+                }.getOrDefault(emptyList())
+
+                _remedies.value = runCatching { RemedyEngine.generateRemedies(profile) }.getOrNull()
 
                 val dayContext = ProfileEngine.getTodayContext()
-                val rawMessage = AnalysisSynthesizer.generateTodaysMessage(profile, dayContext)
-                // Doctrinal scrub: never let a mokṣa-promising phrase reach the user in Pancham Kaal.
-                val message = PanchamKaalGuard.sanitizeNarrative(rawMessage)
+                val message = runCatching {
+                    val rawMessage = AnalysisSynthesizer.generateTodaysMessage(profile, dayContext)
+                    // Doctrinal scrub: never let a mokṣa-promising phrase reach the user in Pancham Kaal.
+                    PanchamKaalGuard.sanitizeNarrative(rawMessage)
+                }.getOrDefault("जय जिनेंद्र। आपकी कुंडली तैयार है।")
                 _todaysMessage.value = message
 
                 // Rule-first intelligence: transparent signal scoring + graceful model fallback.
-                _intelligence.value = FinalDecision.build(profile, dayContext, message)
+                _intelligence.value = runCatching {
+                    FinalDecision.build(profile, dayContext, message)
+                }.getOrNull()
 
-                // Single, atomic, idempotent persist — the repository de-duplicates in one
-                // transaction so this can never create a second row for the same person.
+                // Persisting is isolated: a DB / preferences failure must not blank the chart the
+                // user just generated, so its failure is logged rather than propagated.
                 persistCurrentProfile(city)
+            } catch (t: Throwable) {
+                Log.e("KundaliViewModel", "Kundali generation failed", t)
+                if (_userProfile.value == null) {
+                    // Last-resort fallback so the result screen always has something to render.
+                    _userProfile.value = runCatching {
+                        ProfileEngine.generateUserProfile(
+                            BirthFormData(
+                                fullName = _fullName.value.trim().ifEmpty { "जातक" },
+                                dob = _dob.value.ifEmpty { "2000-01-01" },
+                                time = _time.value.ifEmpty { "12:00" },
+                                place = city.hindiName,
+                                lat = city.latitude.toString(),
+                                lng = city.longitude.toString(),
+                                gender = _gender.value
+                            )
+                        )
+                    }.getOrNull()
+                }
             } finally {
                 _isLoading.value = false
             }
@@ -158,17 +191,19 @@ class KundaliViewModel(
     }
 
     private suspend fun persistCurrentProfile(city: City) {
-        val entity = ProfileEntity(
-            name = _fullName.value.trim(),
-            dateOfBirth = _dob.value,
-            birthTime = _time.value,
-            birthPlace = city.hindiName,
-            latitude = city.latitude,
-            longitude = city.longitude,
-            gender = _gender.value
-        )
-        val id = profileRepository.upsert(entity)
-        appPreferences.setSelectedProfileId(id)
+        runCatching {
+            val entity = ProfileEntity(
+                name = _fullName.value.trim(),
+                dateOfBirth = _dob.value,
+                birthTime = _time.value,
+                birthPlace = city.hindiName,
+                latitude = city.latitude,
+                longitude = city.longitude,
+                gender = _gender.value
+            )
+            val id = profileRepository.upsert(entity)
+            appPreferences.setSelectedProfileId(id)
+        }.onFailure { Log.e("KundaliViewModel", "Persisting profile failed", it) }
     }
 
     private fun populateFromEntity(entity: ProfileEntity) {

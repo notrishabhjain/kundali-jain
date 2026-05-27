@@ -188,12 +188,23 @@ class AnalysisSynthesizer {
 
             val tithiOpening = "आज ${day.tithi} की पावन तिथि है, वार ${day.vara} है। आत्म-निरीक्षण और इंद्रिय-संयम का यह विशेष अवसर है। "
 
-            val astrologicalContext = "आपका जन्म ${profile.birthNakshatraHindi} नक्षत्र (${profile.nakshatraNatureHindi} प्रकृति, पाद ${profile.nakshatraPada}) में हुआ है। यह ${profile.birthRashi} का नक्षत्र है। वर्तमान में आप ${profile.currentDasha.lordHindi} महादशा में हैं (शेष ${profile.currentDasha.yearsRemaining} वर्ष)। ${profile.currentDasha.antardashaHindi} अंतर्दशा चल रही है।\n\n"
+            // Three-layer Jain dasha synthesis: mahādaśā → antardaśā → pratyantardaśā, plus the
+            // tīrthaṅkara-affinity of the birth nakshatra. This is what makes the reading specific
+            // to this chart rather than a generic horoscope.
+            val prat = profile.currentDasha.pratyantardasha
+            val astrologicalContext = "आपका जन्म ${profile.birthNakshatraHindi} नक्षत्र (${profile.nakshatraNatureHindi} प्रकृति, पाद ${profile.nakshatraPada}) में हुआ है। यह ${profile.birthRashi} का नक्षत्र है, और इसका तीर्थंकर-संबंध श्री ${profile.tirthankarAffinityHindi} से है। वर्तमान में तीन-स्तरीय दशा-क्रम इस प्रकार है — महादशा: ${profile.currentDasha.lordHindi} (शेष ${profile.currentDasha.yearsRemaining} वर्ष), अंतर्दशा: ${profile.currentDasha.antardashaHindi}, प्रत्यंतर्दशा: ${prat.lordHindi}। यही संयोग आज की साधना की दिशा तय करता है।\n\n"
 
             val karmaProfile = KarmaEngine.calculateKarmaProfile(profile.dominantKarmaEn, profile.currentDasha.lord, profile.gunasthana)
-            val dominant = karmaProfile.find { it.karmaEn == profile.dominantKarmaEn } ?: karmaProfile[0]
+            val dominant = karmaProfile.find { it.karmaEn == profile.dominantKarmaEn }
+                ?: karmaProfile.firstOrNull()
 
-            val karmaNarrative = "${profile.birthNakshatraHindi} नक्षत्र में जन्मे जातकों में ${dominant.karmaHindi} कर्म का विशेष प्रभाव रहता है। ${profile.currentDasha.lordHindi} दशा में यह कर्म इस रूप में प्रकट होता है: ${dominant.manifestation}\n\n"
+            val resonanceNote = if (profile.dominantKarmaEn == profile.currentDasha.lord) {
+                "विशेष ध्यान दें — आपका जन्मगत प्रबल कर्म और वर्तमान महादशा एक ही (${profile.currentDasha.lordHindi}) हैं, अतः इस कर्म का उदय इस समय सर्वाधिक प्रबल है। "
+            } else ""
+
+            val karmaNarrative = if (dominant != null) {
+                "${profile.birthNakshatraHindi} नक्षत्र में जन्मे जातकों में ${dominant.karmaHindi} कर्म का विशेष प्रभाव रहता है। ${resonanceNote}${profile.currentDasha.lordHindi} दशा में यह कर्म इस रूप में प्रकट होता है: ${dominant.manifestation}\n\nआप वर्तमान में ${profile.gunasthana}वें गुणस्थान पर हैं — पंचम काल में लक्ष्य सम्यग्दर्शन की दृढ़ता और देशव्रत-पालन है।\n\n"
+            } else ""
 
             val remedies = RemedyEngine.generateRemedies(profile)
             val prescription = "${day.tithi} की इस ऊर्जा में आज आपके लिए विशेष साधना है: ${remedies.primarySadhana}\n\nआज ${profile.currentDasha.lordHindi} दशा की चंचलता को सम्यग्दर्शन की दृढ़ता में बदलने का अवसर है। ${remedies.dashaRemedy}"
