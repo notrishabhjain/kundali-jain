@@ -17,6 +17,7 @@ import com.jainkundali.app.domain.data.KARMA_SADHANA
 import com.jainkundali.app.domain.data.getKarmaSadhana
 import com.jainkundali.app.domain.engine.ProfileEngine
 import com.jainkundali.app.domain.models.*
+import kotlinx.coroutines.flow.catch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,7 +25,9 @@ fun KarmaMilanScreen(
     profileRepository: ProfileRepository,
     onNavigateBack: () -> Unit
 ) {
-    val profiles by profileRepository.allProfiles.collectAsState(initial = emptyList())
+    // A DB read error must not crash this screen — degrade to an empty profile list.
+    val profilesFlow = remember { profileRepository.allProfiles.catch { emit(emptyList()) } }
+    val profiles by profilesFlow.collectAsState(initial = emptyList())
     var selectedProfile1 by remember { mutableStateOf<ProfileEntity?>(null) }
     var selectedProfile2 by remember { mutableStateOf<ProfileEntity?>(null) }
     var expanded1 by remember { mutableStateOf(false) }
