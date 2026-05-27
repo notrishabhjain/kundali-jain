@@ -44,6 +44,32 @@ class RuleScoringTest {
     }
 
     @Test
+    fun ghatiyaAntardashaIsScoredIndependentlyOfMahadasha() {
+        val base = baseProfile()
+        // Mahādaśā is aghātiyā (Vedaniya) but the running antardaśā is ghātiyā (Mohaniya):
+        // the antardaśā signal must still fire so within-period turbulence is captured.
+        val withGhatiyaAntar = base.copy(
+            currentDasha = base.currentDasha.copy(
+                lord = "Vedaniya",
+                antardashaInfo = base.currentDasha.antardashaInfo.copy(lord = "Mohaniya")
+            )
+        )
+        val d = RuleScoring.calculate(withGhatiyaAntar, day("शुक्ल"), "सामान्य")
+        assertTrue("ghatiya antardasha signal fires", "ghatiya_antardasha" in d.reasonCodes)
+    }
+
+    @Test
+    fun karmaResonanceFiresWhenDominantKarmaEqualsMahadasha() {
+        val base = baseProfile()
+        val resonant = base.copy(
+            dominantKarmaEn = "Mohaniya",
+            currentDasha = base.currentDasha.copy(lord = "Mohaniya")
+        )
+        val d = RuleScoring.calculate(resonant, day("शुक्ल"), "सामान्य")
+        assertTrue("karma-dasha resonance fires", "karma_dasha_resonance" in d.reasonCodes)
+    }
+
+    @Test
     fun priorityThresholdsAreStable() {
         assertEquals(DecisionPriority.URGENT, RuleScoring.priorityFor(0.80))
         assertEquals(DecisionPriority.HIGH, RuleScoring.priorityFor(0.60))

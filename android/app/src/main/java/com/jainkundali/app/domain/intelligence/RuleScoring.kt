@@ -14,8 +14,14 @@ import com.jainkundali.app.domain.models.UserProfile
  */
 object RuleScoring {
 
+    // The four ghātiyā (soul-obscuring) karmas. Their udaya — as mahādaśā or as the running
+    // antardaśā — raises sādhana priority because they directly veil jñāna / darśana / cāritra.
+    private val GHATIYA = setOf("Gyanavaraniya", "Darshanavaraniya", "Mohaniya", "Antaraya")
+    private val AGHATIYA = setOf("Vedaniya", "Ayushya", "Naam", "Gotra")
+
     fun calculate(profile: UserProfile, day: DayContext, message: String): IntelligenceDecision {
         val dashaLord = profile.currentDasha.lord
+        val antarLord = profile.currentDasha.antardashaInfo.lord
         val gunasthana = profile.gunasthana
         val nature = profile.nakshatraNature
 
@@ -56,6 +62,17 @@ object RuleScoring {
                 matched = Regex("विशेष प्रभाव|प्रकट होता है|चंचलता|तीव्र").containsMatchIn(message),
                 detail = "कर्म-उदय संकेतक वाक्यों से आज की साधना-प्राथमिकता बढ़ती है।"
             ),
+            IntelligenceSignal(
+                key = "ghatiya_antardasha", label = "घातिया अंतर्दशा", weight = 0.14, polarity = 1,
+                matched = antarLord in GHATIYA && antarLord != dashaLord,
+                detail = "चल रही अंतर्दशा घातिया कर्म की है — महादशा के भीतर अतिरिक्त कषाय-उभार का काल।"
+            ),
+            IntelligenceSignal(
+                key = "karma_dasha_resonance", label = "कर्म-दशा अनुनाद", weight = 0.16, polarity = 1,
+                matched = profile.dominantKarmaEn == dashaLord ||
+                    (profile.dominantKarmaEn == "Charitra Mohaniya" && dashaLord == "Mohaniya"),
+                detail = "जन्म का प्रबल कर्म ही वर्तमान महादशा का स्वामी है — उसी कर्म का प्रबल उदय (अनुनाद)।"
+            ),
 
             // ── Negative: favourable conditions lower priority ─────────────────────────
             IntelligenceSignal(
@@ -69,8 +86,13 @@ object RuleScoring {
                 detail = "परम शुभ (तीर्थंकर-जन्म) नक्षत्र साधना के लिए विशेष अनुकूल है।"
             ),
             IntelligenceSignal(
+                key = "shubha_nakshatra", label = "शुभ नक्षत्र", weight = 0.12, polarity = -1,
+                matched = nature == "shubha",
+                detail = "शुभ नक्षत्र प्रकृति साधना के लिए अनुकूल आधार देती है।"
+            ),
+            IntelligenceSignal(
                 key = "aghatiya_dasha", label = "अघातिया दशा", weight = 0.18, polarity = -1,
-                matched = dashaLord in listOf("Vedaniya", "Ayushya", "Naam", "Gotra"),
+                matched = dashaLord in AGHATIYA,
                 detail = "अघातिया-कर्म दशा में आत्म-गुणों का सीधा घात नहीं होता — साधना सहज रहती है।"
             ),
         )
