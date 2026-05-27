@@ -48,7 +48,11 @@ android {
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
+    // enforcedPlatform (not platform): FORCES every androidx.compose.* artifact — including the
+    // transitive animation-core — to the BOM's mutually-tested versions. A plain platform() only
+    // suggests versions and lost to a transitive bump, leaving material3 and animation-core skewed.
+    // That skew made CircularProgressIndicator throw NoSuchMethodError (KeyframesSpec.at) on render.
+    val composeBom = enforcedPlatform("androidx.compose:compose-bom:2024.01.00")
     implementation(composeBom)
 
     implementation("androidx.compose.material3:material3")
@@ -57,6 +61,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.foundation:foundation")
+    // Explicit so the animation modules are first-class in the graph at the enforced version.
+    implementation("androidx.compose.animation:animation")
 
     implementation("androidx.navigation:navigation-compose:2.7.6")
 
