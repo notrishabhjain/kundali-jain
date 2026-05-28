@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jainkundali.app.data.entities.ProfileEntity
 import com.jainkundali.app.domain.models.City
+import com.jainkundali.app.ui.components.JainLoadingSpinner
 import com.jainkundali.app.ui.viewmodels.KundaliViewModel
 import java.util.Calendar
 
@@ -241,8 +242,9 @@ fun KundaliFormScreen(
                 enabled = fullName.isNotBlank() && dob.isNotBlank() && selectedCity != null && !isLoading
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
+                    JainLoadingSpinner(
+                        size = 20.dp,
+                        strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
