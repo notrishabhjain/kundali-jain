@@ -77,7 +77,7 @@ fun WithProfile(
 @Composable
 private fun DefaultLoadingContent() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
+        JainLoadingSpinner()
     }
 }
 

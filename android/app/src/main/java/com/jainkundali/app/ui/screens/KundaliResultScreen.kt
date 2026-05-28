@@ -25,6 +25,7 @@ import com.jainkundali.app.domain.data.getNakshatraByName
 import com.jainkundali.app.domain.intelligence.DecisionPriority
 import com.jainkundali.app.domain.intelligence.IntelligenceDecision
 import com.jainkundali.app.domain.models.*
+import com.jainkundali.app.ui.components.JainLoadingSpinner
 import com.jainkundali.app.ui.components.KarmaAshtadal
 import com.jainkundali.app.ui.components.PdfGenerator
 import com.jainkundali.app.ui.viewmodels.KundaliViewModel
@@ -134,7 +135,7 @@ fun KundaliResultScreen(
                 ) {
                     if (isLoading) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
+                            JainLoadingSpinner()
                             Spacer(modifier = Modifier.height(16.dp))
                             Text("कुंडली बन रही है...")
                         }
