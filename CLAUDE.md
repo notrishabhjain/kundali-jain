@@ -17,6 +17,27 @@ A production-quality Digambar Jain spiritual kundali app. No generic horoscope �
 - `JAIN NAKSHATRA RULING FRAMEWORK.md` → `src/data/nakshatras.ts`
 - `jain_sadhana_complete_data.md` → `src/data/sadhana.ts` (Phase 2)
 
+## Canonical doctrinal sources (`references/`)
+
+**`references/sources.md`** is the source-of-truth manifest cataloguing every Digambar
+Jain primary text used to ground this engine — Tiloyapannatti, Trilokasara,
+Shatkhandagama, Chandra/Surya Pragnapati, Ganita Sara Sangraha, Bharatiya Jyotish,
+Shatabdi Panchang 1950-2050, and the Codex Master Prompt distillation.
+
+**Rules for using references in code:**
+- Any doctrinal assertion (karma rule, nakshatra-tirthankar mapping, dasha law,
+  remedy prescription, mantra text) in `src/engine/*` or
+  `android/.../domain/engine/*` MUST carry a citation comment of the form
+  `// Source: <source-id> §<section>` (e.g. `// Source: MP-§F1` or
+  `// Source: TLP-1 ch. 7`).
+- If a required doctrinal point is **not yet** in any catalogued source, mark the
+  code with `// [REQUIRES_RESEARCH] <what is missing>` and surface it in the PR
+  description. Never invent spiritual data (Codex Master Prompt constraint C4).
+- When a new extraction is produced (OCR'd chapter, NotebookLM-saved note,
+  pasted Q&A), save it under `references/extracted/<source-id>__<topic>.md`
+  with the YAML front-matter shown in `references/sources.md`, then update the
+  citation in `sources.md` so it's discoverable.
+
 ## Architecture
 ```
 src/
