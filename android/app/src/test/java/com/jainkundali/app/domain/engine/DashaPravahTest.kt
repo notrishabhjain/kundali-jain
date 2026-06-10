@@ -40,7 +40,7 @@ class DashaPravahTest {
     @Test
     fun layer2_wrapsAroundTheLunarMonth() {
         // birth = 28, today = 3 → offset (3 - 28 + 30) mod 30 = 5 → KARMA_PEAK.
-        val out = DashaEngine.tithiPravah(birth = 28, today = 3)
+        val out = DashaEngine.tithiPravah(birthTithi = 28, todayTithi = 3)
         assertEquals(5, out.offsetFromBirthTithi)
         assertEquals(DashaEngine.TithiPravahStatus.KARMA_PEAK, out.status)
     }
@@ -49,11 +49,11 @@ class DashaPravahTest {
     fun layer2_returnsSamanyaWhenEitherTithiUnknown() {
         assertEquals(
             DashaEngine.TithiPravahStatus.SAMANYA,
-            DashaEngine.tithiPravah(birth = 0, today = 5).status
+            DashaEngine.tithiPravah(birthTithi = 0, todayTithi = 5).status
         )
         assertEquals(
             DashaEngine.TithiPravahStatus.SAMANYA,
-            DashaEngine.tithiPravah(birth = 5, today = 0).status
+            DashaEngine.tithiPravah(birthTithi = 5, todayTithi = 0).status
         )
     }
 
