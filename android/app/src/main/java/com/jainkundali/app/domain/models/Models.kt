@@ -259,7 +259,10 @@ data class UserProfile(
     val dominantKarma: String,
     val dominantKarmaEn: String,
     val gunasthana: Int,
-    val formData: BirthFormData
+    val formData: BirthFormData,
+    // 1..30 tithi of the lunar month at birth; 0 = unknown. Drives the Tithi Pravāh
+    // dashā layer (MP-§D2 L2) — karma peak / nirjarā day computation.
+    val birthTithiNum: Int = 0
 )
 
 data class City(
@@ -294,7 +297,10 @@ data class DayContext(
     val tithi: String,
     val vara: String,
     val nakshatra: String,
-    val paksha: String
+    val paksha: String,
+    // 1..30 lunar-month tithi number (1..15 śukla, 16..30 kṛṣṇa); 0 = unknown.
+    // Needed for the Tithi Pravāh dashā layer (MP-§D2 L2).
+    val tithiNum: Int = 0
 )
 
 data class MantraEntry(

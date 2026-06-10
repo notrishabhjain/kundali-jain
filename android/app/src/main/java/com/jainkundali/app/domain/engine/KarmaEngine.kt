@@ -41,9 +41,15 @@ object KarmaEngine {
         // primary karmas. Map it onto Mohaniya so the प्रबल-boost still lands.
         val effectiveDominant = if (dominantKarmaEn == "Charitra Mohaniya") "Mohaniya" else dominantKarmaEn
 
+        // Gunasthāna is capped at 4 in Pancham Kāla (Samyak Darshan is the ceiling — no muni
+        // gunasthānas attainable). Source: MP-§D2 L3 + Codex constraint G2-C3.
+        val effectiveGunasthana = gunasthana.coerceIn(1, DashaEngine.PANCHAM_KAAL_MAX_GUNASTHANA)
+
         return ALL_KARMAS.map { karma ->
             val sadhana = KARMA_SADHANA[karma.en]
-            var intensity = karma.base
+            // LAYER 3 modifier: the 5th-Ara karma environment intensifies every karma's
+            // operative load by 1.4x before person-specific modifiers. Source: MP-§D2 L3.
+            var intensity = (karma.base * DashaEngine.PANCHAM_KAAL_KARMA_FACTOR).toInt()
             var state = "Satta"
 
             if (karma.en == effectiveDominant) {
@@ -56,8 +62,8 @@ object KarmaEngine {
                 state = "Udaya"
             }
 
-            if (gunasthana > 1) {
-                intensity -= (gunasthana - 1) * 5
+            if (effectiveGunasthana > 1) {
+                intensity -= (effectiveGunasthana - 1) * 5
                 if (intensity < 40) state = "Nirjara"
             }
 

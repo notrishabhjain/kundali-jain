@@ -79,7 +79,9 @@ object ProfileEngine {
         if (dashaLord == "Vedaniya" && base > 2) {
             base = maxOf(2, base - 1)
         }
-        return base
+        // Pancham Kāla ceiling: Gunasthāna 4 (Samyak Darshan) is the maximum attainable in
+        // this era — muni gunasthānas (6+) are not possible. Source: MP-§D2 L3 + G2-C3.
+        return base.coerceIn(1, DashaEngine.PANCHAM_KAAL_MAX_GUNASTHANA)
     }
 
     fun generateUserProfile(data: BirthFormData): UserProfile {
@@ -102,6 +104,18 @@ object ProfileEngine {
             val tirthankar = getTirthankarAffinity(nakshatra)
             val gunasthana = estimateGunasthana(nakshatra.nature.key, dasha.lord)
 
+            // Birth tithi (1..30) from sun-moon elongation at birth — feeds the Tithi Pravāh
+            // dashā layer (MP-§D2 L2). Falls back to 0 (unknown) on computation failure.
+            val birthTithi: Int = try {
+                val jde = AstronomyUtils.toJulianDay(data.dob, data.time.ifEmpty { "12:00" })
+                val elong = AstronomyUtils.normDeg(
+                    AstronomyUtils.getMoonTropicalLongitude(jde) - AstronomyUtils.getSunLongitude(jde)
+                )
+                (elong / 12.0).toInt() + 1
+            } catch (e: Exception) {
+                0
+            }
+
             val karmaType = nakshatra.karmaType.key
             val dominantKarmaHindi = KARMA_HINDI[karmaType] ?: karmaType
 
@@ -122,7 +136,8 @@ object ProfileEngine {
                 dominantKarma = dominantKarmaHindi,
                 dominantKarmaEn = karmaType,
                 gunasthana = gunasthana,
-                formData = data
+                formData = data,
+                birthTithiNum = birthTithi
             )
         } catch (e: Exception) {
             // Safe fallback profile
@@ -176,7 +191,8 @@ object ProfileEngine {
             tithi = tithi,
             vara = vara,
             nakshatra = todayNakshatra.hindiName,
-            paksha = paksha
+            paksha = paksha,
+            tithiNum = tithiNum.coerceIn(1, 30)
         )
     }
 }
@@ -203,6 +219,13 @@ class AnalysisSynthesizer {
 
             val tithiOpening = "आज ${day.tithi} की पावन तिथि है, वार ${day.vara} है। आत्म-निरीक्षण और इंद्रिय-संयम का यह विशेष अवसर है। "
 
+            // LAYER 2 — Tithi Pravāh: relate today's tithi to the birth tithi (karma peak /
+            // nirjarā day). Source: MP-§D2 L2 + MP-§E3 P1 ("आज [tithi] है — और आपके जन्म तिथि
+            // से इसका [distance] का संबंध है").
+            val pravah = DashaEngine.tithiPravah(profile.birthTithiNum, day.tithiNum)
+            val tithiPravahLine =
+                if (pravah.offsetFromBirthTithi >= 0) pravah.detail + " " else ""
+
             // Three-layer Jain dasha synthesis: mahādaśā → antardaśā → pratyantardaśā, plus the
             // tīrthaṅkara-affinity of the birth nakshatra. This is what makes the reading specific
             // to this chart rather than a generic horoscope.
@@ -224,7 +247,7 @@ class AnalysisSynthesizer {
             val remedies = RemedyEngine.generateRemedies(profile)
             val prescription = "${day.tithi} की इस ऊर्जा में आज आपके लिए विशेष साधना है: ${remedies.primarySadhana}\n\nआज ${profile.currentDasha.lordHindi} दशा की चंचलता को सम्यग्दर्शन की दृढ़ता में बदलने का अवसर है। ${remedies.dashaRemedy}"
 
-            return greeting + tithiOpening + astrologicalContext + karmaNarrative + prescription
+            return greeting + tithiOpening + tithiPravahLine + astrologicalContext + karmaNarrative + prescription
         }
     }
 }
