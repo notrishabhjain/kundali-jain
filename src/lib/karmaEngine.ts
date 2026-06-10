@@ -1,3 +1,13 @@
+// 8-karma analysis engine — Digambar karma-siddhānta.
+//
+// Sources (see references/sources.md):
+//  - The 8 karmas (4 ghātiyā + 4 aghātiyā): Shatkhandagama (SKD), distilled in MP-§G2/C and
+//    MP-§F1 (Namokar's 5-pada → karma-pair mapping).
+//  - State labels Udaya / Sattā / Nirjarā: SKD karma-prakṛti chapter; MP-§D4 engine contract.
+//  - Intensity weights per karma: baseline from MP-§C1 (relative prabal-tā). Exact numeric
+//    weights are [REQUIRES_RESEARCH] pending OCR of SKD verses.
+//  - Gunasthāna damping: MP-§D4 + classical śloka "yathā-yathā gunasthāna-vṛddhi tathā tathā
+//    karma-kṣaya".
 import { KARMA_SADHANA } from '../data/sadhana';
 import type { KarmaInsight } from '../types/karmaInsights';
 

@@ -181,6 +181,21 @@ object ProfileEngine {
     }
 }
 
+/**
+ * Narrative synthesizer — produces the "आज का संदेश" (today's message) by weaving the user's
+ * birth nakshatra, three-layer dashā (mahā / antar / pratyantar), dominant karma manifestation,
+ * gunasthāna, today's tithi/vāra, and the prescribed sādhana into one personal reading.
+ *
+ * Sources (see references/sources.md):
+ *  - Output contract (200-300 word personalized daily briefing): MP-§D1 + MP-§E3 (Section P1).
+ *  - Voice rules — always 'आप', never generic, every sentence must contain a specific data
+ *    point from this person's kundalī, every karma statement must carry a daily-life
+ *    manifestation, every remedy must have count + timing + karma-connection: MP-§G1 R1-R5.
+ *  - Pancham-Kāla doctrinal scrub (no mokṣa promise — only samyak-darśana / dev-gati / punya
+ *    bandha): Codex constraint G2-C3; final pass via [PanchamKaalGuard.sanitizeNarrative].
+ *  - Three-layer dashā synthesis (mahā → antar → pratyantar): MP-§D2.
+ *  - Tirthankara affinity weaving: MP-§C1 + MP-§C2.
+ */
 class AnalysisSynthesizer {
     companion object {
         fun generateTodaysMessage(profile: UserProfile, day: DayContext): String {

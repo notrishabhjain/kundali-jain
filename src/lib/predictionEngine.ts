@@ -1,3 +1,14 @@
+// Life-domain predictions (7 domains: Spiritual, Health, Wealth, Family, Career, Character,
+// After-death trajectory).
+//
+// Sources (see references/sources.md):
+//  - Domain decomposition: MP-§E2 + MP-§D5.
+//  - "No false promises" voice — every domain frames outcomes as "creates conditions for"
+//    rather than guaranteed: Codex constraint G2-C2.
+//  - Pancham-Kāla honesty in After-death trajectory (no mokṣa; uttam dev-gati / manuṣya-gati
+//    is the achievable goal): Codex constraint G2-C3 + MP-§C3.
+//  - Karma-domain wiring (Mohaniya → Family/Character, Antaraya → Wealth/Career,
+//    Vedaniya → Health, Gyānāvaraṇīya → Career/Spiritual, Gotra → Family): MP-§C1 + MP-§D4.
 import { UserProfile } from './analysisSynthesizer';
 import { KARMA_SADHANA } from '../data/sadhana';
 

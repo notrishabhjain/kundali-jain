@@ -4,6 +4,19 @@ import com.jainkundali.app.domain.models.Nakshatra
 import com.jainkundali.app.domain.models.NakshatraNature
 import com.jainkundali.app.domain.models.KarmaType
 
+/**
+ * 27 nakshatras + Abhijit, grounded in Digambar Jain doctrine — Jyotishi Dev (NOT Vedic devas),
+ * tirthankar-birth associations, nature (param_shubha / shubha / mishra / ashubha), and karma type.
+ *
+ * Sources (see references/sources.md):
+ *  - Tirthankar-birth nakshatra mapping: MP-§C2 (Codex Master Prompt — Tirthankara block),
+ *    cross-checked against TLP-1 / TRK / BJ-NCS-1 when those texts are OCR'd (currently scanned).
+ *  - Nakshatra nature classification (param_shubha = tirthankar-birth): MP-§C1 rule.
+ *  - Karma-type ↔ nakshatra mapping: MP-§C1 (Codex distillation). Verse-level grounding from
+ *    Tiloyapannatti / Trilokasara is pending OCR — flagged as [REQUIRES_RESEARCH] where
+ *    the master prompt is silent.
+ *  - Abhijit (28th, mokṣa-nakshatra of Rishabhanatha's nirvana): MP-§C1 + TLP-1.
+ */
 val NAKSHATRAS: List<Nakshatra> = listOf(
     Nakshatra(
         index = 0, name = "Ashvini", hindiName = "अश्विनी",

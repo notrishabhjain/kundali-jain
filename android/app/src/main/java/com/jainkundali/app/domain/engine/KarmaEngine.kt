@@ -5,6 +5,22 @@ import com.jainkundali.app.domain.data.KARMA_SADHANA
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * 8-karma analysis engine — Digambar karma-siddhānta.
+ *
+ * Sources (see references/sources.md):
+ *  - The 8 karmas (4 ghātiyā + 4 aghātiyā): Shatkhandagama (SKD), distilled in MP-§G2/C and
+ *    MP-§F1 (Namokar's 5-pada → karma-pair mapping).
+ *  - State labels Udaya / Sattā / Nirjarā: SKD karma-prakṛti chapter — the three operative
+ *    states of a karma-prakṛti at any instant; MP-§D4 for engine contract.
+ *  - Intensity weights per karma (Mohaniya 65, Antaraya 60, Vedaniya 50, etc.): baseline
+ *    derived from MP-§C1 (relative prabal-tā). Verse-level support for the exact numeric
+ *    weights is pending OCR of SKD — flagged [REQUIRES_RESEARCH] until cited from a verse.
+ *  - Gunasthāna damping (each step ≥ 2 reduces intensity): MP-§D4 + classical śloka
+ *    "yathā-yathā gunasthāna-vṛddhi tathā tathā karma-kṣaya".
+ *  - Charitra Mohaniya is a sub-prakṛti of Mohaniya — not a separate primary karma; the
+ *    aliasing here matches MP-§C1's treatment.
+ */
 object KarmaEngine {
 
     private data class KarmaBase(val en: String, val hi: String, val base: Int)

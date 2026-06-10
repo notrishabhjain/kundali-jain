@@ -6,6 +6,23 @@ import com.jainkundali.app.domain.models.PratyantardashInfo
 import com.jainkundali.app.domain.data.getNakshatraByDegree
 import kotlin.math.*
 
+/**
+ * Jain dashā engine. Uses the 8-karma cycle (Gyānāvaraṇīya → Antarāya, not Vedic Vimśottarī)
+ * with a 3-level decomposition: Mahādaśā → Antardaśā → Pratyantardaśā.
+ *
+ * Sources (see references/sources.md):
+ *  - 8-karma dashā ordering: MP-§D2 + Codex constraint G2-C1 (zero Vedic mixing).
+ *  - Per-lord year allotments (Mohaniya 20, Vedaniya 15, Naam 14, Gyānāvaraṇīya 12, Antaraya 12,
+ *    Gotra 10, Darśanāvaraṇīya 9, Āyuṣya 8): MP-§D2. These are the Codex distillation;
+ *    verse-level grounding in Tiloyapannatti / Trilokasara is pending OCR — flagged
+ *    [REQUIRES_RESEARCH] until cited.
+ *  - Antardaśā / Pratyantardaśā proportional sub-allocation (lord-years / 100 × parent-years):
+ *    standard Jain treatment, MP-§D2.
+ *  - Birth-nakshatra → starting-lord mapping (nakshatra-index mod 8): MP-§D2's "Nakshatra
+ *    Pravāh Daśā" layer; the third "Tithi Pravāh" + "Pancham Kāla Position Modifier" layers
+ *    from MP-§D2 are [REQUIRES_RESEARCH] — not yet implemented here. This is a known gap to
+ *    address in a follow-up phase.
+ */
 object DashaEngine {
 
     val JAIN_DASHA_ORDER = listOf(
