@@ -1,5 +1,6 @@
 package com.jainkundali.app.domain.intelligence
 
+import com.jainkundali.app.domain.engine.DashaEngine
 import com.jainkundali.app.domain.models.DayContext
 import com.jainkundali.app.domain.models.UserProfile
 
@@ -24,6 +25,10 @@ object RuleScoring {
         val antarLord = profile.currentDasha.antardashaInfo.lord
         val gunasthana = profile.gunasthana
         val nature = profile.nakshatraNature
+
+        // LAYER 2 Tithi Pravāh status for today (MP-§D2 L2) — both karma-peak and nirjarā days
+        // raise sādhana priority, for different doctrinal reasons (vigilance vs. opportunity).
+        val pravah = DashaEngine.tithiPravah(profile.birthTithiNum, day.tithiNum)
 
         val signals = listOf(
             // ── Positive: karmic intensity raises priority ─────────────────────────────
@@ -72,6 +77,18 @@ object RuleScoring {
                 matched = profile.dominantKarmaEn == dashaLord ||
                     (profile.dominantKarmaEn == "Charitra Mohaniya" && dashaLord == "Mohaniya"),
                 detail = "जन्म का प्रबल कर्म ही वर्तमान महादशा का स्वामी है — उसी कर्म का प्रबल उदय (अनुनाद)।"
+            ),
+            // Source: MP-§D2 L2 — birth tithi / +5 / +10 are karma-udaya peak days.
+            IntelligenceSignal(
+                key = "tithi_karma_peak", label = "तिथि-प्रवाह: कर्म-शिखर दिवस", weight = 0.16, polarity = 1,
+                matched = pravah.status == DashaEngine.TithiPravahStatus.KARMA_PEAK,
+                detail = "आज की तिथि जन्म-तिथि से कर्म-उदय शिखर पर है — संयम में विशेष सजगता आवश्यक।"
+            ),
+            // Source: MP-§D2 L2 — +6 / +11 / +16 from birth tithi are nirjarā-opportunity days.
+            IntelligenceSignal(
+                key = "tithi_nirjara_day", label = "तिथि-प्रवाह: निर्जरा दिवस", weight = 0.12, polarity = 1,
+                matched = pravah.status == DashaEngine.TithiPravahStatus.NIRJARA,
+                detail = "आज निर्जरा-तिथि है — तप और स्वाध्याय का फल कई गुना, अवसर न चूकें।"
             ),
 
             // ── Negative: favourable conditions lower priority ─────────────────────────

@@ -1,3 +1,18 @@
+// Narrative synthesizer — weaves nakshatra, three-layer dashā, dominant karma, gunasthāna,
+// today's pañcāṅga, and prescribed sādhana into one personal reading.
+//
+// Sources (see references/sources.md):
+//  - Output contract (200-300 word personalized daily briefing): MP-§D1 + MP-§E3 (Section P1).
+//  - Voice rules — always 'आप', never generic, every karma statement must carry a daily-life
+//    manifestation, every remedy must have count + timing + karma-connection: MP-§G1 R1-R5.
+//  - Pancham-Kāla doctrinal scrub (no mokṣa promise — only samyak-darśana / dev-gati / punya
+//    bandha): Codex constraint G2-C3.
+//  - Three-layer dashā synthesis (mahā → antar → pratyantar): MP-§D2.
+//  - Tirthankara affinity weaving: MP-§C1 + MP-§C2.
+//
+// NOTE: VIMSHOTTARI_* imports below are legacy placeholders from Phase 1 (web). The doctrinally
+// correct system is the 8-karma Jain dashā in [dashaEngine.ts]; the Kotlin engine already uses
+// it. Migrating web away from Vimshottari naming is tracked as [REQUIRES_RESEARCH] follow-up.
 import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/nakshatras';
 import { VIMSHOTTARI_ORDER, VIMSHOTTARI_YEARS, VIMSHOTTARI_HINDI } from '../data/grahas';
 

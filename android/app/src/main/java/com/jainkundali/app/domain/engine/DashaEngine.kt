@@ -6,7 +6,77 @@ import com.jainkundali.app.domain.models.PratyantardashInfo
 import com.jainkundali.app.domain.data.getNakshatraByDegree
 import kotlin.math.*
 
+/**
+ * Jain dashā engine. Uses the 8-karma cycle (Gyānāvaraṇīya → Antarāya, not Vedic Vimśottarī)
+ * with a 3-level decomposition: Mahādaśā → Antardaśā → Pratyantardaśā.
+ *
+ * Sources (see references/sources.md):
+ *  - 8-karma dashā ordering: MP-§D2 + Codex constraint G2-C1 (zero Vedic mixing).
+ *  - Per-lord year allotments (Mohaniya 20, Vedaniya 15, Naam 14, Gyānāvaraṇīya 12, Antaraya 12,
+ *    Gotra 10, Darśanāvaraṇīya 9, Āyuṣya 8): MP-§D2. These are the Codex distillation;
+ *    verse-level grounding in Tiloyapannatti / Trilokasara is pending OCR — flagged
+ *    [REQUIRES_RESEARCH] until cited.
+ *  - Antardaśā / Pratyantardaśā proportional sub-allocation (lord-years / 100 × parent-years):
+ *    standard Jain treatment, MP-§D2.
+ *  - Birth-nakshatra → starting-lord mapping (nakshatra-index mod 8): MP-§D2's "Nakshatra
+ *    Pravāh Daśā" layer (LAYER 1).
+ *  - LAYER 2 "Tithi Pravāh" (monthly karma peak / nirjarā days relative to the birth tithi)
+ *    and LAYER 3 "Pancham Kāla Position Modifier" are implemented below per MP-§D2.
+ */
 object DashaEngine {
+
+    // ── LAYER 3: Pancham Kāla position modifier ─────────────────────────────────────────────
+    // Source: MP-§D2 L3 — "We are ~2,550 years into the 21,000-year 5th Ara. Apply 1.4x karma
+    // environment factor to all predictions. Max achievable: Gunasthana 4 (Samyak Darshan)."
+    const val PANCHAM_KAAL_TOTAL_YEARS = 21000
+    const val PANCHAM_KAAL_ELAPSED_YEARS = 2550
+    const val PANCHAM_KAAL_KARMA_FACTOR = 1.4
+    const val PANCHAM_KAAL_MAX_GUNASTHANA = 4
+
+    /** Fraction of the 5th Ara already elapsed (≈ 0.121). Source: MP-§D2 L3. */
+    fun panchamKaalPosition(): Double =
+        PANCHAM_KAAL_ELAPSED_YEARS.toDouble() / PANCHAM_KAAL_TOTAL_YEARS
+
+    // ── LAYER 2: Tithi Pravāh (monthly tithi cycle vs. birth tithi) ─────────────────────────
+    // Source: MP-§D2 L2 — karma PEAK days are the birth tithi and the 5th and 10th tithi from
+    // it; karma NIRJARĀ days are the 6th, 11th and 16th tithi from it (offsets within the
+    // 30-tithi lunar month).
+
+    enum class TithiPravahStatus { KARMA_PEAK, NIRJARA, SAMANYA }
+
+    data class TithiPravah(
+        val status: TithiPravahStatus,
+        // 0..29 — how many tithis today is ahead of the birth tithi in the lunar month.
+        val offsetFromBirthTithi: Int,
+        val detail: String
+    )
+
+    /**
+     * Layer-2 status for today. [birthTithi] and [todayTithi] are 1..30 lunar-month tithi
+     * numbers; returns SAMANYA when either is unknown (0). Source: MP-§D2 L2.
+     */
+    fun tithiPravah(birthTithi: Int, todayTithi: Int): TithiPravah {
+        if (birthTithi !in 1..30 || todayTithi !in 1..30) {
+            return TithiPravah(TithiPravahStatus.SAMANYA, -1, "तिथि-प्रवाह की गणना उपलब्ध नहीं है।")
+        }
+        val offset = ((todayTithi - birthTithi) % 30 + 30) % 30
+        return when (offset) {
+            // Source: MP-§D2 L2 — birth tithi, 5th and 10th from it = karma peak days.
+            0, 5, 10 -> TithiPravah(
+                TithiPravahStatus.KARMA_PEAK, offset,
+                "आज की तिथि आपकी जन्म-तिथि से $offset स्थान पर है — कर्म-उदय का शिखर दिवस। आज संयम और साधना में विशेष सजगता रखें।"
+            )
+            // Source: MP-§D2 L2 — 6th, 11th and 16th from birth tithi = karma nirjarā days.
+            6, 11, 16 -> TithiPravah(
+                TithiPravahStatus.NIRJARA, offset,
+                "आज की तिथि आपकी जन्म-तिथि से $offset स्थान पर है — कर्म-निर्जरा का विशेष अवसर। आज का तप, उपवास और स्वाध्याय कई गुना फलदायी है।"
+            )
+            else -> TithiPravah(
+                TithiPravahStatus.SAMANYA, offset,
+                "आज की तिथि आपकी जन्म-तिथि से $offset स्थान पर है — सामान्य प्रवाह। नित्य-नियम निरंतर रखें।"
+            )
+        }
+    }
 
     val JAIN_DASHA_ORDER = listOf(
         "Gyanavaraniya", "Darshanavaraniya", "Vedaniya", "Mohaniya",

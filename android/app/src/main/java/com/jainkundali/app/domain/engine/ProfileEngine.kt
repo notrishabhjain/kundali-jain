@@ -79,7 +79,9 @@ object ProfileEngine {
         if (dashaLord == "Vedaniya" && base > 2) {
             base = maxOf(2, base - 1)
         }
-        return base
+        // Pancham Kāla ceiling: Gunasthāna 4 (Samyak Darshan) is the maximum attainable in
+        // this era — muni gunasthānas (6+) are not possible. Source: MP-§D2 L3 + G2-C3.
+        return base.coerceIn(1, DashaEngine.PANCHAM_KAAL_MAX_GUNASTHANA)
     }
 
     fun generateUserProfile(data: BirthFormData): UserProfile {
@@ -102,6 +104,18 @@ object ProfileEngine {
             val tirthankar = getTirthankarAffinity(nakshatra)
             val gunasthana = estimateGunasthana(nakshatra.nature.key, dasha.lord)
 
+            // Birth tithi (1..30) from sun-moon elongation at birth — feeds the Tithi Pravāh
+            // dashā layer (MP-§D2 L2). Falls back to 0 (unknown) on computation failure.
+            val birthTithi: Int = try {
+                val jde = AstronomyUtils.toJulianDay(data.dob, data.time.ifEmpty { "12:00" })
+                val elong = AstronomyUtils.normDeg(
+                    AstronomyUtils.getMoonTropicalLongitude(jde) - AstronomyUtils.getSunLongitude(jde)
+                )
+                (elong / 12.0).toInt() + 1
+            } catch (e: Exception) {
+                0
+            }
+
             val karmaType = nakshatra.karmaType.key
             val dominantKarmaHindi = KARMA_HINDI[karmaType] ?: karmaType
 
@@ -122,7 +136,8 @@ object ProfileEngine {
                 dominantKarma = dominantKarmaHindi,
                 dominantKarmaEn = karmaType,
                 gunasthana = gunasthana,
-                formData = data
+                formData = data,
+                birthTithiNum = birthTithi
             )
         } catch (e: Exception) {
             // Safe fallback profile
@@ -176,17 +191,40 @@ object ProfileEngine {
             tithi = tithi,
             vara = vara,
             nakshatra = todayNakshatra.hindiName,
-            paksha = paksha
+            paksha = paksha,
+            tithiNum = tithiNum.coerceIn(1, 30)
         )
     }
 }
 
+/**
+ * Narrative synthesizer — produces the "आज का संदेश" (today's message) by weaving the user's
+ * birth nakshatra, three-layer dashā (mahā / antar / pratyantar), dominant karma manifestation,
+ * gunasthāna, today's tithi/vāra, and the prescribed sādhana into one personal reading.
+ *
+ * Sources (see references/sources.md):
+ *  - Output contract (200-300 word personalized daily briefing): MP-§D1 + MP-§E3 (Section P1).
+ *  - Voice rules — always 'आप', never generic, every sentence must contain a specific data
+ *    point from this person's kundalī, every karma statement must carry a daily-life
+ *    manifestation, every remedy must have count + timing + karma-connection: MP-§G1 R1-R5.
+ *  - Pancham-Kāla doctrinal scrub (no mokṣa promise — only samyak-darśana / dev-gati / punya
+ *    bandha): Codex constraint G2-C3; final pass via [PanchamKaalGuard.sanitizeNarrative].
+ *  - Three-layer dashā synthesis (mahā → antar → pratyantar): MP-§D2.
+ *  - Tirthankara affinity weaving: MP-§C1 + MP-§C2.
+ */
 class AnalysisSynthesizer {
     companion object {
         fun generateTodaysMessage(profile: UserProfile, day: DayContext): String {
             val greeting = "जय जिनेंद्र।\n\n"
 
             val tithiOpening = "आज ${day.tithi} की पावन तिथि है, वार ${day.vara} है। आत्म-निरीक्षण और इंद्रिय-संयम का यह विशेष अवसर है। "
+
+            // LAYER 2 — Tithi Pravāh: relate today's tithi to the birth tithi (karma peak /
+            // nirjarā day). Source: MP-§D2 L2 + MP-§E3 P1 ("आज [tithi] है — और आपके जन्म तिथि
+            // से इसका [distance] का संबंध है").
+            val pravah = DashaEngine.tithiPravah(profile.birthTithiNum, day.tithiNum)
+            val tithiPravahLine =
+                if (pravah.offsetFromBirthTithi >= 0) pravah.detail + " " else ""
 
             // Three-layer Jain dasha synthesis: mahādaśā → antardaśā → pratyantardaśā, plus the
             // tīrthaṅkara-affinity of the birth nakshatra. This is what makes the reading specific
@@ -209,7 +247,7 @@ class AnalysisSynthesizer {
             val remedies = RemedyEngine.generateRemedies(profile)
             val prescription = "${day.tithi} की इस ऊर्जा में आज आपके लिए विशेष साधना है: ${remedies.primarySadhana}\n\nआज ${profile.currentDasha.lordHindi} दशा की चंचलता को सम्यग्दर्शन की दृढ़ता में बदलने का अवसर है। ${remedies.dashaRemedy}"
 
-            return greeting + tithiOpening + astrologicalContext + karmaNarrative + prescription
+            return greeting + tithiOpening + tithiPravahLine + astrologicalContext + karmaNarrative + prescription
         }
     }
 }

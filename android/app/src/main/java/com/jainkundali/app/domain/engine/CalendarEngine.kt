@@ -6,6 +6,19 @@ import com.jainkundali.app.domain.data.getNakshatraByDegree
 import java.util.Calendar
 import kotlin.math.floor
 
+/**
+ * Jain Pañcāṅga + festival/vrat calendar.
+ *
+ * Sources (see references/sources.md):
+ *  - Tithi computation from sun-moon elongation (elongation/12 = tithi index 1..30): standard
+ *    Jain treatment, CPS (Chandra/Surya Pragnapati Agam 16-17) + GSS (Gaṇita Sāra Saṅgraha).
+ *  - Nakshatra at moon longitude (sidereal): TLP-1 + CPS — 27 equal divisions of 13°20'.
+ *  - Pakṣa boundary (elongation < 180° → śukla, ≥ 180° → kṛṣṇa): CPS.
+ *  - Jain festival list (Mahāvīra Jayanti, Akṣaya Tṛtīyā, Daśalakṣaṇa Mahāparva, Kṣamāvāṇī,
+ *    Jñāna Pañcamī, Mahāvīra Nirvāṇa, Mauna Ekādaśī): MP-§F + classical Digambar calendar.
+ *  - For date-level validation of computed pañcāṅga against a tested ground-truth, see
+ *    Shatabdī Pañcāṅga 1950-2050 (CP-1950-2050); use as cross-check when OCR is run.
+ */
 object CalendarEngine {
 
     private val VARAS = listOf("रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार")

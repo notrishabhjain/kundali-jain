@@ -19,6 +19,14 @@ export interface Nakshatra {
 
 // Each nakshatra = 13°20' = 13.333...°
 // 27 nakshatras cover 360°; Abhijit is a secondary star at 276°40' – 280°53'20"
+//
+// Sources (see references/sources.md):
+//  - Tirthankar-birth nakshatra mapping: MP-§C2 (Codex Master Prompt — Tirthankara block).
+//  - Nakshatra nature classification (param_shubha = tirthankar-birth): MP-§C1.
+//  - Karma-type ↔ nakshatra mapping: MP-§C1 (Codex distillation). Verse-level grounding
+//    from Tiloyapannatti / Trilokasara is pending OCR — flagged [REQUIRES_RESEARCH]
+//    where the master prompt is silent.
+//  - Abhijit (28th, mokṣa-nakshatra of Rishabhanatha's nirvana): MP-§C1 + TLP-1.
 export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 0, name: "Ashvini", hindi_name: "अश्विनी",

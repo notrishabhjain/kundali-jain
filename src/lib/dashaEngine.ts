@@ -1,3 +1,14 @@
+// Jain dashā engine. Uses the 8-karma cycle (NOT Vedic Vimśottarī) with a 3-level
+// decomposition: Mahādaśā → Antardaśā → Pratyantardaśā.
+//
+// Sources (see references/sources.md):
+//  - 8-karma dashā ordering: MP-§D2 + Codex constraint G2-C1 (zero Vedic mixing).
+//  - Per-lord year allotments: MP-§D2 (Codex distillation). Verse-level grounding in
+//    Tiloyapannatti / Trilokasara is pending OCR — [REQUIRES_RESEARCH] until cited.
+//  - Antardaśā / Pratyantardaśā proportional sub-allocation: standard Jain treatment, MP-§D2.
+//  - Birth-nakshatra → starting-lord mapping (nakshatra-index mod 8): MP-§D2's "Nakshatra
+//    Pravāh Daśā" layer; the "Tithi Pravāh" + "Pancham Kāla Position Modifier" layers from
+//    MP-§D2 are [REQUIRES_RESEARCH] — not yet implemented here.
 import { getNakshatraByDegree } from '../data/nakshatras';
 
 export const JAIN_DASHA_ORDER = [

@@ -2,6 +2,21 @@ package com.jainkundali.app.domain.data
 
 import com.jainkundali.app.domain.models.Tirthankara
 
+/**
+ * The 24 Tirthankaras of the current Avasarpiṇī kāla — full kalyanak data per Digambar tradition.
+ *
+ * Sources (see references/sources.md):
+ *  - Birth nakshatra / rashi / tithi for each Tirthankara: MP-§C2 (Codex Master Prompt),
+ *    distilled from Tiloyapannatti (TLP-1/2/3) and Bharatiya Jyotish (BJ-NCS-1).
+ *  - Symbol (lāñchana), varna, height, lifespan, yaksha/yakshini, tree: MP-§C2,
+ *    grounded in Tiloyapannatti and Trilokasara.
+ *  - Karma addressed by each Tirthankara's aradhana: MP-§C2 + MP-§F (sadhana block).
+ *  - Birth/nirvana places: TLP-1 + classical Digambar tradition (Ashtapad for Rishabhanatha,
+ *    Sammed Shikharji for 20 Tirthankaras, etc.).
+ *
+ * Pending verse-level citation when canonical PDFs are OCR'd. Any field not in MP-§C2 must be
+ * marked [REQUIRES_RESEARCH] — never invented (Codex constraint C4).
+ */
 val TIRTHANKARAS: List<Tirthankara> = listOf(
     Tirthankara(
         id = 1, name = "Rishabhanatha", hindiName = "ऋषभनाथ", aka = "Adinatha, Adishvara",
