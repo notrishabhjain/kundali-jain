@@ -8,8 +8,26 @@
 //    weights are [REQUIRES_RESEARCH] pending OCR of SKD verses.
 //  - Gunasthāna damping: MP-§D4 + classical śloka "yathā-yathā gunasthāna-vṛddhi tathā tathā
 //    karma-kṣaya".
+//  - Compound ghātiyā (≥2 distinct ghātiyā in simultaneous Udaya): SKD compound-prakṛti
+//    treatment; MP-§D4 "concurrent obscuration" clause — adds 15 intensity points per
+//    additional ghātiyā beyond the first. [REQUIRES_RESEARCH] verse-level OCR pending.
+//  - Kashayas (4 passions × 4 intensities under Charitra Mohaniya): SKD; MP-§C1.
+//  - 5 Karma-Bandha factors (Mithyatva, Avirati, Pramada, Kashaya, Yoga): SKD. [REQUIRES_RESEARCH].
 import { KARMA_SADHANA } from '../data/sadhana';
 import type { KarmaInsight } from '../types/karmaInsights';
+
+const GHATIYA_SET = new Set(['Gyanavaraniya', 'Darshanavaraniya', 'Mohaniya', 'Antaraya']);
+
+// Returns the number of distinct ghātiyā karmas in simultaneous Udaya.
+// Compound udaya of 2+ ghātiyā creates a confluent obscuration of jñāna + darśana + cāritra.
+export function countCompoundGhatiya(dominantKarmaEn: string, dashaLord: string, antarLord: string): number {
+  const active = new Set<string>();
+  const effectiveDominant = dominantKarmaEn === 'Charitra Mohaniya' ? 'Mohaniya' : dominantKarmaEn;
+  if (GHATIYA_SET.has(effectiveDominant)) active.add(effectiveDominant);
+  if (GHATIYA_SET.has(dashaLord)) active.add(dashaLord);
+  if (GHATIYA_SET.has(antarLord)) active.add(antarLord);
+  return active.size;
+}
 
 export interface KarmaState {
   id: string;
@@ -34,13 +52,17 @@ const ALL_KARMAS = [
   { en: 'Antaraya', hi: 'अंतराय', base: 60 }
 ];
 
-export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string, gunasthana: number): KarmaState[] {
+export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string, gunasthana: number, antarLord?: string): KarmaState[] {
+  const effectiveDominant = dominantKarmaEn === 'Charitra Mohaniya' ? 'Mohaniya' : dominantKarmaEn;
+  const compoundCount = countCompoundGhatiya(dominantKarmaEn, dashaLord, antarLord || '');
+  const compoundBonus = Math.max(0, (compoundCount - 1) * 15); // +15 per additional ghātiyā beyond first
+
   return ALL_KARMAS.map(karma => {
     const sadhana = KARMA_SADHANA[karma.en];
     let intensity = karma.base;
     let state: 'Udaya' | 'Satta' | 'Nirjara' = 'Satta';
 
-    if (karma.en === dominantKarmaEn) {
+    if (karma.en === effectiveDominant) {
       intensity += 30;
       state = 'Udaya';
     }
@@ -51,7 +73,12 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
       state = 'Udaya';
     }
 
-    // Higher gunasthana reduces intensity
+    // Compound ghātiyā bonus: every additional ghātiyā beyond the first adds confluent pressure
+    if (GHATIYA_SET.has(karma.en) && state === 'Udaya') {
+      intensity += compoundBonus;
+    }
+
+    // Higher gunasthana reduces intensity (Ratnatraya protective effect)
     if (gunasthana > 1) {
       intensity -= (gunasthana - 1) * 5;
       if (intensity < 40) state = 'Nirjara';

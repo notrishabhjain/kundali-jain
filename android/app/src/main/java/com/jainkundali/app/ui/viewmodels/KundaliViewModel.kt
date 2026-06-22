@@ -140,7 +140,8 @@ class KundaliViewModel(
                     KarmaEngine.calculateKarmaProfile(
                         profile.dominantKarmaEn,
                         profile.currentDasha.lord,
-                        profile.gunasthana
+                        profile.gunasthana,
+                        profile.currentDasha.antardashaInfo.lord
                     )
                 }.getOrDefault(emptyList())
 

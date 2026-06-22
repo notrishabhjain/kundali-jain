@@ -76,4 +76,52 @@ class RuleScoringTest {
         assertEquals(DecisionPriority.MEDIUM, RuleScoring.priorityFor(0.40))
         assertEquals(DecisionPriority.LOW, RuleScoring.priorityFor(0.10))
     }
+
+    @Test
+    fun compoundGhatiyaFiresWhenTwoDistinctGhatiyaActive() {
+        val base = baseProfile()
+        // dominantKarmaEn = Mohaniya (ghātiyā), dashaLord = Antaraya (ghātiyā) → 2 distinct → fires
+        val compound = base.copy(
+            dominantKarmaEn = "Mohaniya",
+            currentDasha = base.currentDasha.copy(lord = "Antaraya")
+        )
+        val d = RuleScoring.calculate(compound, day("शुक्ल"), "सामान्य")
+        assertTrue("compound_ghatiya fires for 2+ distinct ghātiyā", "compound_ghatiya" in d.reasonCodes)
+    }
+
+    @Test
+    fun compoundGhatiyaDoesNotFireForSingleGhatiya() {
+        val base = baseProfile()
+        // dominantKarmaEn = Mohaniya, dashaLord = Mohaniya → same karma, count = 1 → does NOT fire
+        val singleGhatiya = base.copy(
+            dominantKarmaEn = "Mohaniya",
+            currentDasha = base.currentDasha.copy(lord = "Mohaniya")
+        )
+        val d = RuleScoring.calculate(singleGhatiya, day("शुक्ल"), "सामान्य")
+        assertTrue("compound_ghatiya must NOT fire for single ghātiyā", "compound_ghatiya" !in d.reasonCodes)
+    }
+
+    @Test
+    fun kashayasInflamedFiresWhenMohaDominantAndMohaDasha() {
+        val base = baseProfile()
+        val inflamed = base.copy(
+            dominantKarmaEn = "Mohaniya",
+            currentDasha = base.currentDasha.copy(lord = "Mohaniya")
+        )
+        val d = RuleScoring.calculate(inflamed, day("शुक्ल"), "सामान्य")
+        assertTrue("kashayas_inflamed fires", "kashayas_inflamed" in d.reasonCodes)
+    }
+
+    @Test
+    fun ratnatrayaAlignedFiresWhenFavourable() {
+        val base = baseProfile()
+        val aligned = base.copy(
+            nakshatraNature = "param_shubha",
+            gunasthana = 4,
+            currentDasha = base.currentDasha.copy(lord = "Vedaniya")
+        )
+        val d = RuleScoring.calculate(aligned, day("शुक्ल"), "सामान्य")
+        assertTrue("ratnatraya_aligned fires for gunasthana 4 + shubha nakshatra + aghātiyā dasha",
+            "ratnatraya_aligned" in d.reasonCodes)
+    }
 }
