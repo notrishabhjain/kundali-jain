@@ -20,8 +20,26 @@ import kotlin.math.min
  *    "yathā-yathā gunasthāna-vṛddhi tathā tathā karma-kṣaya".
  *  - Charitra Mohaniya is a sub-prakṛti of Mohaniya — not a separate primary karma; the
  *    aliasing here matches MP-§C1's treatment.
+ *  - Compound ghātiyā (≥2 ghātiyā in simultaneous Udaya): SKD compound-prakṛti treatment;
+ *    MP-§D4 "concurrent obscuration" clause — adds 15 intensity pts per additional ghātiyā.
+ *    [REQUIRES_RESEARCH] verse-level OCR pending.
+ *  - Kashayas (4 passions × 4 intensities under Charitra Mohaniya): SKD; MP-§C1.
+ *  - 5 Karma-Bandha factors (Mithyatva, Avirati, Pramada, Kashaya, Yoga): SKD. [REQUIRES_RESEARCH].
  */
 object KarmaEngine {
+
+    private val GHATIYA_SET = setOf("Gyanavaraniya", "Darshanavaraniya", "Mohaniya", "Antaraya")
+
+    /** Count distinct ghātiyā karmas in simultaneous Udaya. Compound (≥2) creates confluent
+     *  obscuration of jñāna + darśana + cāritra. Source: SKD + MP-§D4. */
+    fun countCompoundGhatiya(dominantKarmaEn: String, dashaLord: String, antarLord: String): Int {
+        val active = mutableSetOf<String>()
+        val effective = if (dominantKarmaEn == "Charitra Mohaniya") "Mohaniya" else dominantKarmaEn
+        if (effective in GHATIYA_SET) active.add(effective)
+        if (dashaLord in GHATIYA_SET) active.add(dashaLord)
+        if (antarLord.isNotEmpty() && antarLord in GHATIYA_SET) active.add(antarLord)
+        return active.size
+    }
 
     private data class KarmaBase(val en: String, val hi: String, val base: Int)
 
@@ -36,7 +54,7 @@ object KarmaEngine {
         KarmaBase("Antaraya", "अंतराय", 60)
     )
 
-    fun calculateKarmaProfile(dominantKarmaEn: String, dashaLord: String, gunasthana: Int): List<KarmaState> {
+    fun calculateKarmaProfile(dominantKarmaEn: String, dashaLord: String, gunasthana: Int, antarLord: String = ""): List<KarmaState> {
         // "Charitra Mohaniya" is a sub-type of Mohaniya — it does not appear among the 8
         // primary karmas. Map it onto Mohaniya so the प्रबल-boost still lands.
         val effectiveDominant = if (dominantKarmaEn == "Charitra Mohaniya") "Mohaniya" else dominantKarmaEn
@@ -44,6 +62,11 @@ object KarmaEngine {
         // Gunasthāna is capped at 4 in Pancham Kāla (Samyak Darshan is the ceiling — no muni
         // gunasthānas attainable). Source: MP-§D2 L3 + Codex constraint G2-C3.
         val effectiveGunasthana = gunasthana.coerceIn(1, DashaEngine.PANCHAM_KAAL_MAX_GUNASTHANA)
+
+        // Compound ghātiyā bonus: each additional active ghātiyā beyond the first adds 15 pts
+        // to ghātiyā-karma intensity (confluent obscuration). Source: SKD + MP-§D4.
+        val compoundCount = countCompoundGhatiya(dominantKarmaEn, dashaLord, antarLord)
+        val compoundBonus = maxOf(0, (compoundCount - 1) * 15)
 
         return ALL_KARMAS.map { karma ->
             val sadhana = KARMA_SADHANA[karma.en]
@@ -60,6 +83,11 @@ object KarmaEngine {
             if (karma.en == dashaLord) {
                 intensity += 20
                 state = "Udaya"
+            }
+
+            // Apply compound ghātiyā bonus to ghātiyā karmas in Udaya
+            if (karma.en in GHATIYA_SET && state == "Udaya") {
+                intensity += compoundBonus
             }
 
             if (effectiveGunasthana > 1) {

@@ -232,7 +232,7 @@ class AnalysisSynthesizer {
             val prat = profile.currentDasha.pratyantardasha
             val astrologicalContext = "आपका जन्म ${profile.birthNakshatraHindi} नक्षत्र (${profile.nakshatraNatureHindi} प्रकृति, पाद ${profile.nakshatraPada}) में हुआ है। यह ${profile.birthRashi} का नक्षत्र है, और इसका तीर्थंकर-संबंध श्री ${profile.tirthankarAffinityHindi} से है। वर्तमान में तीन-स्तरीय दशा-क्रम इस प्रकार है — महादशा: ${profile.currentDasha.lordHindi} (शेष ${profile.currentDasha.yearsRemaining} वर्ष), अंतर्दशा: ${profile.currentDasha.antardashaHindi}, प्रत्यंतर्दशा: ${prat.lordHindi}। यही संयोग आज की साधना की दिशा तय करता है।\n\n"
 
-            val karmaProfile = KarmaEngine.calculateKarmaProfile(profile.dominantKarmaEn, profile.currentDasha.lord, profile.gunasthana)
+            val karmaProfile = KarmaEngine.calculateKarmaProfile(profile.dominantKarmaEn, profile.currentDasha.lord, profile.gunasthana, profile.currentDasha.antardashaInfo.lord)
             val dominant = karmaProfile.find { it.karmaEn == profile.dominantKarmaEn }
                 ?: karmaProfile.firstOrNull()
 
