@@ -57,6 +57,15 @@ in `src/engine/*` and `android/.../domain/engine/*` must trace back to a citatio
 | :-: | --- | --- | :-: | :-: | --- |
 | CP-1950-2050 | Shatabdi Panchang 1950-2050 (शताब्दी पंचांग) | `1oSEoun2Uc7N-MLlhW4FN1U-JJyytFq_o` | 147 MB | scanned | **tithi/nakshatra ground-truth for any date 1950-2050** — use to validate computed panchang |
 
+### User research compilations
+
+| Source id | Title | Location | OCR | Feeds engine modules |
+| :-: | --- | --- | :-: | --- |
+| RESEARCH-REPORT-2025 | Computational Specification and Architectural Core of a Jain Kundali Application | `references/extracted/Research_Report__computational_specification.md` | ocr | Panch Samvay, graha→karma mapping, Ishtakaal formula, Jain sidereal geometry (28 nakshatras, unequal muhurta spans from SP-1), Venus Mandala (6) + Veethi (3) from Bhadrabahu Samhita, Netrarogi Yogas (5), Bhaktamar Stotra remedial matrix (9 shlokas with execution parameters) |
+| BKT-1 | Bhaktamar Stotra — Manatunga Acharya (48 shlokas) | Referenced via RESEARCH-REPORT-2025 | partial | `BHAKTAMAR_SHLOKAS` in sadhana.ts + JainCosmologyData.kt. [REQUIRES_RESEARCH] Full verse OCR from canonical printed edition for Sanskrit verification. |
+| BDS-1 | Bhadrabahu Samhita | Referenced via RESEARCH-REPORT-2025 | unknown | Venus Mandala system, Saturn-in-Shravana rule, cometary tracking. [REQUIRES_RESEARCH] OCR from printed edition before citation-level implementation. |
+| SP-1 | Surya Prajnapti (सूर्य प्रज्ञप्ति) | Referenced via CPS + RESEARCH-REPORT-2025 | scanned | Jain sidereal geometry: 28 nakshatras, Shravana-first ordering, unequal muhurta spans, summer solstice epoch. |
+
 ### Compendia & misc
 
 | Source id | Title | Drive id | Size | OCR | Notes |

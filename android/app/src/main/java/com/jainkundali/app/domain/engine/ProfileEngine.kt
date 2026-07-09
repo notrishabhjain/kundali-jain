@@ -119,6 +119,15 @@ object ProfileEngine {
             val karmaType = nakshatra.karmaType.key
             val dominantKarmaHindi = KARMA_HINDI[karmaType] ?: karmaType
 
+            // Ishtakaal: elapsed time from local sunrise to birth.
+            // Source: Research Report §2 + Surya Prajnapti (SP-1).
+            val sunriseApprox = estimateSunriseIST(data.lat, data.dob)
+            val ishtakaal = calculateIshtakaal(data.time.ifEmpty { "12:00" }, sunriseApprox)
+
+            // Jain sidereal zodiac projection — unequal muhurta spans.
+            // Source: Research Report §4 + SP-1.
+            val jainZodiac = calculateJainZodiacProjection(siderealDeg)
+
             UserProfile(
                 name = data.fullName,
                 gender = data.gender,
@@ -137,7 +146,9 @@ object ProfileEngine {
                 dominantKarmaEn = karmaType,
                 gunasthana = gunasthana,
                 formData = data,
-                birthTithiNum = birthTithi
+                birthTithiNum = birthTithi,
+                ishtakaal = ishtakaal,
+                jainZodiacProjection = jainZodiac
             )
         } catch (e: Exception) {
             // Safe fallback profile

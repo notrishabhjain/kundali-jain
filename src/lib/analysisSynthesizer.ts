@@ -15,6 +15,7 @@
 // it. Migrating web away from Vimshottari naming is tracked as [REQUIRES_RESEARCH] follow-up.
 import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/nakshatras';
 import { VIMSHOTTARI_ORDER, VIMSHOTTARI_YEARS, VIMSHOTTARI_HINDI } from '../data/grahas';
+import { calculateIshtakaal, calculateJainZodiacProjection, type IshtakaalResult, type JainZodiacProjection } from '../data/jainCosmology';
 
 export interface BirthFormData {
   fullName: string;
@@ -52,6 +53,12 @@ export interface UserProfile {
   dominantKarmaEn: string;        // English karma name for comparisons
   gunasthana: number;             // 1–14, estimated
   formData: BirthFormData;
+  // Jain high-precision temporal coordinate (Surya Prajnapti + Research Report §2).
+  // The mathematical anchor is umbilical cord severance. Source: Research Report §2.
+  ishtakaal: IshtakaalResult;
+  // Jain sidereal zodiac projection (unequal muhurta spans from Surya Prajnapti).
+  // Source: Research Report §4 + SP-1.
+  jainZodiacProjection: JainZodiacProjection;
   // Legacy fields kept for backward compatibility with existing components
   birthNakshatraLegacy?: string;  // same as birthNakshatra
   currentDashaLegacy?: string;    // same as currentDasha.lord_hindi
@@ -194,6 +201,25 @@ function getTirthankarAffinity(nakshatra: typeof NAKSHATRAS[0]): { en: string; h
   return defaults[nakshatra.karma_type] || { en: 'Mahavira', hi: 'महावीर स्वामी' };
 }
 
+// ─── Ishtakaal: approximate local sunrise (IST) ──────────────────────────────
+// Simple latitude-based sunrise approximation for IST. The Research Report uses
+// precise Solar Epoch Details (sunriseTimeUTC from SP-1 astronomy), but we compute
+// a workable estimate here to populate the IshtakaalResult without an ephemeris call.
+// Source: Research Report §2 (IshtakaalGhatis = ΔT × 2.5 formula).
+// [REQUIRES_RESEARCH] Replace with full sunrise algorithm (Meeus ch. 15) in Phase 3.
+function estimateSunriseIST(latStr: string, dob: string): string {
+  const lat = parseFloat(latStr) || 23.0; // default to central India
+  // Seasonal adjustment: summer earlier, winter later (rough 45-min swing each way)
+  const month = parseInt((dob || '2000-06-01').split('-')[1] || '6', 10);
+  const seasonalOffset = Math.cos(((month - 1) / 6) * Math.PI) * 0.75; // ±0.75h swing
+  // Latitude effect: higher latitude = more seasonal variation
+  const latFactor = (lat - 23.0) / 40.0 * 0.5;
+  const sunriseH = 6.0 - seasonalOffset + latFactor;
+  const hh = Math.floor(sunriseH);
+  const mm = Math.round((sunriseH - hh) * 60);
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+
 // ─── Gunasthana estimate ──────────────────────────────────────────────────────
 
 function estimateGunasthana(nakshatraNature: string, dashaLord: string): number {
@@ -246,6 +272,16 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
   const karmaType = nakshatra.karma_type;
   const dominantKarmaHindi = KARMA_HINDI[karmaType] || karmaType;
 
+  // Ishtakaal: elapsed time from local sunrise to birth in ghati/pala units.
+  // Approximate sunrise using latitude if available; default to 06:00 IST.
+  // Source: Research Report §2 (High-Precision Temporal Coordinate Subsystem).
+  const approxSunriseTime = estimateSunriseIST(data.lat, data.dob);
+  const ishtakaal = calculateIshtakaal(data.time || '12:00', approxSunriseTime);
+
+  // Jain sidereal zodiac projection — unequal muhurta spans from Surya Prajnapti.
+  // Source: Research Report §4 + SP-1.
+  const jainZodiacProjection = calculateJainZodiacProjection(siderealDeg);
+
   return {
     name: data.fullName,
     gender: data.gender,
@@ -264,6 +300,8 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     dominantKarmaEn: karmaType,
     gunasthana,
     formData: data,
+    ishtakaal,
+    jainZodiacProjection,
     // Legacy compatibility
     birthNakshatraLegacy: nakshatra.hindi_name,
     currentDashaLegacy: dasha.lord_hindi

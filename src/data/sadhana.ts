@@ -797,3 +797,226 @@ export function getKarmaSadhana(karmaEn: string): KarmaSadhana {
 export function getDashaSadhana(dashLord: string): DashaSadhana {
   return DASHA_SADHANA[dashLord] || DASHA_SADHANA['Guru'];
 }
+
+// ─── Bhaktamar Stotra Remedial Matrix ─────────────────────────────────────────
+//
+// Sources:
+//  - Bhaktamar Stotra: 48-shloka hymn to Adinatha by Manatunga Acharya.
+//    Each shloka = 4 fragments × 14 letters = 56 letters; total = 2,688 letters.
+//    Source: Manatunga Acharya; listed in references/sources.md as BKT-1.
+//  - Planetary → shloka mapping derived from the Predictive Rule Processing Unit
+//    (Research Report §5 — Predictive and Mundane Rule Processing Unit).
+//  - Execution parameters (direction, temporal window, repetition counts,
+//    somatic protocol): Research Report §7 (Ocular Correction Module + Additional
+//    System Remedial Mappings). [REQUIRES_RESEARCH] verse-level OCR from BKT-1
+//    pending for complete Sanskrit verification.
+
+export interface BhaktamarShloka {
+  shlokaNumber: number;
+  name: string;
+  targetKarma: string[];          // Karma types this shloka addresses
+  targetAffliction: string;       // Concise affliction description (Hindi)
+  sanskritVerse: string;          // First line of the shloka
+  riddhiMantra: string;           // Riddhi mantra for this shloka
+  remedialMantra: string;         // Full remedial mantra
+  repetitionShloka: number;       // How many times to chant the shloka
+  repetitionRiddhi: number;       // How many times to chant riddhi mantra
+  repetitionMantra: number;       // How many times to chant remedial mantra
+  direction: string;              // Facing direction during practice
+  timeWindow: string;             // Optimal time window
+  somaticProtocol: string;        // Physical/ritual instructions
+  dietaryRestrictions: string;    // Dietary guidelines
+  timelineDays: number;           // Duration of the anusthana
+  karmaConnection: string;        // How this reduces the specific karma
+}
+
+// Source: Research Report §5-§7 + BKT-1. Shloka Sanskrit text first lines
+// extracted from standard Bhaktamar editions. Full verse-level OCR [REQUIRES_RESEARCH].
+export const BHAKTAMAR_SHLOKAS: BhaktamarShloka[] = [
+  {
+    shlokaNumber: 3,
+    name: 'नेत्र-स्पष्टता श्लोक',
+    targetKarma: ['Darshanavaraniya'],
+    targetAffliction: 'नेत्र-रोग, दृष्टि-दोष, दर्शनावरणीय कर्म का उदय (सूर्य-चन्द्र-राहु प्रभाव)',
+    sanskritVerse: 'बुद्ध्या विनापि विबुधार्चित-पाद-पीठ! स्तोतुं समुद्यत-मतिर्विगतत्रपोऽहम्',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो परमोहिजणाणं',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं सिद्धेभ्यो बुद्धेभ्यः सर्व सिद्धि दायकेभ्यो नमः स्वाहा',
+    repetitionShloka: 27,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'उत्तर-पूर्व (ईशान कोण)',
+    timeWindow: 'प्रातः ४:०० से ७:०० बजे',
+    somaticProtocol: 'साधना के समय सामने शुद्ध जल-पात्र रखें। जाप के बाद यह जल नेत्रों पर लगाएँ और प्रतिदिन पिएँ। यह क्रिया २१ दिन तक निरंतर करें।',
+    dietaryRestrictions: 'नमक-रहित आहार २१ दिन तक; हल्के रंग के वस्त्र धारण करें',
+    timelineDays: 21,
+    karmaConnection: 'दर्शनावरणीय कर्म के चक्षु-दर्शनावरण उप-प्रकृति का क्षयोपशम। श्लोक ३ का ध्वनि-कम्पन नेत्र-तन्त्रिका को सक्रिय करता है।'
+  },
+  {
+    shlokaNumber: 5,
+    name: 'गम्भीर नेत्र-रोग निवारण श्लोक',
+    targetKarma: ['Darshanavaraniya', 'Vedaniya'],
+    targetAffliction: 'मोतियाबिंद, रेटिना-अपक्षय, गम्भीर नेत्र-रोग (शुक्र-पीड़ा)',
+    sanskritVerse: 'सोऽहं तथापि तव भक्तिवशान्मुनीश! कर्तुं स्तवं विगतशक्तिरपि प्रवृत्तः',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो अणंतोहिजणाणं',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं क्रौं सर्व संकट निवारणेभ्यः सुपार्श्व यक्षेभ्यो नमो नमः स्वाहा',
+    repetitionShloka: 21,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'पूर्व',
+    timeWindow: 'सायंकाल सूर्यास्त के बाद',
+    somaticProtocol: 'रोगी को दिन में उपवास रखवाएँ। सायंकाल साधक रोगी के नेत्रों के सामने बैठ कर यह मंत्र ठीक २१ बार पढ़े — इससे नेत्रों की शारीरिक पीड़ा शमन होती है।',
+    dietaryRestrictions: 'रोगी हेतु एकाशन (एक बार भोजन) + तैलीय-मसालेदार भोजन का त्याग',
+    timelineDays: 40,
+    karmaConnection: 'असाता वेदनीय और दर्शनावरणीय का युगल उदय — श्लोक ५ इस युगल को तोड़ता है।'
+  },
+  {
+    shlokaNumber: 6,
+    name: 'बुद्धि-विकास श्लोक',
+    targetKarma: ['Gyanavaraniya'],
+    targetAffliction: 'बुद्धि-मंदता, स्मृति-दोष, IQ-विकास, ज्ञानावरणीय कर्म (बुध-बृहस्पति पीड़ा)',
+    sanskritVerse: 'वक्तुं गुणान् गुणसमुद्र! शशाङ्कं-कान्तान् दास्यामि ते यदि वचोऽमृतमेव किञ्चित्',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो लोगस्सुज्जोअगराणं',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं सरस्वत्यै नमः स्वाहा',
+    repetitionShloka: 27,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'उत्तर-पूर्व (ईशान कोण)',
+    timeWindow: 'प्रातः ४:०० से ७:०० बजे',
+    somaticProtocol: 'शास्त्र-ग्रंथ के सामने बैठ कर साधना करें। जाप के बाद १० मिनट स्वाध्याय अनिवार्य।',
+    dietaryRestrictions: 'मीठा भोजन, तामसिक पदार्थों का त्याग; ब्रह्मचर्य का पालन साधना-काल में',
+    timelineDays: 40,
+    karmaConnection: 'ज्ञानावरणीय कर्म का मति-ज्ञानावरण उप-प्रकृति — श्लोक ६ से बुध-बृहस्पति के नकारात्मक प्रभाव शिथिल पड़ते हैं।'
+  },
+  {
+    shlokaNumber: 12,
+    name: 'दाम्पत्य-सामंजस्य श्लोक',
+    targetKarma: ['Mohaniya', 'Charitra Mohaniya'],
+    targetAffliction: 'वैवाहिक कलह, पारिवारिक विघटन, मोहनीय कर्म (शुक्र-मंगल पीड़ा, सप्तम-भाव)',
+    sanskritVerse: 'प्राप्तं मया तव विभो! तव भक्तियोगात् स्तोत्रं जिनेन्द्र! भवतो गुण-वर्णनाय',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो णिव्वाणगमणस्स',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं पार्श्वनाथाय नमः स्वाहा',
+    repetitionShloka: 12,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'पूर्व',
+    timeWindow: 'शुक्रवार को प्रातःकाल',
+    somaticProtocol: 'दम्पती साथ में या अलग-अलग (पर एक ही समय पर) यह जाप करें। पार्श्वनाथ की प्रतिमा के सामने फूल अर्पित करें।',
+    dietaryRestrictions: 'एकाशन; मांस-मदिरा का सम्पूर्ण त्याग साधना-काल में',
+    timelineDays: 21,
+    karmaConnection: 'मोहनीय कर्म का चारित्र-मोहनीय पक्ष — कषाय (क्रोध-मान-माया-लोभ) को शान्त कर दाम्पत्य-सम्बन्ध सुधारता है।'
+  },
+  {
+    shlokaNumber: 17,
+    name: 'स्वास्थ्य-उपचार श्लोक',
+    targetKarma: ['Vedaniya'],
+    targetAffliction: 'जठर-आँत रोग, पेट-समस्याएँ, असाता वेदनीय कर्म (बृहस्पति-शनि पीड़ा)',
+    sanskritVerse: 'आपादकण्ठमुरुशृङ्खलवेष्टिताङ्गः स्थित्वा चिरं निरवनौ निहितैकपार्श्वः',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो सव्वसाहूणं',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं आरोग्य प्रदायिने नमः स्वाहा',
+    repetitionShloka: 17,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'उत्तर',
+    timeWindow: 'प्रातः ५:०० से ७:०० बजे खाली पेट',
+    somaticProtocol: 'जाप से पूर्व ताम्र-पात्र में जल रखें; जाप के बाद रोगी को पिलाएँ। ग्रास-आँत रोग में जल को नाभि पर भी लगाएँ।',
+    dietaryRestrictions: 'उपवास (या एकाशन); ठंडे, हल्के, सुपाच्य भोजन का पालन; मसाले का त्याग',
+    timelineDays: 21,
+    karmaConnection: 'असाता वेदनीय का शरीर-पीड़ा पक्ष — श्लोक १७ की ध्वनि-तरंगें पाचन-तंत्र पर चिकित्सीय प्रभाव डालती हैं।'
+  },
+  {
+    shlokaNumber: 18,
+    name: 'मानसिक-शान्ति श्लोक',
+    targetKarma: ['Mohaniya'],
+    targetAffliction: 'मानसिक अशान्ति, भ्रम-दर्शन, बाधक विचार, द्वादश-भाव (व्यय-भाव) का दबाव',
+    sanskritVerse: 'उद्भूतभीषणझषाशन-वक्त्र-दंष्ट्रा-निर्भिन्न-निर्जर-शिला-विकटोदराणाम्',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो अरहंताणं',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं मन:शुद्धि दायिने नमः स्वाहा',
+    repetitionShloka: 18,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'उत्तर-पूर्व (ईशान कोण)',
+    timeWindow: 'रात्रि सोने से पूर्व',
+    somaticProtocol: 'सोने से पूर्व कपाल पर चन्दन का लेप करें। जाप के बाद ५ मिनट श्वास-ध्यान (प्राण-निरोध नहीं, केवल अवलोकन)।',
+    dietaryRestrictions: 'उत्तेजक पदार्थों (चाय, कॉफी, तीखा) का त्याग; सात्विक भोजन',
+    timelineDays: 27,
+    karmaConnection: 'मोहनीय का मिथ्यात्व-मोहनीय पक्ष — मन की भटकन और मिथ्या-दृष्टि को शान्त करता है।'
+  },
+  {
+    shlokaNumber: 19,
+    name: 'कार्य-सिद्धि श्लोक',
+    targetKarma: ['Antaraya'],
+    targetAffliction: 'करियर-बाधा, नौकरी-प्रोन्नति में रुकावट, अंतराय कर्म (दशम-भाव / सूर्य पीड़ा)',
+    sanskritVerse: 'स्थित्वा क्षणं च समवस्थित-रत्न-राशेस्त्वद्भक्तिभाजनमिदं त्वमसि स्वयम्भूः',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो सिद्धाणं',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं कार्य-सिद्धि दायकेभ्यो नमः स्वाहा',
+    repetitionShloka: 19,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'पूर्व',
+    timeWindow: 'रविवार प्रातःकाल',
+    somaticProtocol: 'कार्य-क्षेत्र से सम्बन्धित कोई वस्तु (नाम-पट्टिका, फाइल, पेन) साधना-स्थल पर रखें। जाप के बाद उसे माथे से लगाएँ।',
+    dietaryRestrictions: 'एकाशन; नमक का त्याग साधना के दिन',
+    timelineDays: 19,
+    karmaConnection: 'अंतराय कर्म का वीर्य-अंतराय और लाभ-अंतराय पक्ष — वीर्य-शक्ति को जागृत कर करियर-पथ के अवरोध हटाता है।'
+  },
+  {
+    shlokaNumber: 45,
+    name: 'दीर्घ-रोग निवारण श्लोक',
+    targetKarma: ['Ayushya', 'Vedaniya'],
+    targetAffliction: 'दीर्घकालीन/प्राण-घातक रोग, शनि-राहु पीड़ा, कोशिकीय स्वास्थ्य-संकट',
+    sanskritVerse: 'यैः शान्तरागरुचिभिः परमाणुभिस्त्वं निर्मापितस्त्रिभुवनैकललाम-भूत!',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो लोगस्सुज्जोअगराणं',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं महा-रोग निवारणेभ्यः परमात्मने नमः स्वाहा',
+    repetitionShloka: 45,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'उत्तर',
+    timeWindow: 'प्रातःकाल ब्रह्म-मुहूर्त (३:३० - ४:३०)',
+    somaticProtocol: 'रोगी की तस्वीर या नाम-पर्ची सामने रखें। रोगी को पहले से शुद्ध जल ग्रहण करवाएँ। जाप के बाद उसके सिर पर हाथ रखें और संकल्प लें।',
+    dietaryRestrictions: 'रोगी हेतु फलाहार या एकाशन; प्रसंस्कृत भोजन का त्याग',
+    timelineDays: 45,
+    karmaConnection: 'आयुष्य कर्म और असाता वेदनीय का दीर्घ-रोग पक्ष — शनि-राहु के कर्म-संचय को तोड़ने का सर्वोत्तम उपाय।'
+  },
+  {
+    shlokaNumber: 48,
+    name: 'समृद्धि-मोक्ष-मार्ग श्लोक',
+    targetKarma: ['Antaraya', 'Gotra'],
+    targetAffliction: 'आर्थिक कठिनाई, ऋण-मुक्ति, आध्यात्मिक उन्नति (बृहस्पति-शुक्र वित्त-बाधा)',
+    sanskritVerse: 'इत्थं यथा तव विभूतिरभूज्जिनेन्द्र! तच्चिन्तितं मम मनोगत-मेव सिद्धम्',
+    riddhiMantra: 'ॐ ह्रीं अहं णमो अरहंताणं',
+    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं धन-लक्ष्मी समृद्धि दायकेभ्यो नमः स्वाहा',
+    repetitionShloka: 48,
+    repetitionRiddhi: 108,
+    repetitionMantra: 108,
+    direction: 'उत्तर-पूर्व (ईशान कोण)',
+    timeWindow: 'गुरुवार प्रातःकाल',
+    somaticProtocol: 'तुलसी/बेलपत्र (शुद्ध) + श्रीफल के साथ जाप। जाप के बाद आदिनाथ भगवान के चरणों में अर्पित करें। इसे ४८ दिन तक जारी रखें।',
+    dietaryRestrictions: 'गुरुवार को एकाशन; मीठा भोजन ग्रहण योग्य',
+    timelineDays: 48,
+    karmaConnection: 'अंतराय का लाभ-अंतराय और दान-अंतराय पक्ष + गोत्र-कर्म का नीच-गोत्र पक्ष — दोनों एकसाथ हटाकर पुण्य-बंध का मार्ग खोलता है।'
+  }
+];
+
+// ─── Karma → Bhaktamar Shloka Mapping ────────────────────────────────────────
+// Maps dominant karma type to the most relevant Bhaktamar shloka(s).
+// Source: Research Report §5 (Predictive and Mundane Rule Processing Unit) + BKT-1.
+export const KARMA_TO_BHAKTAMAR: Record<string, number[]> = {
+  'Gyanavaraniya':    [6],
+  'Darshanavaraniya': [3, 5],
+  'Mohaniya':         [12, 18],
+  'Charitra Mohaniya':[12, 18],
+  'Antaraya':         [19, 48],
+  'Vedaniya':         [17],
+  'Ayushya':          [45],
+  'Naam':             [6],
+  'Gotra':            [48]
+};
+
+export function getBhaktamarShloka(shlokaNumber: number): BhaktamarShloka | undefined {
+  return BHAKTAMAR_SHLOKAS.find(s => s.shlokaNumber === shlokaNumber);
+}
+
+export function getBhaktamarForKarma(karmaEn: string): BhaktamarShloka[] {
+  const numbers = KARMA_TO_BHAKTAMAR[karmaEn] || [];
+  return numbers.map(n => getBhaktamarShloka(n)).filter((s): s is BhaktamarShloka => s !== undefined);
+}
