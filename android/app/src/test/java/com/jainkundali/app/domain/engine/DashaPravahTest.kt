@@ -70,12 +70,42 @@ class DashaPravahTest {
     }
 
     @Test
-    fun layer3_karmaProfileAppliesPanchamKaalFactorAndGunasthanaCap() {
-        // With the 1.4x factor, the Vedaniya intensity must be > the raw base (50).
-        // Even with gunasthana capped at 4, Vedaniya base = 50 * 1.4 = 70, damping = 3*5 = 15 → 55.
-        val states = KarmaEngine.calculateKarmaProfile("Mohaniya", "Naam", gunasthana = 99)
+    fun layer3_karmaMultiplierAppliesOnlyToDestructiveKarmasInTransit() {
+        // Source: PARITY-REPORT-2026 Karma Multiplier row — 1.4× applies to Mohaniya /
+        // Antaraya while in dashā transit, NOT blanket to all karmas.
+        val states = KarmaEngine.calculateKarmaProfile("Naam", "Mohaniya", gunasthana = 1)
+        val mohaniya = states.first { it.karmaEn == "Mohaniya" }
         val vedaniya = states.first { it.karmaEn == "Vedaniya" }
-        assertTrue("PK factor applied: vedaniya=${vedaniya.intensity}", vedaniya.intensity > 50)
-        assertTrue("gunasthana-4 cap applied: vedaniya<=70", vedaniya.intensity <= 70)
+        // Mohaniya: 65 × 1.4 = 91 (+20 dashā boost, capped at 100) — well above unscaled 85.
+        assertTrue("destructive transit scaled: mohaniya=${mohaniya.intensity}", mohaniya.intensity > 85)
+        // Vedaniya keeps its raw base (50) — no blanket factor.
+        assertEquals("non-transit karma unscaled", 50, vedaniya.intensity)
+    }
+
+    @Test
+    fun layer3_gunasthanaCapStillHolds() {
+        // Gunasthāna input beyond the Pancham Kāla ceiling (4) must be coerced.
+        val capped = KarmaEngine.calculateKarmaProfile("Mohaniya", "Naam", gunasthana = 99)
+        val atFour = KarmaEngine.calculateKarmaProfile("Mohaniya", "Naam", gunasthana = 4)
+        capped.zip(atFour).forEach { (a, b) ->
+            assertEquals("gunasthana caps at 4 for ${a.karmaEn}", b.intensity, a.intensity)
+        }
+    }
+
+    @Test
+    fun layer2_phaseCoefficientFollowsReportFormula() {
+        // Source: PARITY-REPORT-2026 — Shukla expands up to +15%, Krishna contracts.
+        assertEquals(1.0, DashaEngine.tithiPravahPhaseCoefficient(-1.0), 1e-9)   // unknown
+        assertEquals(1.0, DashaEngine.tithiPravahPhaseCoefficient(0.0), 1e-9)    // new moon
+        assertEquals(1.0 + (90.0 / 360.0) * 0.15, DashaEngine.tithiPravahPhaseCoefficient(90.0), 1e-9)
+        assertEquals(1.0 - (90.0 / 360.0) * 0.15, DashaEngine.tithiPravahPhaseCoefficient(270.0), 1e-9)
+    }
+
+    @Test
+    fun layer3_destructiveDashaDurationsStretch() {
+        // Source: PARITY-REPORT-2026 — Mohaniya 28 × 1.4 = 39.2, Antaraya 14 × 1.4 = 19.6.
+        assertEquals(39.2, DashaEngine.effectiveDashaYears("Mohaniya", 1.0), 1e-9)
+        assertEquals(19.6, DashaEngine.effectiveDashaYears("Antaraya", 1.0), 1e-9)
+        assertEquals(15.0, DashaEngine.effectiveDashaYears("Gyanavaraniya", 1.0), 1e-9)
     }
 }

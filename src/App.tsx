@@ -6,14 +6,39 @@
 import React from 'react';
 import Kundali from './components/Kundali';
 import BirthDataForm from './components/BirthDataForm';
-import { generateUserProfile } from './lib/analysisSynthesizer';
+import { generateUserProfile, InvalidEphemerisEpochError } from './lib/analysisSynthesizer';
 import { useKundali } from './context/KundaliContext';
 
 export default function App() {
   const { profile, setProfile } = useKundali();
+  const [epochError, setEpochError] = React.useState<string | null>(null);
 
   if (!profile) {
-    return <BirthDataForm onSubmit={(data) => setProfile(generateUserProfile(data))} />;
+    return (
+      <>
+        {epochError && (
+          <div className="max-w-2xl mx-auto mt-4 px-4 py-3 rounded-lg border border-red-300 bg-red-50 text-red-800 text-sm font-medium" role="alert">
+            {epochError}
+          </div>
+        )}
+        <BirthDataForm
+          onSubmit={(data) => {
+            // Source: PARITY-REPORT-2026 — invalid birth epochs produce a blocking
+            // UI warning instead of a fabricated fallback chart.
+            try {
+              setEpochError(null);
+              setProfile(generateUserProfile(data));
+            } catch (e) {
+              if (e instanceof InvalidEphemerisEpochError) {
+                setEpochError(e.message);
+              } else {
+                throw e;
+              }
+            }
+          }}
+        />
+      </>
+    );
   }
 
   return (

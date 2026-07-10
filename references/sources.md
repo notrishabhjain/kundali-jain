@@ -59,8 +59,15 @@ in `src/engine/*` and `android/.../domain/engine/*` must trace back to a citatio
 
 ### User research compilations
 
+> **Precedence rule (user directive, 2026-07-10):** where a user research report
+> contradicts pre-existing app code or the Codex Master Prompt distillation, the
+> **report is primary** and the code must follow the report. PARITY-REPORT-2026 is
+> the most recent and takes precedence over RESEARCH-REPORT-2025 where they conflict
+> (e.g. the Stoka/Lava micro-unit hierarchy).
+
 | Source id | Title | Location | OCR | Feeds engine modules |
 | :-: | --- | --- | :-: | --- |
+| PARITY-REPORT-2026 | System Architecture and Doctrinal Integration Blueprint for the Unified Jain Kundali Engine | `references/extracted/PARITY-REPORT-2026__unified_engine_blueprint.txt` | ocr | **PRIMARY for:** dasha year allotments (Gyan 15, Darshan 9, Vedaniya 10, Mohaniya 28, Ayushya 4, Naam 12, Gotra 8, Antaraya 14); Tithi Pravāh phase coefficient (Layer 2); Pancham Kāla 1.4× duration modifier on Mohaniya/Antaraya (Layer 3); Meeus Ch. 15 sunrise; true tithi boundary resolution (Kshaya/Vriddhi); Ishtakaal unit hierarchy (Ghati→Pala→Vipala/Prāna→7 Stokas→7 Lavas); rikta-tithi muhurta exclusion + karma scoring; 14 gunasthanas; 12 vratas; 16 kashayas; 6 leshyas; 12 bhavanas; 148 uttara-prakritis; Gunasthana classifier (Sarvarthasiddhi axes); Bhaktamar shlokas 1–24 riddhi/mantra catalog; structured festival schema; enhancer activation; AST narrative composer |
 | RESEARCH-REPORT-2025 | Computational Specification and Architectural Core of a Jain Kundali Application | `references/extracted/Research_Report__computational_specification.md` | ocr | Panch Samvay, graha→karma mapping, Ishtakaal formula, Jain sidereal geometry (28 nakshatras, unequal muhurta spans from SP-1), Venus Mandala (6) + Veethi (3) from Bhadrabahu Samhita, Netrarogi Yogas (5), Bhaktamar Stotra remedial matrix (9 shlokas with execution parameters) |
 | BKT-1 | Bhaktamar Stotra — Manatunga Acharya (48 shlokas) | Referenced via RESEARCH-REPORT-2025 | partial | `BHAKTAMAR_SHLOKAS` in sadhana.ts + JainCosmologyData.kt. [REQUIRES_RESEARCH] Full verse OCR from canonical printed edition for Sanskrit verification. |
 | BDS-1 | Bhadrabahu Samhita | Referenced via RESEARCH-REPORT-2025 | unknown | Venus Mandala system, Saturn-in-Shravana rule, cometary tracking. [REQUIRES_RESEARCH] OCR from printed edition before citation-level implementation. |

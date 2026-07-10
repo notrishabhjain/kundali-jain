@@ -260,28 +260,35 @@ export function calculateJainZodiacProjection(standardLongitude: number): JainZo
 }
 
 // ─── Ishtakaal Calculation ────────────────────────────────────────────────────
-// Elapsed time between local sunrise and precise birth moment, in ghati/pala.
-// The mathematical anchor for birth-chart casting is the moment of umbilical cord
-// severance. Source: Research Report §2 (High-Precision Temporal Coordinate Subsystem).
+// Elapsed time between the APPARENT astronomical sunrise and the precise birth
+// moment (umbilical cord severance).
+// Source: PARITY-REPORT-2026 §"Precise Ishtakaal Conversion" (primary; supersedes
+// the earlier RESEARCH-REPORT-2025 Ucchvasa/Stoka/Lava hierarchy).
 //
-// Time units:
-//  - 1 Muhurta  = 48 minutes
-//  - 1 Ghati    = 24 minutes  (= 1 Muhurta / 2)
-//  - 1 Lava     = 38.5 Lavas per Ghati
-//  - 1 Stoka    = 7 Stokas per Lava
-//  - 1 Ucchvasa = 7 Ucchvasas per Stoka
+// Unit hierarchy (PARITY-REPORT-2026):
+//  - 1 solar day = 24 hours = 60 Ghatis (Nālikās)
+//  - 1 Ghati  = 24 minutes = 60 Palas (Vighatis)
+//  - 1 Pala   = 24 seconds = 60 Vipalas (Prāṇas)
+//  - 1 Vipala = 0.4 seconds = 1 Prāṇa
+//  - 1 Prāṇa  = 7 Stokas
+//  - 1 Stoka  = 7 Lavas
+//  - 1 Lava   = innumerable Āvalis
 //
-// Formula: Ishtakaal in Ghatis = ΔT (hours) × 2.5
-//          Pala (Vipala)       = fractional remainder × 60
+// Formulas:
+//  Ghatis  = ⌊Ishtakaal(hours) × 2.5⌋
+//  Palas   = ⌊(Ishtakaal × 2.5 − Ghatis) × 60⌋
+//  Vipalas = ⌊((Ishtakaal × 2.5 − Ghatis) × 60 − Palas) × 60⌋
 
 export interface IshtakaalResult {
   ghatis: number;
   palas: number;
+  vipalas: number;
   equivalentMuhurtas: number;
   microState: {
-    lavas: number;
+    // Sub-Vipala breakdown: 1 Vipala (Prāṇa) = 7 Stokas; 1 Stoka = 7 Lavas.
+    // Source: PARITY-REPORT-2026 (Stoka > Lava — inverts RESEARCH-REPORT-2025).
     stokas: number;
-    ucchvasas: number;
+    lavas: number;
   };
   formatted: string;
 }
@@ -292,32 +299,34 @@ export function calculateIshtakaal(
 ): IshtakaalResult {
   function toDecimalHours(hhmm: string): number {
     const parts = hhmm.split(':').map(Number);
-    return (parts[0] || 0) + (parts[1] || 0) / 60;
+    return (parts[0] || 0) + (parts[1] || 0) / 60 + (parts[2] || 0) / 3600;
   }
 
-  let birthH = toDecimalHours(birthTimeHHMM);
-  let sunriseH = toDecimalHours(sunriseTimeHHMM || '06:00');
+  const birthH = toDecimalHours(birthTimeHHMM);
+  const sunriseH = toDecimalHours(sunriseTimeHHMM || '06:00');
 
-  // Handle birth before sunrise (previous night)
-  let deltaT = birthH >= sunriseH ? birthH - sunriseH : (birthH + 24) - sunriseH;
+  // Birth before sunrise belongs to the preceding astronomical day.
+  // Source: PARITY-REPORT-2026 Ishtakaal case split.
+  const deltaT = birthH >= sunriseH ? birthH - sunriseH : (birthH + 24) - sunriseH;
 
   const ishtakaalGhatis = deltaT * 2.5;
   const G = Math.floor(ishtakaalGhatis);
   const P = Math.floor((ishtakaalGhatis - G) * 60);
+  const V = Math.floor(((ishtakaalGhatis - G) * 60 - P) * 60);
   const equivalentMuhurtas = ishtakaalGhatis / 2;
 
-  // Micro-temporal breakdown
-  const totalLavas = ishtakaalGhatis * 38.5;
-  const lavas = Math.floor(totalLavas);
-  const stokas = Math.floor((totalLavas - lavas) * 7);
-  const ucchvasas = Math.floor(((totalLavas - lavas) * 7 - stokas) * 7);
+  // Sub-Vipala: fractional Vipala → Stokas (×7) → Lavas (×7).
+  const vipalaFrac = ((ishtakaalGhatis - G) * 60 - P) * 60 - V;
+  const stokas = Math.floor(vipalaFrac * 7);
+  const lavas = Math.floor((vipalaFrac * 7 - stokas) * 7);
 
   return {
     ghatis: G,
     palas: P,
+    vipalas: V,
     equivalentMuhurtas: Math.round(equivalentMuhurtas * 100) / 100,
-    microState: { lavas, stokas, ucchvasas },
-    formatted: `${G} घटी ${P} पल (${Math.round(equivalentMuhurtas * 10) / 10} मुहूर्त)`
+    microState: { stokas, lavas },
+    formatted: `${G} घटी ${P} पल ${V} विपल (${Math.round(equivalentMuhurtas * 10) / 10} मुहूर्त)`
   };
 }
 

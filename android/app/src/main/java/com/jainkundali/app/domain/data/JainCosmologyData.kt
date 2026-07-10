@@ -2,9 +2,7 @@ package com.jainkundali.app.domain.data
 
 import com.jainkundali.app.domain.models.IshtakaalResult
 import com.jainkundali.app.domain.models.JainZodiacProjection
-import kotlin.math.cos
 import kotlin.math.floor
-import kotlin.math.PI
 
 /**
  * Jain Cosmological and Astrological Framework
@@ -168,51 +166,45 @@ fun calculateJainZodiacProjection(standardLongitude: Double): JainZodiacProjecti
 }
 
 // ─── Ishtakaal Calculation ────────────────────────────────────────────────────
-// Elapsed time from local sunrise to precise birth in ghati/pala units.
-// Source: Research Report §2 + SP-1. Formula: Ishtakaal Ghatis = ΔT (hours) × 2.5.
+// Elapsed time from the APPARENT astronomical sunrise (Meeus Ch. 15 — see
+// SunriseEngine) to the precise birth moment.
+// Source: PARITY-REPORT-2026 §"Precise Ishtakaal Conversion" (primary; supersedes
+// the earlier RESEARCH-REPORT-2025 Ucchvasa/Stoka/Lava hierarchy).
+//
+// Unit hierarchy: 1 Ghati = 24 min = 60 Palas; 1 Pala = 24 s = 60 Vipalas (Prāṇas);
+// 1 Prāṇa = 7 Stokas; 1 Stoka = 7 Lavas; 1 Lava = innumerable Āvalis.
 fun calculateIshtakaal(birthTimeHHMM: String, sunriseTimeHHMM: String): IshtakaalResult {
     fun toDecimalHours(hhmm: String): Double {
         val parts = hhmm.split(":").mapNotNull { it.toDoubleOrNull() }
-        return (parts.getOrNull(0) ?: 0.0) + (parts.getOrNull(1) ?: 0.0) / 60.0
+        return (parts.getOrNull(0) ?: 0.0) + (parts.getOrNull(1) ?: 0.0) / 60.0 +
+                (parts.getOrNull(2) ?: 0.0) / 3600.0
     }
 
     val birthH = toDecimalHours(birthTimeHHMM.ifEmpty { "12:00" })
     val sunriseH = toDecimalHours(sunriseTimeHHMM.ifEmpty { "06:00" })
+    // Birth before sunrise belongs to the preceding astronomical day.
     val deltaT = if (birthH >= sunriseH) birthH - sunriseH else (birthH + 24.0) - sunriseH
 
     val ishtakaalGhatis = deltaT * 2.5
-    val G = floor(ishtakaalGhatis).toInt()
-    val P = floor((ishtakaalGhatis - G) * 60.0).toInt()
+    val g = floor(ishtakaalGhatis).toInt()
+    val p = floor((ishtakaalGhatis - g) * 60.0).toInt()
+    val v = floor(((ishtakaalGhatis - g) * 60.0 - p) * 60.0).toInt()
     val equivalentMuhurtas = ishtakaalGhatis / 2.0
 
-    val totalLavas = ishtakaalGhatis * 38.5
-    val lavas = floor(totalLavas).toInt()
-    val stokas = floor((totalLavas - lavas) * 7.0).toInt()
-    val ucchvasas = floor(((totalLavas - lavas) * 7.0 - stokas) * 7.0).toInt()
+    // Sub-Vipala: fractional Vipala → Stokas (×7) → Lavas (×7).
+    val vipalaFrac = ((ishtakaalGhatis - g) * 60.0 - p) * 60.0 - v
+    val stokas = floor(vipalaFrac * 7.0).toInt()
+    val lavas = floor((vipalaFrac * 7.0 - stokas) * 7.0).toInt()
 
     return IshtakaalResult(
-        ghatis = G,
-        palas = P,
+        ghatis = g,
+        palas = p,
+        vipalas = v,
         equivalentMuhurtas = Math.round(equivalentMuhurtas * 100.0) / 100.0,
-        lavaMicro = lavas,
         stokaMicro = stokas,
-        uchhavasaMicro = ucchvasas,
-        formatted = "${G} घटी ${P} पल (${Math.round(equivalentMuhurtas * 10.0) / 10.0} मुहूर्त)"
+        lavaMicro = lavas,
+        formatted = "$g घटी $p पल $v विपल (${Math.round(equivalentMuhurtas * 10.0) / 10.0} मुहूर्त)"
     )
-}
-
-// ─── Sunrise Approximation (IST) ─────────────────────────────────────────────
-// Simple latitude-based estimate; replace with Meeus ch. 15 algorithm in Phase 3.
-// Source: Research Report §2 [REQUIRES_RESEARCH] full ephemeris sunrise in Phase 3.
-fun estimateSunriseIST(latStr: String, dob: String): String {
-    val lat = latStr.toDoubleOrNull() ?: 23.0
-    val month = dob.split("-").getOrNull(1)?.toIntOrNull() ?: 6
-    val seasonalOffset = cos(((month - 1) / 6.0) * PI) * 0.75
-    val latFactor = (lat - 23.0) / 40.0 * 0.5
-    val sunriseH = 6.0 - seasonalOffset + latFactor
-    val hh = floor(sunriseH).toInt()
-    val mm = Math.round((sunriseH - hh) * 60.0).toInt()
-    return "${hh.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}"
 }
 
 // ─── Bhaktamar Stotra Remedial Matrix ────────────────────────────────────────

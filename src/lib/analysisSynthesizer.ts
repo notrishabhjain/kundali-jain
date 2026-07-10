@@ -10,12 +10,9 @@
 //  - Three-layer dashā synthesis (mahā → antar → pratyantar): MP-§D2.
 //  - Tirthankara affinity weaving: MP-§C1 + MP-§C2.
 //
-// NOTE: VIMSHOTTARI_* imports below are legacy placeholders from Phase 1 (web). The doctrinally
-// correct system is the 8-karma Jain dashā in [dashaEngine.ts]; the Kotlin engine already uses
-// it. Migrating web away from Vimshottari naming is tracked as [REQUIRES_RESEARCH] follow-up.
 import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/nakshatras';
-import { VIMSHOTTARI_ORDER, VIMSHOTTARI_YEARS, VIMSHOTTARI_HINDI } from '../data/grahas';
 import { calculateIshtakaal, calculateJainZodiacProjection, type IshtakaalResult, type JainZodiacProjection } from '../data/jainCosmology';
+import { calculateApparentSunTimes } from './sunriseEngine';
 
 export interface BirthFormData {
   fullName: string;
@@ -201,23 +198,18 @@ function getTirthankarAffinity(nakshatra: typeof NAKSHATRAS[0]): { en: string; h
   return defaults[nakshatra.karma_type] || { en: 'Mahavira', hi: 'महावीर स्वामी' };
 }
 
-// ─── Ishtakaal: approximate local sunrise (IST) ──────────────────────────────
-// Simple latitude-based sunrise approximation for IST. The Research Report uses
-// precise Solar Epoch Details (sunriseTimeUTC from SP-1 astronomy), but we compute
-// a workable estimate here to populate the IshtakaalResult without an ephemeris call.
-// Source: Research Report §2 (IshtakaalGhatis = ΔT × 2.5 formula).
-// [REQUIRES_RESEARCH] Replace with full sunrise algorithm (Meeus ch. 15) in Phase 3.
-function estimateSunriseIST(latStr: string, dob: string): string {
-  const lat = parseFloat(latStr) || 23.0; // default to central India
-  // Seasonal adjustment: summer earlier, winter later (rough 45-min swing each way)
-  const month = parseInt((dob || '2000-06-01').split('-')[1] || '6', 10);
-  const seasonalOffset = Math.cos(((month - 1) / 6) * Math.PI) * 0.75; // ±0.75h swing
-  // Latitude effect: higher latitude = more seasonal variation
-  const latFactor = (lat - 23.0) / 40.0 * 0.5;
-  const sunriseH = 6.0 - seasonalOffset + latFactor;
-  const hh = Math.floor(sunriseH);
-  const mm = Math.round((sunriseH - hh) * 60);
-  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+// ─── Ishtakaal: apparent sunrise (Meeus Ch. 15) ──────────────────────────────
+// Source: PARITY-REPORT-2026 §"Jean Meeus Chapter 15" — the cosine seasonal
+// approximation is deprecated; sunrise now comes from the astronomical horizon
+// transit algorithm in sunriseEngine.ts. Falls back to 06:00 only when the
+// coordinates are unparsable or the location is in polar day/night.
+function apparentSunriseHHMM(latStr: string, lngStr: string, dob: string): string {
+  const lat = parseFloat(latStr);
+  const lng = parseFloat(lngStr);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return '06:00';
+  const times = calculateApparentSunTimes(dob, lat, lng);
+  if (times.polarDay || times.polarNight) return '06:00';
+  return times.sunriseHHMM;
 }
 
 // ─── Gunasthana estimate ──────────────────────────────────────────────────────
@@ -247,36 +239,51 @@ function estimateGunasthana(nakshatraNature: string, dashaLord: string): number 
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
+// Raised when the birth date/time cannot be parsed into a valid ephemeris epoch.
+// Source: PARITY-REPORT-2026 §"Deprecation of Fallback Charts" — the name-hash
+// fallback chart is deprecated; parsing failures must be fatal and explicit.
+export class InvalidEphemerisEpochError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidEphemerisEpochError';
+  }
+}
+
 export function generateUserProfile(data: BirthFormData): UserProfile {
   let siderealDeg: number;
+  let birthMoonElongation = -1;
 
   try {
     const jde = toJulianDay(data.dob, data.time || '12:00');
     siderealDeg = getSiderealLongitude(jde);
-  } catch {
-    // Fallback to hash-based if date parsing fails
-    let hash = 0;
-    for (let i = 0; i < data.fullName.length; i++) {
-      hash = data.fullName.charCodeAt(i) + ((hash << 5) - hash);
+    if (!Number.isFinite(siderealDeg)) {
+      throw new Error('non-finite longitude');
     }
-    siderealDeg = Math.abs(hash) % 360;
+    // Birth Moon-Sun elongation feeds the LAYER 2 Tithi Pravāh phase coefficient.
+    // Source: PARITY-REPORT-2026 computeDynamicDashas(moonElongation).
+    birthMoonElongation = normDeg(getMoonTropicalLongitude(jde) - getSunLongitude(jde));
+  } catch {
+    // Source: PARITY-REPORT-2026 — no fabricated chart on parse failure.
+    throw new InvalidEphemerisEpochError(
+      'जन्म तिथि या समय अमान्य है। कृपया जन्म-विवरण (YYYY-MM-DD और HH:MM) पुनः जाँच कर भरें — बिना सही जन्म-क्षण के प्रामाणिक कुंडली की गणना संभव नहीं है।'
+    );
   }
 
   const nakshatra = getNakshatraByDegree(siderealDeg);
   const pada = getNakshatraPada(siderealDeg);
   const rashi = getRashi(siderealDeg);
-  const dasha = calculateDasha(siderealDeg, data.dob);
+  const dasha = calculateDasha(siderealDeg, data.dob, birthMoonElongation);
   const tirthankar = getTirthankarAffinity(nakshatra);
   const gunasthana = estimateGunasthana(nakshatra.nature, dasha.lord);
 
   const karmaType = nakshatra.karma_type;
   const dominantKarmaHindi = KARMA_HINDI[karmaType] || karmaType;
 
-  // Ishtakaal: elapsed time from local sunrise to birth in ghati/pala units.
-  // Approximate sunrise using latitude if available; default to 06:00 IST.
-  // Source: Research Report §2 (High-Precision Temporal Coordinate Subsystem).
-  const approxSunriseTime = estimateSunriseIST(data.lat, data.dob);
-  const ishtakaal = calculateIshtakaal(data.time || '12:00', approxSunriseTime);
+  // Ishtakaal: elapsed time from the APPARENT astronomical sunrise to birth,
+  // in ghati/pala/vipala units. Source: PARITY-REPORT-2026 (Meeus Ch. 15 sunrise
+  // + Precise Ishtakaal Conversion).
+  const sunriseTime = apparentSunriseHHMM(data.lat, data.lng, data.dob);
+  const ishtakaal = calculateIshtakaal(data.time || '12:00', sunriseTime);
 
   // Jain sidereal zodiac projection — unequal muhurta spans from Surya Prajnapti.
   // Source: Research Report §4 + SP-1.

@@ -52,6 +52,13 @@ const ALL_KARMAS = [
   { en: 'Antaraya', hi: 'अंतराय', base: 60 }
 ];
 
+// Pancham Kāla karma multiplier — the destructive karmas (Mohaniya, Antaraya) run
+// intensified in the 5th Ara. Source: PARITY-REPORT-2026 §"Technical Parity" (Karma
+// Multiplier row: "Applies a 1.4x factor"; parity action "Integrate multiplier checks
+// into karmaEngine.ts").
+export const PANCHAM_KAAL_KARMA_MULTIPLIER = 1.4;
+const PANCHAM_KAAL_DESTRUCTIVE = new Set(['Mohaniya', 'Antaraya']);
+
 export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string, gunasthana: number, antarLord?: string): KarmaState[] {
   const effectiveDominant = dominantKarmaEn === 'Charitra Mohaniya' ? 'Mohaniya' : dominantKarmaEn;
   const compoundCount = countCompoundGhatiya(dominantKarmaEn, dashaLord, antarLord || '');
@@ -61,6 +68,12 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
     const sadhana = KARMA_SADHANA[karma.en];
     let intensity = karma.base;
     let state: 'Udaya' | 'Satta' | 'Nirjara' = 'Satta';
+
+    // Pancham Kāla 1.4× multiplier on the destructive karmas when they are in transit
+    // (dashā) — Source: PARITY-REPORT-2026 Karma Multiplier parity row.
+    if (PANCHAM_KAAL_DESTRUCTIVE.has(karma.en) && karma.en === dashaLord) {
+      intensity = Math.round(intensity * PANCHAM_KAAL_KARMA_MULTIPLIER);
+    }
 
     if (karma.en === effectiveDominant) {
       intensity += 30;

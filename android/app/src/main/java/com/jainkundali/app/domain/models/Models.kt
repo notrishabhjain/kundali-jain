@@ -196,7 +196,8 @@ data class PratyantardashInfo(
 data class DashaInfo(
     val lord: String,
     val lordHindi: String,
-    val yearsTotal: Int,
+    // Fractional after PARITY-REPORT-2026 Layer 2/3 duration modifiers.
+    val yearsTotal: Double,
     val startDate: String,
     val endDate: String,
     val yearsRemaining: Double,
@@ -239,15 +240,16 @@ data class CombinedRemedy(
 )
 
 // Ishtakaal — birth moment elapsed time in traditional Jain time units.
-// Source: Research Report §2 + Surya Prajnapti (SP-1).
-// The mathematical anchor is umbilical cord severance. Formula: Ghatis = ΔT × 2.5.
+// Source: PARITY-REPORT-2026 §"Precise Ishtakaal Conversion" (primary).
+// Hierarchy: 1 Ghati = 60 Palas; 1 Pala = 24s = 60 Vipalas (Prāṇas);
+// 1 Prāṇa = 7 Stokas; 1 Stoka = 7 Lavas.
 data class IshtakaalResult(
     val ghatis: Int,
     val palas: Int,
+    val vipalas: Int,
     val equivalentMuhurtas: Double,
-    val lavaMicro: Int,
     val stokaMicro: Int,
-    val uchhavasaMicro: Int,
+    val lavaMicro: Int,
     val formatted: String
 )
 

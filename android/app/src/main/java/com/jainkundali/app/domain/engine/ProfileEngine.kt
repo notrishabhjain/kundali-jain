@@ -84,45 +84,56 @@ object ProfileEngine {
         return base.coerceIn(1, DashaEngine.PANCHAM_KAAL_MAX_GUNASTHANA)
     }
 
-    fun generateUserProfile(data: BirthFormData): UserProfile {
-        return try {
-            val siderealDeg: Double = try {
-                val jde = AstronomyUtils.toJulianDay(data.dob, data.time.ifEmpty { "12:00" })
-                AstronomyUtils.getSiderealLongitude(jde)
-            } catch (e: Exception) {
-                var hash = 0
-                for (c in data.fullName) {
-                    hash = c.code + ((hash shl 5) - hash)
-                }
-                (Math.abs(hash) % 360).toDouble()
-            }
+    /**
+     * Raised when the birth date/time cannot be parsed into a valid ephemeris epoch.
+     * Source: PARITY-REPORT-2026 §"Deprecation of Fallback Charts" — the name-hash
+     * fallback chart is deprecated; parsing failures must be fatal and explicit.
+     */
+    class InvalidEphemerisEpochException(message: String) : Exception(message)
 
+    fun generateUserProfile(data: BirthFormData): UserProfile {
+        // Source: PARITY-REPORT-2026 — no fabricated chart on parse failure.
+        val siderealDeg: Double = try {
+            val jde = AstronomyUtils.toJulianDay(data.dob, data.time.ifEmpty { "12:00" })
+            val deg = AstronomyUtils.getSiderealLongitude(jde)
+            require(deg.isFinite()) { "non-finite longitude" }
+            deg
+        } catch (e: Exception) {
+            throw InvalidEphemerisEpochException(
+                "जन्म तिथि या समय अमान्य है। कृपया जन्म-विवरण (YYYY-MM-DD और HH:MM) पुनः जाँच कर भरें — बिना सही जन्म-क्षण के प्रामाणिक कुंडली की गणना संभव नहीं है।"
+            )
+        }
+
+        return try {
             val nakshatra = getNakshatraByDegree(siderealDeg)
             val pada = getNakshatraPada(siderealDeg)
             val rashi = AstronomyUtils.getRashi(siderealDeg)
-            val dasha = DashaEngine.calculateDasha(siderealDeg, data.dob.ifEmpty { "2000-01-01" })
+
+            // Birth Moon-Sun elongation — feeds the LAYER 2 Tithi Pravāh phase coefficient
+            // (PARITY-REPORT-2026) and the birth tithi. −1.0 = unknown (neutral coefficient).
+            val birthElongation: Double = try {
+                val jde = AstronomyUtils.toJulianDay(data.dob, data.time.ifEmpty { "12:00" })
+                AstronomyUtils.normDeg(
+                    AstronomyUtils.getMoonTropicalLongitude(jde) - AstronomyUtils.getSunLongitude(jde)
+                )
+            } catch (e: Exception) {
+                -1.0
+            }
+
+            val dasha = DashaEngine.calculateDasha(siderealDeg, data.dob.ifEmpty { "2000-01-01" }, birthElongation)
             val tirthankar = getTirthankarAffinity(nakshatra)
             val gunasthana = estimateGunasthana(nakshatra.nature.key, dasha.lord)
 
-            // Birth tithi (1..30) from sun-moon elongation at birth — feeds the Tithi Pravāh
-            // dashā layer (MP-§D2 L2). Falls back to 0 (unknown) on computation failure.
-            val birthTithi: Int = try {
-                val jde = AstronomyUtils.toJulianDay(data.dob, data.time.ifEmpty { "12:00" })
-                val elong = AstronomyUtils.normDeg(
-                    AstronomyUtils.getMoonTropicalLongitude(jde) - AstronomyUtils.getSunLongitude(jde)
-                )
-                (elong / 12.0).toInt() + 1
-            } catch (e: Exception) {
-                0
-            }
+            // Birth tithi (1..30) — drives the daily karma-peak / nirjarā status layer.
+            val birthTithi: Int = if (birthElongation >= 0.0) (birthElongation / 12.0).toInt() + 1 else 0
 
             val karmaType = nakshatra.karmaType.key
             val dominantKarmaHindi = KARMA_HINDI[karmaType] ?: karmaType
 
-            // Ishtakaal: elapsed time from local sunrise to birth.
-            // Source: Research Report §2 + Surya Prajnapti (SP-1).
-            val sunriseApprox = estimateSunriseIST(data.lat, data.dob)
-            val ishtakaal = calculateIshtakaal(data.time.ifEmpty { "12:00" }, sunriseApprox)
+            // Ishtakaal: elapsed time from the APPARENT astronomical sunrise to birth.
+            // Source: PARITY-REPORT-2026 (Meeus Ch. 15 sunrise + Precise Ishtakaal Conversion).
+            val sunriseTime = SunriseEngine.apparentSunriseHHMM(data.lat, data.lng, data.dob)
+            val ishtakaal = calculateIshtakaal(data.time.ifEmpty { "12:00" }, sunriseTime)
 
             // Jain sidereal zodiac projection — unequal muhurta spans.
             // Source: Research Report §4 + SP-1.
