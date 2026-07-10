@@ -28,6 +28,7 @@ export interface BirthFormData {
 export type { AntardashaInfo, PratyantardashInfo, DashaInfo } from './dashaEngine';
 import { calculateDasha } from './dashaEngine';
 import type { DashaInfo } from './dashaEngine';
+import { estimateGunasthana } from './gunasthanaClassifier';
 import { calculateKarmaProfile } from './karmaEngine';
 import { generatePredictions } from './predictionEngine';
 import { generateRemedies } from './remedyEngine';
@@ -212,30 +213,10 @@ function apparentSunriseHHMM(latStr: string, lngStr: string, dob: string): strin
   return times.sunriseHHMM;
 }
 
-// ─── Gunasthana estimate ──────────────────────────────────────────────────────
-
-function estimateGunasthana(nakshatraNature: string, dashaLord: string): number {
-  // Base from nakshatra nature (most people in Pancham Kaal are in 1st-4th)
-  let base = 1;
-  if (nakshatraNature === 'param_shubha') base = 4;
-  else if (nakshatraNature === 'shubha') base = 3;
-  else if (nakshatraNature === 'mishra') base = 2;
-
-  // Mohaniya or Darshanavaraniya dasha suppresses clarity — lower by 1
-  if (dashaLord === 'Mohaniya' || dashaLord === 'Darshanavaraniya') {
-    base = Math.max(1, base - 1);
-  }
-  // Gyanavaraniya dasha slightly obscures knowledge
-  if (dashaLord === 'Gyanavaraniya') {
-    base = Math.max(1, base - 1);
-  }
-  // Vedaniya in Udaya can distract from spiritual clarity
-  if (dashaLord === 'Vedaniya' && base > 2) {
-    base = Math.max(2, base - 1);
-  }
-
-  return base;
-}
+// ─── Gunasthana estimate (Sarvarthasiddhi classifier) ────────────────────────
+// Source: PARITY-REPORT-2026 §"GunasthanaClassifier (Sarvarthasiddhi Criteria)"
+// Replaces the former 4-branch nakshatra-bucket heuristic.
+// estimateGunasthana() now lives in gunasthanaClassifier.ts; imported above.
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
