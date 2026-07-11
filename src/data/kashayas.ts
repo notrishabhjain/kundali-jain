@@ -24,10 +24,59 @@ export interface Kashaya {
   nameHindi: string;                // composite name in Devanagari
   passionHindi: string;
   intensityHindi: string;
-  effectHindi: string;              // what this kashaya does to the soul
+  effectHindi: string;              // what this kashaya does to the soul (Hindi)
+  /** English passion label. Source: Master Engineering Specification §2.1 kashayas.json */
+  passion: string;
+  /** English intensity label with diacritics. Source: Master Engineering Specification §2.1 */
+  intensity: string;
+  /** English effect description. Source: Master Engineering Specification §2.1 */
+  effect: string;
   maxGunasthana: number;            // highest gunasthana where this can be present
   karmaStrengthened: string[];      // karmas whose binding is intensified
 }
+
+// Source: Master Engineering Specification §2.1 kashayas.json
+const INTENSITY_ENGLISH: Record<KashayaIntensity, string> = {
+  Anantanubandhi: 'Anantānubandhī',
+  Apratyakhyana:  'Apratyākhyānāvaraṇa',
+  Pratyakhyana:   'Pratyākhyānāvaraṇa',
+  Sanjvalana:     'Sañjvalana',
+};
+
+const PASSION_ENGLISH: Record<KashayaPassion, string> = {
+  Krodha: 'Anger',
+  Mana:   'Pride',
+  Maya:   'Deceit',
+  Lobha:  'Greed',
+};
+
+// English effect text per [intensity][passion] per Master Engineering Spec §2.1
+const EFFECT_ENGLISH: Record<KashayaIntensity, Record<KashayaPassion, string>> = {
+  Anantanubandhi: {
+    Krodha: 'Blocks primary Samyaktva (Right Belief); binds long-term destructive karmas.',
+    Mana:   'Unyielding ego; prevents spiritual awakening.',
+    Maya:   'Deception as a life-state; causes birth in lower realms.',
+    Lobha:  'Lifelong greed; binds the soul to material cycles.',
+  },
+  Apratyakhyana: {
+    Krodha: 'Prevents the adoption of any minor vow (Aṇuvratas).',
+    Mana:   'Blocks layout vows; prevents submission to rules.',
+    Maya:   'Subtle deceit that corrupts ethical determination.',
+    Lobha:  'Material clinging that prevents layout definitions.',
+  },
+  Pratyakhyana: {
+    Krodha: 'Prevents complete monastic renunciation (Mahāvratas).',
+    Mana:   'Pride preventing total monastic submission.',
+    Maya:   'Complex emotional blockages in ascetic practice.',
+    Lobha:  'Refined attachment to physical survival tools.',
+  },
+  Sanjvalana: {
+    Krodha: 'Smoldering anger; vanishes in less than a Muhūrta.',
+    Mana:   'Traces of self-awareness; cleared in high meditation.',
+    Maya:   'Minor mental adjustments in spiritual flow.',
+    Lobha:  'Microscopic greed; the final barrier to Kevalajñāna.',
+  },
+};
 
 const INTENSITIES: Array<{ en: KashayaIntensity; hindi: string; max: number }> = [
   { en: 'Anantanubandhi',  hindi: 'अनन्तानुबन्धी',  max: 1 },
@@ -84,6 +133,9 @@ for (const intensity of INTENSITIES) {
       passionHindi: passion.hindi,
       intensityHindi: intensity.hindi,
       effectHindi: passion.effectTemplate(intensity.hindi),
+      passion: PASSION_ENGLISH[passion.en],
+      intensity: INTENSITY_ENGLISH[intensity.en],
+      effect: EFFECT_ENGLISH[intensity.en][passion.en],
       maxGunasthana: intensity.max,
       karmaStrengthened: passion.karmas
     });

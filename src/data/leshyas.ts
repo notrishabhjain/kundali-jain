@@ -9,6 +9,14 @@ export interface Leshya {
   nameEn: string;
   color: string;            // CSS color approximation for UI
   colorNameHindi: string;
+  /** English color name. Source: Master Engineering Specification §2.1 leshyas.json */
+  colorEn: string;
+  /** Romanized Sanskrit name. Source: Master Engineering Specification §2.1 */
+  sanskritName: string;
+  /** English moral quality (Highly Destructive / Destructive / Auspicious / Pure). Source: Master Engineering Spec §2.1 */
+  nature: string;
+  /** English description. Source: Master Engineering Specification §2.1 */
+  description: string;
   descriptionHindi: string;
   kashayaLevel: 'extreme' | 'high' | 'moderate' | 'low' | 'very_low' | 'none';
   moralQuality: 'अशुभ' | 'शुभ';
@@ -23,6 +31,10 @@ export const LESHYAS: Leshya[] = [
     nameEn: 'Krishna Leshya',
     color: '#1a1a2e',
     colorNameHindi: 'काली',
+    colorEn: 'Black',
+    sanskritName: 'Kṛṣṇa',
+    nature: 'Highly Destructive',
+    description: 'Cruelty, deep hostility, anger, and absolute lack of compassion.',
     descriptionHindi:
       'आत्मा में क्रोध, मान, माया और लोभ की अत्यधिक तीव्रता होती है। हिंसा, असत्य और परिग्रह में आसक्ति प्रबल रहती है। यह लेश्या नरक गति की ओर आत्मा को ले जाती है।',
     kashayaLevel: 'extreme',
@@ -36,6 +48,10 @@ export const LESHYAS: Leshya[] = [
     nameEn: 'Neel Leshya',
     color: '#0d3b6e',
     colorNameHindi: 'नीली',
+    colorEn: 'Blue',
+    sanskritName: 'Nīla',
+    nature: 'Destructive',
+    description: 'Pride, greed, jealousy, laziness, and systemic deceit.',
     descriptionHindi:
       'आत्मा में तीव्र कषाय तो है किंतु कृष्ण लेश्या से कुछ कम। लोभ और माया की प्रधानता रहती है। तिर्यंच गति की ओर प्रवृत्ति होती है।',
     kashayaLevel: 'high',
@@ -49,6 +65,10 @@ export const LESHYAS: Leshya[] = [
     nameEn: 'Kapot Leshya',
     color: '#6b7280',
     colorNameHindi: 'धुएँ जैसी/कबूतर-वर्ण',
+    colorEn: 'Grey',
+    sanskritName: 'Kāpota',
+    nature: 'Destructive',
+    description: 'Distress, anxiety, self-pity, anger, and a tendency to blame others.',
     descriptionHindi:
       'क्रोध और मान की प्रधानता है। आत्मा मानवीय गति में भटकती है। धर्म की ओर झुकाव तो है परंतु कषाय की पकड़ अभी भी मजबूत है।',
     kashayaLevel: 'moderate',
@@ -62,6 +82,10 @@ export const LESHYAS: Leshya[] = [
     nameEn: 'Tejo Leshya',
     color: '#d97706',
     colorNameHindi: 'अग्नि-वर्ण/पीतल',
+    colorEn: 'Yellow',
+    sanskritName: 'Tejas',
+    nature: 'Auspicious',
+    description: 'Self-control, practice of charity, compassion, and righteousness.',
     descriptionHindi:
       'आत्मा शुभ भावों की ओर अग्रसर होती है। कषाय कमजोर पड़ने लगती हैं। देव-गति और देश-विरति की प्राप्ति की संभावना बनती है।',
     kashayaLevel: 'low',
@@ -75,6 +99,10 @@ export const LESHYAS: Leshya[] = [
     nameEn: 'Padma Leshya',
     color: '#ec4899',
     colorNameHindi: 'कमल-वर्ण/गुलाबी',
+    colorEn: 'Pink',
+    sanskritName: 'Padma',
+    nature: 'Auspicious',
+    description: 'Forgiveness, detachment, continuous self-reflection, and minor vows.',
     descriptionHindi:
       'आत्मा में संयम और शुद्धता बढ़ती है। मोह का क्षय हो रहा है। यह लेश्या उच्च देव-गति और संयम की साधना में सहायक होती है।',
     kashayaLevel: 'very_low',
@@ -88,6 +116,10 @@ export const LESHYAS: Leshya[] = [
     nameEn: 'Shukla Leshya',
     color: '#f0fdf4',
     colorNameHindi: 'श्वेत/निर्मल',
+    colorEn: 'White',
+    sanskritName: 'Śukla',
+    nature: 'Pure',
+    description: 'Unwavering equanimity, absolute compassion, and advanced meditation.',
     descriptionHindi:
       'आत्मा में कषाय का पूर्णतः क्षय हो जाता है। यह परम शुद्ध अवस्था है। यह लेश्या केवलज्ञान और मोक्ष की प्राप्ति की अवस्था में होती है।',
     kashayaLevel: 'none',
