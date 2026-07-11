@@ -221,14 +221,20 @@ function apparentSunriseHHMM(latStr: string, lngStr: string, dob: string): strin
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 // Raised when the birth date/time cannot be parsed into a valid ephemeris epoch.
-// Source: PARITY-REPORT-2026 §"Deprecation of Fallback Charts" — the name-hash
-// fallback chart is deprecated; parsing failures must be fatal and explicit.
-export class InvalidEphemerisEpochError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidEphemerisEpochError';
+// Source: Master Engineering Specification §1.6 — fallback name-hash chart removed;
+// parsing failures must be fatal and explicit.
+export class InvalidEphemerisEpochException extends Error {
+  constructor(
+    message: string,
+    public readonly metadata: Record<string, unknown> = {}
+  ) {
+    super(`[Ephemeris Engine] Date/coordinate parsing failed: ${message}`);
+    this.name = 'InvalidEphemerisEpochException';
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
+/** @deprecated Use InvalidEphemerisEpochException */
+export const InvalidEphemerisEpochError = InvalidEphemerisEpochException;
 
 export function generateUserProfile(data: BirthFormData): UserProfile {
   let siderealDeg: number;

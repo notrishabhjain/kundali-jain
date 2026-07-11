@@ -73,10 +73,16 @@ export interface DashaSadhana {
 export interface JainFestival {
   name: string;
   tithi_shukla_krishna: 'shukla' | 'krishna';
-  tithi_num: number;          // 1-15
+  tithi_num: number;          // start tithi 1-15
+  /** End tithi for multi-day festivals. Source: Master Engineering Specification §7.3 */
+  endTithi?: number;
   approx_month: string;       // Hindi month name
+  /** Digambara sect qualifier. Source: Master Engineering Specification §7.3 */
+  sect?: 'Digambara' | 'Both';
   karma_benefit: string;
   sadhana: string;
+  /** Structured practice list. Source: Master Engineering Specification §7.3 */
+  corePractices?: string[];
   color: string;
 }
 
@@ -787,6 +793,58 @@ export const JAIN_ANNUAL_FESTIVALS: JainFestival[] = [
     karma_benefit: 'मोहनीय और ज्ञानावरणीय — मौन से कषाय-शमन',
     sadhana: 'सम्पूर्ण मौन, उपवास, पार्श्वनाथ की पूजा',
     color: 'bg-indigo-100 text-indigo-800 border-indigo-200'
+  },
+
+  // ── Additional festivals per Master Engineering Specification §7.3 ─────────
+  {
+    // Source: Master Engineering Specification §7.3
+    name: 'दस लक्षण पर्व (पर्युषण)',
+    sect: 'Digambara',
+    tithi_shukla_krishna: 'shukla',
+    tithi_num: 5,
+    endTithi: 14,
+    approx_month: 'भाद्रपद',
+    karma_benefit: 'चारित्र मोहनीय क्षय — दश धर्म का आराधन',
+    sadhana: 'प्रतिदिन कठोर उपवास, दश-धर्म चिंतन और प्रतिक्रमण',
+    corePractices: ['Strict_Fasting', 'Ten_Dharma_Contemplations', 'Pratikramana_Daily'],
+    color: 'bg-rose-100 text-rose-900 border-rose-300'
+  },
+  {
+    // Source: Master Engineering Specification §7.3
+    name: 'अष्टान्हिका पर्व',
+    sect: 'Digambara',
+    tithi_shukla_krishna: 'shukla',
+    tithi_num: 8,
+    endTithi: 15,
+    approx_month: 'कार्तिक',
+    karma_benefit: 'दर्शनावरणीय क्षय — सिद्धचक्र आराधना',
+    sadhana: 'सिद्धचक्र पूजन, मंदिर-दर्शन, नवपद ओली',
+    corePractices: ['Siddhachakra_Aradhana', 'Temple_Worship'],
+    color: 'bg-violet-100 text-violet-800 border-violet-200'
+  },
+  {
+    // Source: Master Engineering Specification §7.3
+    name: 'श्रुत पंचमी',
+    sect: 'Digambara',
+    tithi_shukla_krishna: 'shukla',
+    tithi_num: 5,
+    approx_month: 'ज्येष्ठ',
+    karma_benefit: 'ज्ञानावरणीय क्षय — श्रुतज्ञान की आराधना',
+    sadhana: 'शास्त्र-पूजन, स्वाध्याय विस्तार, षट्खंडागम पठन',
+    corePractices: ['Scripture_Worship', 'Svadhyaya_Expansion'],
+    color: 'bg-sky-100 text-sky-800 border-sky-200'
+  },
+  {
+    // Source: Master Engineering Specification §7.3
+    name: 'अनंत चतुर्दशी',
+    sect: 'Digambara',
+    tithi_shukla_krishna: 'shukla',
+    tithi_num: 14,
+    approx_month: 'भाद्रपद',
+    karma_benefit: 'आयुष्य कर्म एवं गोत्र — अनंत तीर्थंकर की आराधना',
+    sadhana: 'निराहार उपवास, अनंत तीर्थंकर की विशेष पूजा',
+    corePractices: ['Nirahara_Fasting', 'Worship_Of_Anant_Tirthankara'],
+    color: 'bg-teal-100 text-teal-800 border-teal-200'
   }
 ];
 

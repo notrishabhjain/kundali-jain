@@ -12,10 +12,20 @@ export interface VrataAtichara {
 
 export interface Vrata {
   id: number;
+  /** Sequential vow number 1-12. Source: Master Engineering Specification §2.1 */
+  vowNumber: number;
   categoryEn: VrataCategory;
   categoryHindi: string;
+  /** Vrata class with diacritics (Aṇuvrata/Guṇavrata/Śikṣāvrata). Source: Master Engineering Spec §2.1 */
+  vrataClass: string;
   nameHindi: string;
   nameEn: string;
+  /** Romanized Sanskrit name. Source: Master Engineering Specification §2.1 sravaka_vratas.json */
+  sanskritName: string;
+  /** English name. Source: Master Engineering Specification §2.1 */
+  englishName: string;
+  /** English description of the vow. Source: Master Engineering Specification §2.1 */
+  description: string;
   descriptionHindi: string;     // what the vow entails
   dailyPracticeHindi: string;   // concrete daily observance
   aticharas: VrataAtichara[];   // 5 aticharas (partial infractions) for each
@@ -27,10 +37,15 @@ export const VRATAS: Vrata[] = [
   // ─── 5 Aṇuvratas ───────────────────────────────────────────────────────────
   {
     id: 1,
+    vowNumber: 1,
     categoryEn: 'Anuvrata',
     categoryHindi: 'अणुव्रत',
+    vrataClass: 'Aṇuvrata',
     nameHindi: 'अहिंसा अणुव्रत',
     nameEn: 'Ahimsa Anuvrata',
+    sanskritName: 'Sthūla-Prāṇātipāta-Viramana',
+    englishName: 'Lesser Vow of Non-violence',
+    description: 'Refraining from intentionally injuring or killing two-to-five-sensed living beings.',
     descriptionHindi:
       'स्थूल (प्रत्यक्ष) हिंसा का त्याग। द्विइन्द्रिय से पञ्चेन्द्रिय जीवों की जान-बूझकर हिंसा नहीं करना।',
     dailyPracticeHindi:
@@ -47,10 +62,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 2,
+    vowNumber: 2,
     categoryEn: 'Anuvrata',
     categoryHindi: 'अणुव्रत',
+    vrataClass: 'Aṇuvrata',
     nameHindi: 'सत्य अणुव्रत',
     nameEn: 'Satya Anuvrata',
+    sanskritName: 'Sthūla-Mṛṣāvāda-Viramana',
+    englishName: 'Lesser Vow of Truthfulness',
+    description: 'Avoiding gross falsehoods, slander, and deceptive speech.',
     descriptionHindi:
       'स्थूल असत्य का त्याग। घर, जमीन, जीव या स्त्री के बारे में झूठ न बोलना।',
     dailyPracticeHindi:
@@ -67,10 +87,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 3,
+    vowNumber: 3,
     categoryEn: 'Anuvrata',
     categoryHindi: 'अणुव्रत',
+    vrataClass: 'Aṇuvrata',
     nameHindi: 'अचौर्य अणुव्रत',
     nameEn: 'Achaurya Anuvrata',
+    sanskritName: 'Sthūla-Adattādāna-Viramana',
+    englishName: 'Lesser Vow of Non-stealing',
+    description: 'Refraining from taking anything not explicitly given by its owner.',
     descriptionHindi:
       'स्थूल चोरी का त्याग। बिना अनुमति किसी की वस्तु न लेना।',
     dailyPracticeHindi:
@@ -87,10 +112,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 4,
+    vowNumber: 4,
     categoryEn: 'Anuvrata',
     categoryHindi: 'अणुव्रत',
+    vrataClass: 'Aṇuvrata',
     nameHindi: 'ब्रह्मचर्य अणुव्रत',
     nameEn: 'Brahmacharya Anuvrata',
+    sanskritName: 'Sthūla-Maithuna-Viramana',
+    englishName: 'Lesser Vow of Chastity',
+    description: 'Absolute fidelity to spouse; sensory moderation and restraint.',
     descriptionHindi:
       'परस्त्री/परपुरुष से संबंध का त्याग। केवल विवाहित साथी के साथ संयमित सम्बन्ध।',
     dailyPracticeHindi:
@@ -107,10 +137,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 5,
+    vowNumber: 5,
     categoryEn: 'Anuvrata',
     categoryHindi: 'अणुव्रत',
+    vrataClass: 'Aṇuvrata',
     nameHindi: 'परिग्रह-परिमाण अणुव्रत',
     nameEn: 'Parigraha-Parimana Anuvrata',
+    sanskritName: 'Sthūla-Parigraha-Parimana',
+    englishName: 'Lesser Vow of Non-possession',
+    description: 'Restricting wealth, physical assets, and properties to defined limits.',
     descriptionHindi:
       'संपत्ति, भूमि, धन, वस्तुओं और सम्बन्धों की एक सीमा निश्चित करना। उससे अधिक का लोभ त्यागना।',
     dailyPracticeHindi:
@@ -129,10 +164,15 @@ export const VRATAS: Vrata[] = [
   // ─── 3 Guṇavratas ──────────────────────────────────────────────────────────
   {
     id: 6,
+    vowNumber: 6,
     categoryEn: 'Gunavrata',
     categoryHindi: 'गुणव्रत',
+    vrataClass: 'Guṇavrata',
     nameHindi: 'दिग्व्रत',
     nameEn: 'Digvrata',
+    sanskritName: 'Dig-Parimāna-Vrata',
+    englishName: 'Directional Limitation Vow',
+    description: 'Restricting physical travel limits in ten cardinal directions.',
     descriptionHindi:
       'दिशाओं में यात्रा और गतिविधि की सीमा निश्चित करना। इससे हिंसा का क्षेत्र स्वयं सीमित हो जाता है।',
     dailyPracticeHindi:
@@ -149,10 +189,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 7,
+    vowNumber: 7,
     categoryEn: 'Gunavrata',
     categoryHindi: 'गुणव्रत',
+    vrataClass: 'Guṇavrata',
     nameHindi: 'देशव्रत (भोगोपभोग-परिमाण)',
     nameEn: 'Deshavrata',
+    sanskritName: 'Bhogopabhoga-Parimana',
+    englishName: 'Consumption Limitation Vow',
+    description: 'Restricting consumer goods, garments, food items, and reusable assets.',
     descriptionHindi:
       'प्रतिदिन उपभोग की जाने वाली वस्तुओं की संख्या और प्रकार सीमित करना। अनावश्यक भोग का त्याग।',
     dailyPracticeHindi:
@@ -169,10 +214,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 8,
+    vowNumber: 8,
     categoryEn: 'Gunavrata',
     categoryHindi: 'गुणव्रत',
+    vrataClass: 'Guṇavrata',
     nameHindi: 'अनर्थदण्ड-विरमण',
     nameEn: 'Anarthadanda Viramana',
+    sanskritName: 'Anartha-Danda-Viramana',
+    englishName: 'Purposeless Harm Vow',
+    description: 'Avoiding harmful actions that yield no spiritual or physical utility.',
     descriptionHindi:
       'बिना प्रयोजन हिंसा, वाणी-दोष और पापकारी कार्यों का त्याग। व्यर्थ के कार्यों से निवृत्ति।',
     dailyPracticeHindi:
@@ -191,10 +241,15 @@ export const VRATAS: Vrata[] = [
   // ─── 4 Śikṣāvratas ─────────────────────────────────────────────────────────
   {
     id: 9,
+    vowNumber: 9,
     categoryEn: 'Shikshavrata',
     categoryHindi: 'शिक्षाव्रत',
+    vrataClass: 'Śikṣāvrata',
     nameHindi: 'सामायिक',
     nameEn: 'Samayika',
+    sanskritName: 'Sāmāyika-Vrata',
+    englishName: 'Equanimity Training Vow',
+    description: 'Committing to a minimum of 48 minutes of peaceful meditation daily.',
     descriptionHindi:
       'प्रतिदिन 48 मिनट (एक मुहूर्त) समभाव-ध्यान में बैठना। इस समय मन, वचन और काय की गतिविधि पूर्णतः आत्मा में केन्द्रित होती है।',
     dailyPracticeHindi:
@@ -211,10 +266,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 10,
+    vowNumber: 10,
     categoryEn: 'Shikshavrata',
     categoryHindi: 'शिक्षाव्रत',
+    vrataClass: 'Śikṣāvrata',
     nameHindi: 'देशावकाशिक',
     nameEn: 'Deshavakashika',
+    sanskritName: 'Deśāvakāśika-Vrata',
+    englishName: 'Despatialization Vow',
+    description: 'Compressing geographic travel limits for shorter, specific periods.',
     descriptionHindi:
       'एक निश्चित समय के लिए स्थान और गतिविधि को और अधिक सीमित करना। दिग्व्रत का एक दिन या विशेष अवसर के लिए कठोर रूप।',
     dailyPracticeHindi:
@@ -231,10 +291,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 11,
+    vowNumber: 11,
     categoryEn: 'Shikshavrata',
     categoryHindi: 'शिक्षाव्रत',
+    vrataClass: 'Śikṣāvrata',
     nameHindi: 'पौषधोपवास',
     nameEn: 'Paushadhopavas',
+    sanskritName: 'Pauṣadhopavāsa-Vrata',
+    englishName: 'Ascetic Day Vow',
+    description: 'Fasting and living as a monk for a 24-hour cycle twice a month.',
     descriptionHindi:
       'अष्टमी और चतुर्दशी (पक्ष में दो बार) पर मुनि-जीवन का अभ्यास। उपवास, सामायिक, स्वाध्याय और भूमि पर शयन।',
     dailyPracticeHindi:
@@ -251,10 +316,15 @@ export const VRATAS: Vrata[] = [
   },
   {
     id: 12,
+    vowNumber: 12,
     categoryEn: 'Shikshavrata',
     categoryHindi: 'शिक्षाव्रत',
+    vrataClass: 'Śikṣāvrata',
     nameHindi: 'अतिथि-संविभाग',
     nameEn: 'Atithi-Sambhivibhaga',
+    sanskritName: 'Atithi-Samvibhāga-Vrata',
+    englishName: 'Hospitality Vow',
+    description: 'Sharing food, medicine, shelter, and knowledge with worthy monks.',
     descriptionHindi:
       'मुनि, आर्यिका, श्रावक और श्राविका को यथायोग्य आहार-दान। इसी दान से पुण्य-बन्ध की श्रेष्ठ धारा बनती है।',
     dailyPracticeHindi:

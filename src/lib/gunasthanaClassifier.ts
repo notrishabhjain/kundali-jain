@@ -104,3 +104,143 @@ export function estimateGunasthana(
   };
   return classifyGunasthana(merged);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Interactive questionnaire-driven classifier
+// Source: Master Engineering Specification §4 "Interactive Gunasthana Classifier"
+// Based on Sarvarthasiddhi and Shatkhandagama.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Input from the three-axis self-assessment questionnaire.
+ * Source: Master Engineering Specification §4.2
+ */
+export interface AssessmentInput {
+  mithyatvaAxisScore: number;    // 0 = body-identified, 3 = unwavering inner conviction
+  aviratiAxisScore: number;      // 0 = no vows, 1 = partial, 2 = rigorous commitment
+  kashayaIntensityScore: number; // 0 = fleeting flash, 3 = months of resentment
+}
+
+export interface GunasthanaResult {
+  gunasthana: number;
+  title: string;
+  description: string;
+}
+
+/**
+ * Rule-based Gunasthana classifier from §4.2 of Master Engineering Specification.
+ * Replaces the legacy nakshatra-bucket heuristic with questionnaire-driven logic.
+ */
+export class GunasthanaClassifier {
+  public evaluateGunasthana(assessment: AssessmentInput): GunasthanaResult {
+    const { mithyatvaAxisScore, aviratiAxisScore, kashayaIntensityScore } = assessment;
+
+    // Stage 1: body-identified or month-long anger = Mithyādrshti
+    if (mithyatvaAxisScore === 0 || kashayaIntensityScore === 3) {
+      return {
+        gunasthana: 1,
+        title: 'Mithyādṛṣṭi',
+        description: 'Wrong Belief: Complete spiritual delusion, confusion of self with body.',
+      };
+    }
+
+    // Stage 2: intellectual acceptance but doubt descending = Sāsvādana
+    if (mithyatvaAxisScore === 1 && kashayaIntensityScore === 2) {
+      return {
+        gunasthana: 2,
+        title: 'Sāsvādana-Samyagdṛṣṭi',
+        description: 'Taste of Right Belief: Transient recollection, falling toward Stage 1.',
+      };
+    }
+
+    // Stage 3: oscillating belief = Miśradṛṣṭi
+    if (mithyatvaAxisScore === 2 && kashayaIntensityScore <= 2) {
+      return {
+        gunasthana: 3,
+        title: 'Miśradṛṣṭi',
+        description: 'Mixed Belief: Alternating between correct and wrong belief frameworks.',
+      };
+    }
+
+    // Stage 4: firm faith, no vow commitment = Avirata-Samyagdṛṣṭi
+    if (mithyatvaAxisScore === 3 && aviratiAxisScore === 0 && kashayaIntensityScore <= 2) {
+      return {
+        gunasthana: 4,
+        title: 'Avirata-Samyagdṛṣṭi',
+        description: 'Right Belief without Control: firm understanding but vows are not implemented.',
+      };
+    }
+
+    // Stage 5: firm faith with active householder vows = Deśavirata
+    if (mithyatvaAxisScore === 3 && aviratiAxisScore >= 1 && kashayaIntensityScore <= 1) {
+      return {
+        gunasthana: 5,
+        title: 'Deśavirata',
+        description: 'Partial Self-Control: Observance of layman vows; active spiritual progression.',
+      };
+    }
+
+    // Safe fallback
+    return {
+      gunasthana: 1,
+      title: 'Mithyādṛṣṭi',
+      description: 'Wrong Belief: Default baseline state.',
+    };
+  }
+}
+
+/** Singleton instance for convenience. */
+export const gunasthanaClassifier = new GunasthanaClassifier();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Questionnaire specification (JSON-serializable)
+// Source: Master Engineering Specification §4.1
+// ─────────────────────────────────────────────────────────────────────────────
+export const GUNASTHANA_QUESTIONNAIRE = {
+  surveyId: 'Jain_Spiritual_State_Assessment',
+  dimensions: [
+    {
+      dimension: 'Shraddha',
+      questions: [
+        {
+          qId: 'S1',
+          text: 'Do you identify the eternal self (Ātmā) as fundamentally distinct from the physical body (Pudgala)?',
+          options: [
+            { text: 'Absolute identification with body and worldly roles', score: 0, axis: 'Mithyatva' },
+            { text: 'Intellectual acceptance but frequent emotional doubt', score: 2, axis: 'Mithyatva' },
+            { text: 'Unwavering internal realization and conviction', score: 3, axis: 'Mithyatva' },
+          ],
+        },
+      ],
+    },
+    {
+      dimension: 'Conduct',
+      questions: [
+        {
+          qId: 'C1',
+          text: 'Identify your level of active commitment to the five householder vows (Anuvratas):',
+          options: [
+            { text: 'No formal vows; actions guided by personal convenience', score: 0, axis: 'Avirati' },
+            { text: 'Partial commitment (e.g., vegetarianism, basic honesty)', score: 1, axis: 'Avirati' },
+            { text: 'Rigorous commitment with defined parameters', score: 2, axis: 'Avirati' },
+          ],
+        },
+      ],
+    },
+    {
+      dimension: 'Kashaya',
+      questions: [
+        {
+          qId: 'K1',
+          text: 'What is the typical duration and resolution cycle of your anger or resentment?',
+          options: [
+            { text: 'Resentment persists for months, impacting relationships', score: 3, axis: 'Intensity' },
+            { text: 'Anger fades within weeks, allowing for resolution', score: 2, axis: 'Intensity' },
+            { text: 'Anger resolves within days through conscious effort', score: 1, axis: 'Intensity' },
+            { text: 'Anger arises as a fleeting flash, resolving instantly', score: 0, axis: 'Intensity' },
+          ],
+        },
+      ],
+    },
+  ],
+};

@@ -15,6 +15,74 @@
 //    Pravāh Daśā" layer (LAYER 1) — not contradicted by the report, retained.
 import { getNakshatraByDegree } from '../data/nakshatras';
 
+// ── ConsolidatedDashaEngine (class interface per Master Engineering Spec §5.1) ──
+// Source: Master Engineering Specification §5.1 "Dynamic Dasha Engine"
+export interface KarmaProfileKeys {
+  jnanavaraniya: number;
+  darshanavaraniya: number;
+  vedaniya: number;
+  mohaniya: number;
+  ayushya: number;
+  nama: number;
+  gotra: number;
+  antaraya: number;
+}
+
+export interface DashaSpanJD {
+  karmaName: keyof KarmaProfileKeys;
+  startJD: number;
+  endJD: number;
+  durationYears: number;
+}
+
+export class ConsolidatedDashaEngine {
+  private static readonly PANCHAM_KALA_MULTIPLIER = 1.4;
+  private static readonly BASE_DURATIONS: Record<keyof KarmaProfileKeys, number> = {
+    mohaniya: 28,
+    jnanavaraniya: 15,
+    darshanavaraniya: 9,
+    antaraya: 14,
+    vedaniya: 10,
+    ayushya: 4,
+    nama: 12,
+    gotra: 8,
+  };
+
+  private static readonly SEQUENCE: (keyof KarmaProfileKeys)[] = [
+    'mohaniya', 'jnanavaraniya', 'darshanavaraniya', 'antaraya',
+    'vedaniya', 'ayushya', 'nama', 'gotra',
+  ];
+
+  /**
+   * Computes dynamic dasha durations incorporating Tithi Pravāh (L2) and
+   * Pancham Kāla modifiers (L3). Source: Master Engineering Specification §5.1
+   */
+  public calculateDynamicDashas(
+    birthJD: number,
+    moonElongation: number,
+    isPanchamKala: boolean
+  ): DashaSpanJD[] {
+    const isShuklaPaksha = moonElongation < 180.0;
+    const phaseCoefficient = isShuklaPaksha
+      ? 1.0 + (moonElongation / 360.0) * 0.15
+      : 1.0 - ((moonElongation - 180.0) / 360.0) * 0.15;
+
+    let currentJD = birthJD;
+    return ConsolidatedDashaEngine.SEQUENCE.map((karma) => {
+      let duration = ConsolidatedDashaEngine.BASE_DURATIONS[karma];
+      if (isPanchamKala && (karma === 'mohaniya' || karma === 'antaraya')) {
+        duration *= ConsolidatedDashaEngine.PANCHAM_KALA_MULTIPLIER;
+      }
+      const adjustedDuration = duration * phaseCoefficient;
+      const daysSpan = adjustedDuration * 365.2425;
+      const start = currentJD;
+      const end = currentJD + daysSpan;
+      currentJD = end;
+      return { karmaName: karma, startJD: start, endJD: end, durationYears: adjustedDuration };
+    });
+  }
+}
+
 export const JAIN_DASHA_ORDER = [
   'Gyanavaraniya', 'Darshanavaraniya', 'Vedaniya', 'Mohaniya',
   'Ayushya', 'Naam', 'Gotra', 'Antaraya'
