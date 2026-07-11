@@ -1,14 +1,18 @@
 // Jain dashā engine. Uses the 8-karma cycle (NOT Vedic Vimśottarī) with a 3-level
 // decomposition: Mahādaśā → Antardaśā → Pratyantardaśā.
 //
-// Sources (see references/sources.md):
+// Sources (see references/sources.md — PARITY-REPORT-2026 is PRIMARY per user directive):
 //  - 8-karma dashā ordering: MP-§D2 + Codex constraint G2-C1 (zero Vedic mixing).
-//  - Per-lord year allotments: MP-§D2 (Codex distillation). Verse-level grounding in
-//    Tiloyapannatti / Trilokasara is pending OCR — [REQUIRES_RESEARCH] until cited.
+//  - Per-lord year allotments: PARITY-REPORT-2026 §"Web Port: Layer 2 and Layer 3"
+//    (STANDARD_DASHA_YEARS — supersedes the earlier MP-§D2 distillation values).
+//  - LAYER 2 "Tithi Pravāh" phase coefficient: PARITY-REPORT-2026 — Shukla paksha
+//    amplifies durations up to +15%, Krishna paksha contracts up to −15%, scaled by
+//    the birth Moon-Sun elongation.
+//  - LAYER 3 "Pancham Kāla Position Modifier": PARITY-REPORT-2026 — the two destructive
+//    karmas (Mohaniya, Antaraya) run 1.4× longer dashā periods in the 5th Ara.
 //  - Antardaśā / Pratyantardaśā proportional sub-allocation: standard Jain treatment, MP-§D2.
 //  - Birth-nakshatra → starting-lord mapping (nakshatra-index mod 8): MP-§D2's "Nakshatra
-//    Pravāh Daśā" layer; the "Tithi Pravāh" + "Pancham Kāla Position Modifier" layers from
-//    MP-§D2 are [REQUIRES_RESEARCH] — not yet implemented here.
+//    Pravāh Daśā" layer (LAYER 1) — not contradicted by the report, retained.
 import { getNakshatraByDegree } from '../data/nakshatras';
 
 export const JAIN_DASHA_ORDER = [
@@ -16,10 +20,38 @@ export const JAIN_DASHA_ORDER = [
   'Ayushya', 'Naam', 'Gotra', 'Antaraya'
 ];
 
+// Source: PARITY-REPORT-2026 STANDARD_DASHA_YEARS (primary; sums to 100).
 export const JAIN_DASHA_YEARS: Record<string, number> = {
-  Gyanavaraniya: 12, Darshanavaraniya: 9, Vedaniya: 15, Mohaniya: 20,
-  Ayushya: 8, Naam: 14, Gotra: 10, Antaraya: 12
+  Gyanavaraniya: 15, Darshanavaraniya: 9, Vedaniya: 10, Mohaniya: 28,
+  Ayushya: 4, Naam: 12, Gotra: 8, Antaraya: 14
 };
+
+// ── LAYER 3: Pancham Kāla position modifier ─────────────────────────────────
+// Source: PARITY-REPORT-2026 — PANCHAM_KALA_MULTIPLIER applied to the durations of
+// the destructive karmas (Mohaniya, Antaraya) while the 5th Ara runs.
+export const PANCHAM_KAAL_DASHA_MULTIPLIER = 1.4;
+const PANCHAM_KAAL_DESTRUCTIVE_LORDS = new Set(['Mohaniya', 'Antaraya']);
+
+// ── LAYER 2: Tithi Pravāh phase coefficient ─────────────────────────────────
+// Source: PARITY-REPORT-2026 — birth Moon-Sun elongation shifts every dashā duration:
+// Shukla paksha (elongation < 180°) expands up to +15%, Krishna paksha contracts
+// up to −15%. Elongation −1 (unknown) yields a neutral 1.0 coefficient.
+export function tithiPravahPhaseCoefficient(moonElongation: number): number {
+  if (moonElongation < 0 || moonElongation >= 360) return 1.0;
+  return moonElongation < 180
+    ? 1.0 + (moonElongation / 360.0) * 0.15
+    : 1.0 - ((moonElongation - 180.0) / 360.0) * 0.15;
+}
+
+/** Effective mahādaśā duration for a lord after Layer 3 + Layer 2 modifiers.
+ *  Source: PARITY-REPORT-2026 computeDynamicDashas. */
+export function effectiveDashaYears(lord: string, phaseCoefficient: number): number {
+  let years = JAIN_DASHA_YEARS[lord];
+  if (PANCHAM_KAAL_DESTRUCTIVE_LORDS.has(lord)) {
+    years *= PANCHAM_KAAL_DASHA_MULTIPLIER;
+  }
+  return years * phaseCoefficient;
+}
 
 export const JAIN_DASHA_HINDI: Record<string, string> = {
   Gyanavaraniya: 'ज्ञानावरणीय', Darshanavaraniya: 'दर्शनावरणीय', Vedaniya: 'वेदनीय', Mohaniya: 'मोहनीय',
@@ -63,7 +95,7 @@ function yearToDateString(year: number): string {
   return `${y}-${String(m).padStart(2, '0')}-${String(Math.min(d, 28)).padStart(2, '0')}`;
 }
 
-export function calculateDasha(siderealDeg: number, dobStr: string): DashaInfo {
+export function calculateDasha(siderealDeg: number, dobStr: string, birthMoonElongation: number = -1): DashaInfo {
   const nakshatra = getNakshatraByDegree(siderealDeg);
   const nakshatraIndex = nakshatra.index; // 0 to 26
 
@@ -73,8 +105,11 @@ export function calculateDasha(siderealDeg: number, dobStr: string): DashaInfo {
   const nakshatraSpan = 13.333333;
   const fractionElapsed = Math.max(0, Math.min(1, posInNakshatra / nakshatraSpan));
 
+  // LAYER 2 + LAYER 3 modifiers on every duration. Source: PARITY-REPORT-2026.
+  const phaseCoefficient = tithiPravahPhaseCoefficient(birthMoonElongation);
+
   const startLord = JAIN_DASHA_ORDER[startLordIndex];
-  const startLordYears = JAIN_DASHA_YEARS[startLord];
+  const startLordYears = effectiveDashaYears(startLord, phaseCoefficient);
 
   const elapsedYearsInFirstDasha = fractionElapsed * startLordYears;
   const remainingFirstDasha = startLordYears - elapsedYearsInFirstDasha;
@@ -92,7 +127,7 @@ export function calculateDasha(siderealDeg: number, dobStr: string): DashaInfo {
 
   for (let i = 0; i < 24; i++) {
     const lord = JAIN_DASHA_ORDER[lordIndex % 8];
-    const years = JAIN_DASHA_YEARS[lord];
+    const years = effectiveDashaYears(lord, phaseCoefficient);
     const dashaEndYear = dashaStartYear + years;
 
     if (currentYear >= dashaStartYear && currentYear < dashaEndYear) {
@@ -153,7 +188,7 @@ export function calculateDasha(siderealDeg: number, dobStr: string): DashaInfo {
       return {
         lord,
         lord_hindi: JAIN_DASHA_HINDI[lord],
-        yearsTotal: years,
+        yearsTotal: Math.round(years * 10) / 10,
         startDate: yearToDateString(dashaStartYear),
         endDate: yearToDateString(dashaEndYear),
         yearsRemaining: Math.round(yearsRemaining * 10) / 10,
@@ -171,7 +206,7 @@ export function calculateDasha(siderealDeg: number, dobStr: string): DashaInfo {
   const lord = JAIN_DASHA_ORDER[startLordIndex];
   const fallbackAntar: AntardashaInfo = {
     lord, lord_hindi: JAIN_DASHA_HINDI[lord],
-    yearsTotal: JAIN_DASHA_YEARS[lord], startDate: dobStr,
+    yearsTotal: Math.round(startLordYears * 10) / 10, startDate: dobStr,
     endDate: yearToDateString(dobYear + remainingFirstDasha), yearsRemaining: 0
   };
   const fallbackPrat: PratyantardashInfo = {
@@ -181,7 +216,7 @@ export function calculateDasha(siderealDeg: number, dobStr: string): DashaInfo {
   return {
     lord,
     lord_hindi: JAIN_DASHA_HINDI[lord],
-    yearsTotal: JAIN_DASHA_YEARS[lord],
+    yearsTotal: Math.round(startLordYears * 10) / 10,
     startDate: dobStr,
     endDate: yearToDateString(dobYear + remainingFirstDasha),
     yearsRemaining: Math.round(remainingFirstDasha * 10) / 10,

@@ -78,7 +78,7 @@ fun KarmaTransitScreen(
             LaunchedEffect(profile) {
                 try {
                     val computedMuhurtas = withContext(Dispatchers.Default) {
-                        MuhurtaEngine.getPersonalizedMuhurtas(profile.dominantKarmaEn, 90).take(10)
+                        MuhurtaEngine.getPersonalizedMuhurtas(profile.dominantKarmaEn, daysAhead = 90).take(10)
                     }
                     upcomingMuhurtas = computedMuhurtas
                 } catch (_: Exception) {

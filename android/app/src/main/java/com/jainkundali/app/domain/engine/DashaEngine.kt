@@ -10,20 +10,51 @@ import kotlin.math.*
  * Jain dashā engine. Uses the 8-karma cycle (Gyānāvaraṇīya → Antarāya, not Vedic Vimśottarī)
  * with a 3-level decomposition: Mahādaśā → Antardaśā → Pratyantardaśā.
  *
- * Sources (see references/sources.md):
+ * Sources (see references/sources.md — PARITY-REPORT-2026 is PRIMARY per user directive):
  *  - 8-karma dashā ordering: MP-§D2 + Codex constraint G2-C1 (zero Vedic mixing).
- *  - Per-lord year allotments (Mohaniya 20, Vedaniya 15, Naam 14, Gyānāvaraṇīya 12, Antaraya 12,
- *    Gotra 10, Darśanāvaraṇīya 9, Āyuṣya 8): MP-§D2. These are the Codex distillation;
- *    verse-level grounding in Tiloyapannatti / Trilokasara is pending OCR — flagged
- *    [REQUIRES_RESEARCH] until cited.
+ *  - Per-lord year allotments (Mohaniya 28, Gyānāvaraṇīya 15, Antaraya 14, Naam 12,
+ *    Vedaniya 10, Darśanāvaraṇīya 9, Gotra 8, Āyuṣya 4): PARITY-REPORT-2026
+ *    STANDARD_DASHA_YEARS — supersedes the earlier MP-§D2 distillation values.
+ *  - LAYER 2 "Tithi Pravāh" phase coefficient (Shukla up to +15%, Krishna up to −15%
+ *    of every dashā duration, scaled by birth Moon-Sun elongation): PARITY-REPORT-2026.
+ *    The daily karma-peak / nirjarā status layer (MP-§D2 L2) is retained as an
+ *    additional, non-conflicting output.
+ *  - LAYER 3 "Pancham Kāla Position Modifier" (1.4× duration on the destructive
+ *    karmas Mohaniya + Antaraya): PARITY-REPORT-2026.
  *  - Antardaśā / Pratyantardaśā proportional sub-allocation (lord-years / 100 × parent-years):
  *    standard Jain treatment, MP-§D2.
  *  - Birth-nakshatra → starting-lord mapping (nakshatra-index mod 8): MP-§D2's "Nakshatra
- *    Pravāh Daśā" layer (LAYER 1).
- *  - LAYER 2 "Tithi Pravāh" (monthly karma peak / nirjarā days relative to the birth tithi)
- *    and LAYER 3 "Pancham Kāla Position Modifier" are implemented below per MP-§D2.
+ *    Pravāh Daśā" layer (LAYER 1) — not contradicted by the report, retained.
  */
 object DashaEngine {
+
+    // Destructive karmas whose dashā durations stretch 1.4× in the 5th Ara.
+    // Source: PARITY-REPORT-2026 computeDynamicDashas (Layer 3 modifier).
+    private val PANCHAM_KAAL_DESTRUCTIVE_LORDS = setOf("Mohaniya", "Antaraya")
+
+    /**
+     * LAYER 2 Tithi Pravāh phase coefficient from the birth Moon-Sun elongation.
+     * Shukla paksha (elongation < 180°) expands durations up to +15%; Krishna paksha
+     * contracts up to −15%. Negative/invalid elongation → neutral 1.0.
+     * Source: PARITY-REPORT-2026.
+     */
+    fun tithiPravahPhaseCoefficient(moonElongation: Double): Double {
+        if (moonElongation < 0.0 || moonElongation >= 360.0) return 1.0
+        return if (moonElongation < 180.0)
+            1.0 + (moonElongation / 360.0) * 0.15
+        else
+            1.0 - ((moonElongation - 180.0) / 360.0) * 0.15
+    }
+
+    /** Effective mahādaśā duration after Layer 3 + Layer 2 modifiers.
+     *  Source: PARITY-REPORT-2026 computeDynamicDashas. */
+    fun effectiveDashaYears(lord: String, phaseCoefficient: Double): Double {
+        var years = (JAIN_DASHA_YEARS[lord] ?: 10).toDouble()
+        if (lord in PANCHAM_KAAL_DESTRUCTIVE_LORDS) {
+            years *= PANCHAM_KAAL_KARMA_FACTOR
+        }
+        return years * phaseCoefficient
+    }
 
     // ── LAYER 3: Pancham Kāla position modifier ─────────────────────────────────────────────
     // Source: MP-§D2 L3 — "We are ~2,550 years into the 21,000-year 5th Ara. Apply 1.4x karma
@@ -83,9 +114,10 @@ object DashaEngine {
         "Ayushya", "Naam", "Gotra", "Antaraya"
     )
 
+    // Source: PARITY-REPORT-2026 STANDARD_DASHA_YEARS (primary; sums to 100).
     val JAIN_DASHA_YEARS: Map<String, Int> = mapOf(
-        "Gyanavaraniya" to 12, "Darshanavaraniya" to 9, "Vedaniya" to 15, "Mohaniya" to 20,
-        "Ayushya" to 8, "Naam" to 14, "Gotra" to 10, "Antaraya" to 12
+        "Gyanavaraniya" to 15, "Darshanavaraniya" to 9, "Vedaniya" to 10, "Mohaniya" to 28,
+        "Ayushya" to 4, "Naam" to 12, "Gotra" to 8, "Antaraya" to 14
     )
 
     val JAIN_DASHA_HINDI: Map<String, String> = mapOf(
@@ -106,7 +138,7 @@ object DashaEngine {
         return "$y-${m.toString().padStart(2, '0')}-${d.coerceAtMost(28).toString().padStart(2, '0')}"
     }
 
-    fun calculateDasha(siderealDeg: Double, dobStr: String): DashaInfo {
+    fun calculateDasha(siderealDeg: Double, dobStr: String, birthMoonElongation: Double = -1.0): DashaInfo {
         try {
             val nakshatra = getNakshatraByDegree(siderealDeg)
             val nakshatraIndex = nakshatra.index
@@ -116,8 +148,11 @@ object DashaEngine {
             val nakshatraSpan = 13.333333
             val fractionElapsed = (posInNakshatra / nakshatraSpan).coerceIn(0.0, 1.0)
 
+            // LAYER 2 + LAYER 3 modifiers on every duration. Source: PARITY-REPORT-2026.
+            val phaseCoefficient = tithiPravahPhaseCoefficient(birthMoonElongation)
+
             val startLord = JAIN_DASHA_ORDER[startLordIndex]
-            val startLordYears = JAIN_DASHA_YEARS[startLord]!!
+            val startLordYears = effectiveDashaYears(startLord, phaseCoefficient)
 
             val elapsedYearsInFirstDasha = fractionElapsed * startLordYears
             val remainingFirstDasha = startLordYears - elapsedYearsInFirstDasha
@@ -135,7 +170,7 @@ object DashaEngine {
 
             for (i in 0 until 24) {
                 val lord = JAIN_DASHA_ORDER[lordIndex % 8]
-                val years = JAIN_DASHA_YEARS[lord]!!
+                val years = effectiveDashaYears(lord, phaseCoefficient)
                 val dashaEndYear = dashaStartYear + years
 
                 if (currentYear >= dashaStartYear && currentYear < dashaEndYear) {
@@ -196,7 +231,7 @@ object DashaEngine {
                     return DashaInfo(
                         lord = lord,
                         lordHindi = JAIN_DASHA_HINDI[lord] ?: lord,
-                        yearsTotal = years,
+                        yearsTotal = (years * 10).roundToInt() / 10.0,
                         startDate = yearToDateString(dashaStartYear),
                         endDate = yearToDateString(dashaEndYear),
                         yearsRemaining = (yearsRemaining * 10).roundToInt() / 10.0,
@@ -215,7 +250,7 @@ object DashaEngine {
             val lord = JAIN_DASHA_ORDER[startLordIndex]
             val fallbackAntar = AntardashaInfo(
                 lord = lord, lordHindi = JAIN_DASHA_HINDI[lord] ?: lord,
-                yearsTotal = JAIN_DASHA_YEARS[lord]!!.toDouble(), startDate = dobStr,
+                yearsTotal = (startLordYears * 10).roundToInt() / 10.0, startDate = dobStr,
                 endDate = yearToDateString(dobYear + remainingFirstDasha), yearsRemaining = 0.0
             )
             val fallbackPrat = PratyantardashInfo(
@@ -225,7 +260,7 @@ object DashaEngine {
             return DashaInfo(
                 lord = lord,
                 lordHindi = JAIN_DASHA_HINDI[lord] ?: lord,
-                yearsTotal = JAIN_DASHA_YEARS[lord]!!,
+                yearsTotal = (startLordYears * 10).roundToInt() / 10.0,
                 startDate = dobStr,
                 endDate = yearToDateString(dobYear + remainingFirstDasha),
                 yearsRemaining = (remainingFirstDasha * 10).roundToInt() / 10.0,
@@ -240,7 +275,7 @@ object DashaEngine {
             val lordHindi = JAIN_DASHA_HINDI[lord] ?: "मोहनीय"
             val fallbackAntar = AntardashaInfo(
                 lord = lord, lordHindi = lordHindi,
-                yearsTotal = 20.0, startDate = "2020-01-01",
+                yearsTotal = 28.0, startDate = "2020-01-01",
                 endDate = "2040-01-01", yearsRemaining = 10.0
             )
             val fallbackPrat = PratyantardashInfo(
@@ -250,7 +285,7 @@ object DashaEngine {
             return DashaInfo(
                 lord = lord,
                 lordHindi = lordHindi,
-                yearsTotal = 20,
+                yearsTotal = 28.0,
                 startDate = "2020-01-01",
                 endDate = "2040-01-01",
                 yearsRemaining = 10.0,

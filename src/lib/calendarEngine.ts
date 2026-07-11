@@ -1,6 +1,8 @@
 // Jain Panchang Engine
 // Calculates Tithi, Masa, Paksha, and Jain specific Vrat/Festivals
 
+import { getNakshatraByDegree } from '../data/nakshatras';
+
 function toRad(deg: number): number { return (deg * Math.PI) / 180; }
 function normDeg(d: number): number { return ((d % 360) + 360) % 360; }
 
@@ -18,7 +20,15 @@ export function toJulianDay(dateStr: string, timeStr: string): number {
 
 export function getSunLongitude(jde: number): number {
   const T = (jde - 2451545) / 36525;
-  return normDeg(280.46646 + 36000.76983 * T);
+  const L0 = normDeg(280.46646 + 36000.76983 * T);   // mean longitude
+  const M  = normDeg(357.52911 + 35999.05029 * T - 0.0001537 * T * T);  // mean anomaly
+  // Equation of center (Meeus Ch. 25) — unified with analysisSynthesizer so both
+  // panchang paths agree. Source: PARITY-REPORT-2026 §"Linear Ayanamsa versus
+  // Lahiri Formulation" (deprecates simplified inline models).
+  const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(toRad(M))
+          + (0.019993 - 0.000101 * T) * Math.sin(toRad(2 * M))
+          + 0.000289 * Math.sin(toRad(3 * M));
+  return normDeg(L0 + C);
 }
 
 export function getMoonTropicalLongitude(jde: number): number {
@@ -44,9 +54,16 @@ export function getMoonTropicalLongitude(jde: number): number {
   return normDeg(L + sigma);
 }
 
+// High-precision Lahiri (Chitra Paksha) ayanamsa.
+// θ = 23°51′25.532″ + 5029.0966″·T + 1.11161″·T² − 0.000113″·T³
+// Source: PARITY-REPORT-2026 §"Linear Ayanamsa versus Lahiri Formulation" —
+// replaces the deprecated linear model.
 export function getLahiriAyanamsa(jde: number): number {
   const T = (jde - 2451545.0) / 36525;
-  return 23.85 + 1.397 * T;
+  return (23 * 3600 + 51 * 60 + 25.532
+        + 5029.0966 * T
+        + 1.11161 * T * T
+        - 0.000113 * T * T * T) / 3600;
 }
 
 export function getSiderealLongitude(jde: number): number {
@@ -96,10 +113,13 @@ export function getJainPanchang(date: Date): JainPanchang {
     jainFestival = 'निर्वाण/मोक्ष कल्याणक (अनेक तीर्थंकरों का)';
   }
 
+  // Today's Moon nakshatra from the sidereal longitude (unified Lahiri ayanamsa).
+  const todayNakshatra = getNakshatraByDegree(getSiderealLongitude(jde));
+
   return {
     tithi: `${paksha} ${tithiName}`,
     vara: VARAS[date.getDay()],
-    nakshatra: 'नक्षत्र', // We'll compute this elsewhere or map index
+    nakshatra: todayNakshatra.hindi_name,
     paksha,
     masa,
     jainFestival

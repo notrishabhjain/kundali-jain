@@ -72,6 +72,14 @@ class KundaliViewModel(
     private val _citySearchResults = MutableStateFlow<List<City>>(emptyList())
     val citySearchResults: StateFlow<List<City>> = _citySearchResults.asStateFlow()
 
+    // Blocking input-validation error (unparsable birth epoch). Non-null means the chart
+    // was NOT generated and the UI must show this warning instead of any chart.
+    // Source: PARITY-REPORT-2026 §"Deprecation of Fallback Charts".
+    private val _inputError = MutableStateFlow<String?>(null)
+    val inputError: StateFlow<String?> = _inputError.asStateFlow()
+
+    fun clearInputError() { _inputError.value = null }
+
     fun updateFullName(name: String) {
         _fullName.value = name
     }
@@ -118,6 +126,7 @@ class KundaliViewModel(
         if (generateJob?.isActive == true) return
 
         _isLoading.value = true
+        _inputError.value = null
         generateJob = viewModelScope.launch {
             try {
                 val formData = BirthFormData(
@@ -167,23 +176,16 @@ class KundaliViewModel(
                 // Persisting is isolated: a DB / preferences failure must not blank the chart the
                 // user just generated, so its failure is logged rather than propagated.
                 persistCurrentProfile(city)
+            } catch (e: ProfileEngine.InvalidEphemerisEpochException) {
+                // Source: PARITY-REPORT-2026 §"Deprecation of Fallback Charts" — an invalid
+                // birth epoch is a blocking input error, never a fabricated chart.
+                Log.w("KundaliViewModel", "Invalid birth epoch: ${e.message}")
+                _inputError.value = e.message
             } catch (t: Throwable) {
                 Log.e("KundaliViewModel", "Kundali generation failed", t)
                 if (_userProfile.value == null) {
-                    // Last-resort fallback so the result screen always has something to render.
-                    _userProfile.value = runCatching {
-                        ProfileEngine.generateUserProfile(
-                            BirthFormData(
-                                fullName = _fullName.value.trim().ifEmpty { "जातक" },
-                                dob = _dob.value.ifEmpty { "2000-01-01" },
-                                time = _time.value.ifEmpty { "12:00" },
-                                place = city.hindiName,
-                                lat = city.latitude.toString(),
-                                lng = city.longitude.toString(),
-                                gender = _gender.value
-                            )
-                        )
-                    }.getOrNull()
+                    _inputError.value =
+                        "कुंडली की गणना में त्रुटि हुई। कृपया जन्म-विवरण जाँच कर पुनः प्रयास करें।"
                 }
             } finally {
                 _isLoading.value = false

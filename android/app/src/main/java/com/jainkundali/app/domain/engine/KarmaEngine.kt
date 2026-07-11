@@ -30,6 +30,10 @@ object KarmaEngine {
 
     private val GHATIYA_SET = setOf("Gyanavaraniya", "Darshanavaraniya", "Mohaniya", "Antaraya")
 
+    // Destructive karmas receiving the 1.4× Pancham Kāla multiplier while in dashā transit.
+    // Source: PARITY-REPORT-2026 (Karma Multiplier parity row).
+    private val PANCHAM_KAAL_DESTRUCTIVE = setOf("Mohaniya", "Antaraya")
+
     /** Count distinct ghātiyā karmas in simultaneous Udaya. Compound (≥2) creates confluent
      *  obscuration of jñāna + darśana + cāritra. Source: SKD + MP-§D4. */
     fun countCompoundGhatiya(dominantKarmaEn: String, dashaLord: String, antarLord: String): Int {
@@ -70,9 +74,15 @@ object KarmaEngine {
 
         return ALL_KARMAS.map { karma ->
             val sadhana = KARMA_SADHANA[karma.en]
-            // LAYER 3 modifier: the 5th-Ara karma environment intensifies every karma's
-            // operative load by 1.4x before person-specific modifiers. Source: MP-§D2 L3.
-            var intensity = (karma.base * DashaEngine.PANCHAM_KAAL_KARMA_FACTOR).toInt()
+            // Pancham Kāla 1.4× multiplier applies to the DESTRUCTIVE karmas (Mohaniya,
+            // Antaraya) when in dashā transit — not blanket to all karmas.
+            // Source: PARITY-REPORT-2026 Karma Multiplier parity row (primary; supersedes
+            // the earlier blanket MP-§D2 L3 reading).
+            var intensity = if (karma.en in PANCHAM_KAAL_DESTRUCTIVE && karma.en == dashaLord) {
+                (karma.base * DashaEngine.PANCHAM_KAAL_KARMA_FACTOR).toInt()
+            } else {
+                karma.base
+            }
             var state = "Satta"
 
             if (karma.en == effectiveDominant) {

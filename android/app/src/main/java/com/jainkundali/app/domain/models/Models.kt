@@ -196,7 +196,8 @@ data class PratyantardashInfo(
 data class DashaInfo(
     val lord: String,
     val lordHindi: String,
-    val yearsTotal: Int,
+    // Fractional after PARITY-REPORT-2026 Layer 2/3 duration modifiers.
+    val yearsTotal: Double,
     val startDate: String,
     val endDate: String,
     val yearsRemaining: Double,
@@ -229,7 +230,36 @@ data class CombinedRemedy(
     val karmaRemedy: String,
     val recommendedTithi: String,
     val yantraRecommendation: String,
-    val tapasyaRecommendation: String
+    val tapasyaRecommendation: String,
+    // Bhaktamar Stotra prescription — Pursharth (free will) layer from Panch Samvay.
+    // Source: Research Report §1 (Pursharth vector) + §5-§7 (Bhaktamar remedial matrix).
+    // Manatunga Acharya's 48-verse hymn mapped to planetary/karma afflictions.
+    val bhaktamarShloka: String = "",
+    val bhaktamarMantra: String = "",
+    val bhaktamarProtocol: String = ""
+)
+
+// Ishtakaal — birth moment elapsed time in traditional Jain time units.
+// Source: PARITY-REPORT-2026 §"Precise Ishtakaal Conversion" (primary).
+// Hierarchy: 1 Ghati = 60 Palas; 1 Pala = 24s = 60 Vipalas (Prāṇas);
+// 1 Prāṇa = 7 Stokas; 1 Stoka = 7 Lavas.
+data class IshtakaalResult(
+    val ghatis: Int,
+    val palas: Int,
+    val vipalas: Int,
+    val equivalentMuhurtas: Double,
+    val stokaMicro: Int,
+    val lavaMicro: Int,
+    val formatted: String
+)
+
+// Jain sidereal zodiac projection — unequal muhurta spans from Surya Prajnapti.
+// Source: Research Report §4 + SP-1. Total circumference: 819 + 11/67 muhurtas.
+data class JainZodiacProjection(
+    val graduatedMuhurtas: Double,
+    val activeNakshatra: String,
+    val balanceWithinNakshatraMuhurtas: Double,
+    val spanClass: String    // "abhijit" | "short_span" | "long_span" | "standard_span"
 )
 
 data class BirthFormData(
@@ -262,7 +292,11 @@ data class UserProfile(
     val formData: BirthFormData,
     // 1..30 tithi of the lunar month at birth; 0 = unknown. Drives the Tithi Pravāh
     // dashā layer (MP-§D2 L2) — karma peak / nirjarā day computation.
-    val birthTithiNum: Int = 0
+    val birthTithiNum: Int = 0,
+    // Jain high-precision temporal coordinate. Source: Research Report §2 + SP-1.
+    val ishtakaal: IshtakaalResult? = null,
+    // Jain sidereal zodiac projection from unequal muhurta spans. Source: SP-1 + Research Report §4.
+    val jainZodiacProjection: JainZodiacProjection? = null
 )
 
 data class City(

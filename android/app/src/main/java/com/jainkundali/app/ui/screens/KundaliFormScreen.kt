@@ -37,8 +37,23 @@ fun KundaliFormScreen(
     val citySearchResults by viewModel.citySearchResults.collectAsState()
     val selectedCity by viewModel.selectedCity.collectAsState()
     val savedProfiles by viewModel.savedProfiles.collectAsState()
+    val inputError by viewModel.inputError.collectAsState()
+    val userProfile by viewModel.userProfile.collectAsState()
 
     val context = LocalContext.current
+
+    // Navigate only on successful generation — an invalid birth epoch keeps the user
+    // on the form with a blocking warning instead of a fabricated chart.
+    // Source: PARITY-REPORT-2026 §"Deprecation of Fallback Charts".
+    var awaitingResult by remember { mutableStateOf(false) }
+    LaunchedEffect(isLoading) {
+        if (awaitingResult && !isLoading) {
+            awaitingResult = false
+            if (inputError == null && userProfile != null) {
+                onNavigateToResult()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -230,13 +245,33 @@ fun KundaliFormScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Blocking input-validation warning (PARITY-REPORT-2026: no fallback charts).
+            inputError?.let { err ->
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = err,
+                        modifier = Modifier.padding(12.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
             // Submit button
             Button(
                 onClick = {
                     // generateKundali() persists the profile atomically itself — do not also
                     // call saveProfile() here, that double-save was creating duplicate rows.
+                    // Navigation happens via LaunchedEffect once the profile lands (or never,
+                    // if the birth epoch is invalid — the error card shows instead).
+                    viewModel.clearInputError()
+                    awaitingResult = true
                     viewModel.generateKundali()
-                    onNavigateToResult()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = fullName.isNotBlank() && dob.isNotBlank() && selectedCity != null && !isLoading

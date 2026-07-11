@@ -10,11 +10,9 @@
 //  - Three-layer dashā synthesis (mahā → antar → pratyantar): MP-§D2.
 //  - Tirthankara affinity weaving: MP-§C1 + MP-§C2.
 //
-// NOTE: VIMSHOTTARI_* imports below are legacy placeholders from Phase 1 (web). The doctrinally
-// correct system is the 8-karma Jain dashā in [dashaEngine.ts]; the Kotlin engine already uses
-// it. Migrating web away from Vimshottari naming is tracked as [REQUIRES_RESEARCH] follow-up.
 import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/nakshatras';
-import { VIMSHOTTARI_ORDER, VIMSHOTTARI_YEARS, VIMSHOTTARI_HINDI } from '../data/grahas';
+import { calculateIshtakaal, calculateJainZodiacProjection, type IshtakaalResult, type JainZodiacProjection } from '../data/jainCosmology';
+import { calculateApparentSunTimes } from './sunriseEngine';
 
 export interface BirthFormData {
   fullName: string;
@@ -30,6 +28,7 @@ export interface BirthFormData {
 export type { AntardashaInfo, PratyantardashInfo, DashaInfo } from './dashaEngine';
 import { calculateDasha } from './dashaEngine';
 import type { DashaInfo } from './dashaEngine';
+import { estimateGunasthana } from './gunasthanaClassifier';
 import { calculateKarmaProfile } from './karmaEngine';
 import { generatePredictions } from './predictionEngine';
 import { generateRemedies } from './remedyEngine';
@@ -52,6 +51,12 @@ export interface UserProfile {
   dominantKarmaEn: string;        // English karma name for comparisons
   gunasthana: number;             // 1–14, estimated
   formData: BirthFormData;
+  // Jain high-precision temporal coordinate (Surya Prajnapti + Research Report §2).
+  // The mathematical anchor is umbilical cord severance. Source: Research Report §2.
+  ishtakaal: IshtakaalResult;
+  // Jain sidereal zodiac projection (unequal muhurta spans from Surya Prajnapti).
+  // Source: Research Report §4 + SP-1.
+  jainZodiacProjection: JainZodiacProjection;
   // Legacy fields kept for backward compatibility with existing components
   birthNakshatraLegacy?: string;  // same as birthNakshatra
   currentDashaLegacy?: string;    // same as currentDasha.lord_hindi
@@ -194,57 +199,76 @@ function getTirthankarAffinity(nakshatra: typeof NAKSHATRAS[0]): { en: string; h
   return defaults[nakshatra.karma_type] || { en: 'Mahavira', hi: 'महावीर स्वामी' };
 }
 
-// ─── Gunasthana estimate ──────────────────────────────────────────────────────
-
-function estimateGunasthana(nakshatraNature: string, dashaLord: string): number {
-  // Base from nakshatra nature (most people in Pancham Kaal are in 1st-4th)
-  let base = 1;
-  if (nakshatraNature === 'param_shubha') base = 4;
-  else if (nakshatraNature === 'shubha') base = 3;
-  else if (nakshatraNature === 'mishra') base = 2;
-
-  // Mohaniya or Darshanavaraniya dasha suppresses clarity — lower by 1
-  if (dashaLord === 'Mohaniya' || dashaLord === 'Darshanavaraniya') {
-    base = Math.max(1, base - 1);
-  }
-  // Gyanavaraniya dasha slightly obscures knowledge
-  if (dashaLord === 'Gyanavaraniya') {
-    base = Math.max(1, base - 1);
-  }
-  // Vedaniya in Udaya can distract from spiritual clarity
-  if (dashaLord === 'Vedaniya' && base > 2) {
-    base = Math.max(2, base - 1);
-  }
-
-  return base;
+// ─── Ishtakaal: apparent sunrise (Meeus Ch. 15) ──────────────────────────────
+// Source: PARITY-REPORT-2026 §"Jean Meeus Chapter 15" — the cosine seasonal
+// approximation is deprecated; sunrise now comes from the astronomical horizon
+// transit algorithm in sunriseEngine.ts. Falls back to 06:00 only when the
+// coordinates are unparsable or the location is in polar day/night.
+function apparentSunriseHHMM(latStr: string, lngStr: string, dob: string): string {
+  const lat = parseFloat(latStr);
+  const lng = parseFloat(lngStr);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return '06:00';
+  const times = calculateApparentSunTimes(dob, lat, lng);
+  if (times.polarDay || times.polarNight) return '06:00';
+  return times.sunriseHHMM;
 }
+
+// ─── Gunasthana estimate (Sarvarthasiddhi classifier) ────────────────────────
+// Source: PARITY-REPORT-2026 §"GunasthanaClassifier (Sarvarthasiddhi Criteria)"
+// Replaces the former 4-branch nakshatra-bucket heuristic.
+// estimateGunasthana() now lives in gunasthanaClassifier.ts; imported above.
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
+// Raised when the birth date/time cannot be parsed into a valid ephemeris epoch.
+// Source: PARITY-REPORT-2026 §"Deprecation of Fallback Charts" — the name-hash
+// fallback chart is deprecated; parsing failures must be fatal and explicit.
+export class InvalidEphemerisEpochError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidEphemerisEpochError';
+  }
+}
+
 export function generateUserProfile(data: BirthFormData): UserProfile {
   let siderealDeg: number;
+  let birthMoonElongation = -1;
 
   try {
     const jde = toJulianDay(data.dob, data.time || '12:00');
     siderealDeg = getSiderealLongitude(jde);
-  } catch {
-    // Fallback to hash-based if date parsing fails
-    let hash = 0;
-    for (let i = 0; i < data.fullName.length; i++) {
-      hash = data.fullName.charCodeAt(i) + ((hash << 5) - hash);
+    if (!Number.isFinite(siderealDeg)) {
+      throw new Error('non-finite longitude');
     }
-    siderealDeg = Math.abs(hash) % 360;
+    // Birth Moon-Sun elongation feeds the LAYER 2 Tithi Pravāh phase coefficient.
+    // Source: PARITY-REPORT-2026 computeDynamicDashas(moonElongation).
+    birthMoonElongation = normDeg(getMoonTropicalLongitude(jde) - getSunLongitude(jde));
+  } catch {
+    // Source: PARITY-REPORT-2026 — no fabricated chart on parse failure.
+    throw new InvalidEphemerisEpochError(
+      'जन्म तिथि या समय अमान्य है। कृपया जन्म-विवरण (YYYY-MM-DD और HH:MM) पुनः जाँच कर भरें — बिना सही जन्म-क्षण के प्रामाणिक कुंडली की गणना संभव नहीं है।'
+    );
   }
 
   const nakshatra = getNakshatraByDegree(siderealDeg);
   const pada = getNakshatraPada(siderealDeg);
   const rashi = getRashi(siderealDeg);
-  const dasha = calculateDasha(siderealDeg, data.dob);
+  const dasha = calculateDasha(siderealDeg, data.dob, birthMoonElongation);
   const tirthankar = getTirthankarAffinity(nakshatra);
   const gunasthana = estimateGunasthana(nakshatra.nature, dasha.lord);
 
   const karmaType = nakshatra.karma_type;
   const dominantKarmaHindi = KARMA_HINDI[karmaType] || karmaType;
+
+  // Ishtakaal: elapsed time from the APPARENT astronomical sunrise to birth,
+  // in ghati/pala/vipala units. Source: PARITY-REPORT-2026 (Meeus Ch. 15 sunrise
+  // + Precise Ishtakaal Conversion).
+  const sunriseTime = apparentSunriseHHMM(data.lat, data.lng, data.dob);
+  const ishtakaal = calculateIshtakaal(data.time || '12:00', sunriseTime);
+
+  // Jain sidereal zodiac projection — unequal muhurta spans from Surya Prajnapti.
+  // Source: Research Report §4 + SP-1.
+  const jainZodiacProjection = calculateJainZodiacProjection(siderealDeg);
 
   return {
     name: data.fullName,
@@ -264,6 +288,8 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     dominantKarmaEn: karmaType,
     gunasthana,
     formData: data,
+    ishtakaal,
+    jainZodiacProjection,
     // Legacy compatibility
     birthNakshatraLegacy: nakshatra.hindi_name,
     currentDashaLegacy: dasha.lord_hindi
