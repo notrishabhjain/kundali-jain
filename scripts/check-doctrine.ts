@@ -14,6 +14,9 @@
 //   D6 Karma statements complete — name + daily manifestation + sadhana w/ count
 //   D7 Remedies are actionable   — every prescription carries a count and timing
 //   D8 Value ranges              — intensities and states stay in-domain
+//   D9 Gunasthana provenance     — a chart alone may not claim the soul's stage
+//   D10 Ladder is reachable      — self-assessment spans stages; only the two
+//                                  Sarvarthasiddhi gates may pin the result
 //
 // A violation here is a doctrinal defect, not a style nit: it means the app
 // could tell a Jain user something the tradition holds to be false.
@@ -23,6 +26,10 @@ import { getTodayContext } from '../src/lib/analysisSynthesizer';
 import { generatePredictions } from '../src/lib/predictionEngine';
 import { generateRemedies } from '../src/lib/remedyEngine';
 import { calculateKarmaProfile } from '../src/lib/karmaEngine';
+import {
+  estimateGunasthanaWithConfidence,
+  classifyGunasthana,
+} from '../src/lib/gunasthanaClassifier';
 
 const N = Number(process.env.DOCTRINE_N ?? 400);
 const errors: string[] = [];
@@ -205,6 +212,108 @@ for (let i = 0; i < N; i++) {
   }
 }
 
+// ── D9 / D10: gunasthana determinancy ───────────────────────────────────────
+// Gunasthana is fixed by the udaya of darshana-mohaniya and by the kashaya
+// intensity-tier — inner facts, not sky positions. These rules assert that the
+// engine never lets a chart alone claim more than it can know, and that the
+// self-assessment path genuinely spans the ladder.
+//
+// Regression context: the dasha lord once forced stage 1 for 100% of charts in
+// a Mohaniya or Antaraya mahadasha (51% of the population), which both conflated
+// "this karma is fruiting" with "the passions are at anantanubandhi tier" and
+// made stage 4 — right belief held while karma is active — unreachable.
+{
+  // D9a — the dasha lord must not move a chart-only gunasthana. Which karma is
+  // in udaya is a timing fact and carries no information about the soul's tier.
+  for (const nature of ['param_shubha', 'shubha', 'mishra', 'ashubha']) {
+    const byLord = new Set<number>();
+    for (const lord of ['Mohaniya', 'Antaraya', 'Gyanavaraniya', 'Darshanavaraniya', 'Vedaniya', 'Naam', 'Gotra', 'Ayushya']) {
+      byLord.add(estimateGunasthanaWithConfidence(nature, lord).gunasthana);
+      checks++;
+    }
+    if (byLord.size > 1) {
+      violation(
+        'D9',
+        `nakshatra ${nature}: dasha lord changes chart-only gunasthana across {${[...byLord].join(',')}} — udaya timing must not determine the soul's stage`
+      );
+    }
+  }
+
+  // D9b — a chart-only figure must always be labelled an estimate.
+  for (const nature of ['param_shubha', 'ashubha']) {
+    const e = estimateGunasthanaWithConfidence(nature, 'Mohaniya');
+    checks++;
+    if (e.confidence !== 'estimated') {
+      violation('D9', `chart-only gunasthana for ${nature} claimed confidence "${e.confidence}"`);
+    }
+    checks++;
+    if (e.selfAssessedAxes.length !== 0) {
+      violation('D9', `chart-only gunasthana reported self-assessed axes: ${e.selfAssessedAxes.join(',')}`);
+    }
+  }
+
+  // D9c — a full questionnaire must be labelled self-assessed and must win.
+  {
+    const e = estimateGunasthanaWithConfidence('ashubha', 'Mohaniya', {
+      mithyatva: 0,
+      avirati: 1,
+      kashayaLevel: 2,
+    });
+    checks++;
+    if (e.confidence !== 'self-assessed') {
+      violation('D9', `full questionnaire reported confidence "${e.confidence}"`);
+    }
+    checks++;
+    if (e.gunasthana !== 5) {
+      violation(
+        'D9',
+        `questionnaire (samyak-darshan + anuvrata) gave stage ${e.gunasthana}, expected 5 — chart signals appear to be overriding self-assessment`
+      );
+    }
+  }
+
+  // D10 — the self-assessment path must span the ladder, and no axis may pin
+  // the result EXCEPT the two doctrinal gates: entrenched mithyatva and
+  // anantanubandhi kashaya both bar stages 4 and above (Sarvarthasiddhi §9.1).
+  {
+    const reachable = new Set<number>();
+    const perAxisOutputs: Record<string, Map<number, Set<number>>> = {
+      mithyatva: new Map(),
+      avirati: new Map(),
+      kashayaLevel: new Map(),
+    };
+    for (let m = 0; m <= 3; m++) {
+      for (let a = 0; a <= 2; a++) {
+        for (let k = 0; k <= 3; k++) {
+          const g = classifyGunasthana({ mithyatva: m as 0 | 1 | 2 | 3, avirati: a as 0 | 1 | 2, kashayaLevel: k as 0 | 1 | 2 | 3 });
+          reachable.add(g);
+          for (const [axis, v] of [['mithyatva', m], ['avirati', a], ['kashayaLevel', k]] as const) {
+            if (!perAxisOutputs[axis].has(v)) perAxisOutputs[axis].set(v, new Set());
+            perAxisOutputs[axis].get(v)!.add(g);
+          }
+        }
+      }
+    }
+    checks++;
+    if (reachable.size < 5) {
+      violation('D10', `self-assessment reaches only ${reachable.size} distinct stages {${[...reachable].sort((x, y) => x - y).join(',')}}, expected ≥5`);
+    }
+
+    const DOCTRINAL_GATES = new Set(['mithyatva=3', 'kashayaLevel=3']);
+    for (const [axis, byValue] of Object.entries(perAxisOutputs)) {
+      for (const [v, outs] of byValue) {
+        checks++;
+        if (outs.size === 1 && !DOCTRINAL_GATES.has(`${axis}=${v}`)) {
+          violation(
+            'D10',
+            `${axis}=${v} pins gunasthana to ${[...outs][0]} regardless of the other two axes — only the Sarvarthasiddhi gates may do that`
+          );
+        }
+      }
+    }
+  }
+}
+
 // ── Report ──────────────────────────────────────────────────────────────────
 const byRule = new Map<string, number>();
 for (const e of errors) {
@@ -215,7 +324,8 @@ for (const e of errors) {
 console.log(`Doctrine guard — ${N} charts, ${checks} assertions\n`);
 console.log('  D1 Pancham Kaal ceiling   D2 no moksha claim      D3 no mortality claim');
 console.log('  D4 purushartha open       D5 no Vedic devas       D6 karma completeness');
-console.log('  D7 actionable remedies    D8 value ranges\n');
+console.log('  D7 actionable remedies    D8 value ranges         D9 gunasthana provenance');
+console.log('  D10 ladder reachable\n');
 
 if (errors.length) {
   console.error(`Doctrine guard FAILED — ${errors.length} violations:`);
