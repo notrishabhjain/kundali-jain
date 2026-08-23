@@ -71,7 +71,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
   {
     id: 3, name: "Sambhavanatha", hindi_name: "सम्भवनाथ",
     father: "Jitari", mother: "Sena", birth_place: "श्रावस्ती",
-    birth_nakshatra: "Mrigashira", birth_rashi: "Mithuna (Gemini)",
+    birth_nakshatra: "Mrigashirsha", birth_rashi: "Mithuna (Gemini)",
     birth_tithi: "Kartika Shukla 15", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Horse", hindi_symbol: "घोड़ा (अश्व)",
