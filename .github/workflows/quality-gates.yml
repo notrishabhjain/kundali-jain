@@ -51,6 +51,17 @@ jobs:
       - name: Entropy / personalisation guard
         run: npm run check:entropy
 
+      # Ground-truth back-test against independently recorded dates. Only
+      # entries a human has marked "verified" in the golden file are enforced;
+      # the rest are reported as a diff table.
+      - name: Panchang back-test
+        run: npm run check:backtest
+
+      # Doctrine as executable constraints, asserted on generated OUTPUT
+      # rather than on source text.
+      - name: Doctrinal constraint guard
+        run: npm run check:doctrine
+
       - name: Production build
         run: npm run build
 
@@ -80,5 +91,7 @@ jobs:
             echo "| PDF parity guard | ✅ |"
             echo "| Metamorphic guard | ✅ |"
             echo "| Entropy guard | ✅ |"
+            echo "| Panchang back-test | ✅ |"
+            echo "| Doctrinal constraint guard | ✅ |"
             echo "| Build (vite) | ✅ |"
           } >> "$GITHUB_STEP_SUMMARY"

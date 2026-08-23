@@ -1,0 +1,110 @@
+{
+  "_readme": [
+    "Back-test corpus: dates whose Jain panchang values are recorded independently of this engine.",
+    "",
+    "WORKFLOW — this file is designed to be filled in by a human, not by the engine.",
+    "Every entry starts with \"verified\": false. An entry is only ENFORCED once a human has",
+    "checked it against a primary source (Shatabdi Panchang 1950-2050, source-id CP-1950-2050,",
+    "or a published Digambar panchang) and flipped the flag to true.",
+    "",
+    "Unverified entries are still RUN and reported as a diff table, so mismatches are visible",
+    "immediately — but they cannot fail the build, because an unverified expectation is not",
+    "evidence. This keeps the harness honest: the engine is never declared correct against",
+    "data nobody checked, and never declared broken against a date that might itself be wrong.",
+    "",
+    "\"expect\" fields are all optional. Omit any field you cannot vouch for; only the fields",
+    "present are compared. \"sunriseLocal\" defaults to 06:00 IST — set it per-entry if a more",
+    "precise sunrise matters for a boundary case.",
+    "",
+    "Tithi convention: a day is named for the tithi prevailing at SUNRISE, not at noon.",
+    "The harness samples at sunrise for this reason."
+  ],
+
+  "defaults": {
+    "sunriseLocal": "06:00"
+  },
+
+  "entries": [
+    {
+      "id": "vidyasagar-birth-1946",
+      "gregorian": "1946-10-10",
+      "label": "Acharya Vidyasagar Ji Maharaj — birth",
+      "source": "Biographies record the birth as Sharad Purnima (Ashvin Shukla Purnima), Sadalga, Karnataka",
+      "confidence": "tithi widely recorded; Gregorian date to be confirmed against CP-1950-2050",
+      "verified": false,
+      "expect": { "paksha": "शुक्ल", "tithiNum": 15, "masa": "आश्विन" }
+    },
+    {
+      "id": "mahavir-jayanti-2024",
+      "gregorian": "2024-04-21",
+      "label": "Mahavir Janma Kalyanak 2024",
+      "source": "published Digambar festival calendar",
+      "confidence": "Chaitra Shukla Trayodashi is doctrinally fixed; Gregorian date to be confirmed",
+      "verified": false,
+      "expect": { "paksha": "शुक्ल", "tithiNum": 13, "masa": "चैत्र" }
+    },
+    {
+      "id": "mahavir-jayanti-2023",
+      "gregorian": "2023-04-04",
+      "label": "Mahavir Janma Kalyanak 2023",
+      "source": "published Digambar festival calendar",
+      "confidence": "Gregorian date to be confirmed",
+      "verified": false,
+      "expect": { "paksha": "शुक्ल", "tithiNum": 13, "masa": "चैत्र" }
+    },
+    {
+      "id": "mahavir-jayanti-2025",
+      "gregorian": "2025-04-10",
+      "label": "Mahavir Janma Kalyanak 2025",
+      "source": "published Digambar festival calendar",
+      "confidence": "Gregorian date to be confirmed",
+      "verified": false,
+      "expect": { "paksha": "शुक्ल", "tithiNum": 13, "masa": "चैत्र" }
+    },
+    {
+      "id": "das-lakshana-start-2024",
+      "gregorian": "2024-09-08",
+      "label": "Das Lakshana Parva — first day 2024",
+      "source": "Digambar observance begins Bhadrapada Shukla Panchami",
+      "confidence": "tithi doctrinally fixed; Gregorian date to be confirmed",
+      "verified": false,
+      "expect": { "paksha": "शुक्ल", "tithiNum": 5, "masa": "भाद्रपद" }
+    },
+    {
+      "id": "mahavir-nirvana-2024",
+      "gregorian": "2024-11-01",
+      "label": "Mahavir Nirvana Kalyanak (Diwali) 2024",
+      "source": "Kartik Krishna Amavasya",
+      "confidence": "tithi doctrinally fixed; Gregorian date to be confirmed",
+      "verified": false,
+      "expect": { "paksha": "कृष्ण", "tithiNum": 15, "masa": "कार्तिक" }
+    },
+    {
+      "id": "mahavir-nirvana-2023",
+      "gregorian": "2023-11-12",
+      "label": "Mahavir Nirvana Kalyanak (Diwali) 2023",
+      "source": "Kartik Krishna Amavasya",
+      "confidence": "Gregorian date to be confirmed",
+      "verified": false,
+      "expect": { "paksha": "कृष्ण", "tithiNum": 15, "masa": "कार्तिक" }
+    },
+    {
+      "id": "sharad-purnima-2024",
+      "gregorian": "2024-10-16",
+      "label": "Sharad Purnima 2024",
+      "source": "Ashvin Shukla Purnima",
+      "confidence": "Gregorian date to be confirmed",
+      "verified": false,
+      "expect": { "paksha": "शुक्ल", "tithiNum": 15, "masa": "आश्विन" }
+    },
+    {
+      "id": "shrut-panchami-2024",
+      "gregorian": "2024-06-11",
+      "label": "Shrut Panchami 2024",
+      "source": "Jyeshtha Shukla Panchami — Digambar scriptural festival",
+      "confidence": "Gregorian date to be confirmed",
+      "verified": false,
+      "expect": { "paksha": "शुक्ल", "tithiNum": 5, "masa": "ज्येष्ठ" }
+    }
+  ]
+}
