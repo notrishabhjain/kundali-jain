@@ -6,6 +6,7 @@ import { GRAHAS } from '../data/grahas';
 import { generatePredictions } from '../lib/predictionEngine';
 import { getKarmaSadhana } from '../data/sadhana';
 import { GRAHA_KARMA_MAPPINGS } from '../data/jainCosmology';
+import FieldInfo from './FieldInfo';
 
 interface BirthChartProps {
   profile: UserProfile;
@@ -91,11 +92,17 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-indigo-950">जन्म-नक्षत्र विश्लेषण</h3>
-                  <p className="text-indigo-700 font-medium">आपका जन्म-नक्षत्र: {nakshatraHindi} (पाद {profile.nakshatraPada || 1})</p>
+                  <p className="text-indigo-700 font-medium flex items-center gap-1.5 flex-wrap">
+                    आपका जन्म-नक्षत्र: {nakshatraHindi}
+                    <FieldInfo field="birthNakshatra" />
+                    <span>(पाद {profile.nakshatraPada || 1})</span>
+                    <FieldInfo field="nakshatraPada" />
+                  </p>
                 </div>
               </div>
               <div className="bg-white px-4 py-1.5 rounded-full border border-indigo-200 text-sm font-bold text-indigo-800 uppercase tracking-wide">
                 {nakshatraHindi} / {nakshatraNatureHindi || 'शुभ'} स्वभाव
+                <FieldInfo field="nakshatraNature" className="ml-1.5" />
               </div>
             </div>
             
@@ -103,15 +110,15 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
               <div className="prose prose-indigo max-w-none text-gray-800 text-lg leading-relaxed">
                 <p className="text-xl text-indigo-900 font-medium mb-4">
                   {profile.name} जी, आप <strong>{nakshatraHindi}</strong> नक्षत्र ({nakshatraNatureHindi} — पाद {profile.nakshatraPada || 1}) में जन्मे हैं। <br className="hidden sm:block" />
-                  यह नक्षत्र भगवान <strong>{profile.tirthankarAffinity || profile.tirthankarAffinityHindi}</strong> से विशेष आत्मिक-सम्बन्ध रखता है।
-                  आपकी राशि <strong>{profile.birthRashi || ''}</strong> है।
+                  यह नक्षत्र भगवान <strong>{profile.tirthankarAffinity || profile.tirthankarAffinityHindi}</strong> से विशेष आत्मिक-सम्बन्ध रखता है।<FieldInfo field="tirthankarAffinity" className="ml-1" />
+                  आपकी राशि <strong>{profile.birthRashi || ''}</strong> है।<FieldInfo field="birthRashi" className="ml-1" />
                 </p>
 
                 <p>
                   {nakshatraData
                     ? `${nakshatraHindi} नक्षत्र के प्रभाव से आपमें ${nakshatraData.spiritual_traits} के गुण स्वाभाविक हैं। ${nakshatraData.karma_manifestation}`
                     : `इस नक्षत्र के प्रभाव से आपका स्वभाव स्थिर और आध्यात्मिक झुकाव वाला है।`
-                  } {profile.dominantKarma} कर्म की उदीरणा आपके जीवन में अधिक होने से यह स्थिति और प्रबल हो जाती है।
+                  } {profile.dominantKarma} कर्म की उदीरणा आपके जीवन में अधिक होने से यह स्थिति और प्रबल हो जाती है।<FieldInfo field="dominantKarma" className="ml-1" />
                 </p>
                 
                 <div className="mt-6 grid sm:grid-cols-2 gap-6">
@@ -147,6 +154,7 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
             <div className="bg-amber-50 border-b border-amber-100 p-4 flex items-center gap-3">
               <Clock className="text-amber-600 w-5 h-5 shrink-0" />
               <h3 className="text-base font-bold text-amber-950">इष्टकाल (जन्म-समय निर्देशांक)</h3>
+              <FieldInfo field="ishtakaal" />
             </div>
             <div className="p-5 space-y-3 text-sm text-gray-700">
               <p className="text-amber-900 font-bold text-lg">{profile.ishtakaal.formatted}</p>
@@ -180,6 +188,7 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
               <div className="bg-indigo-50 border-b border-indigo-100 p-4 flex items-center gap-3">
                 <Orbit className="text-indigo-600 w-5 h-5 shrink-0" />
                 <h3 className="text-base font-bold text-indigo-950">जैन राशि-प्रक्षेपण (अभिजित सहित)</h3>
+                <FieldInfo field="jainZodiacProjection" />
               </div>
               <div className="p-5 space-y-3 text-sm text-gray-700">
                 <div className="flex items-center gap-3">

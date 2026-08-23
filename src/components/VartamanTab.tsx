@@ -8,6 +8,7 @@ import { buildIntelligenceDecision } from '../lib/intelligence/finalDecision';
 import type { IntelligenceDecision } from '../lib/intelligence/types';
 import DecisionTraceCard from './DecisionTraceCard';
 import { PANCH_SAMVAY } from '../data/jainCosmology';
+import FieldInfo from './FieldInfo';
 
 const GUNASTHANA_DATA: Record<number, { name: string; description: string; advice: string }> = {
   1: {
@@ -134,19 +135,19 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
             {dasha && (
               <div className="grid sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-amber-100 rounded-xl p-4 border border-amber-200">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 block mb-1">महादशा</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-1 flex items-center gap-1">महादशा <FieldInfo field="mahadasha" /></span>
                   <p className="text-xl font-bold text-amber-900">{dasha.lord_hindi}</p>
                   <p className="text-xs text-amber-700 mt-1">{dasha.startDate} — {dasha.endDate}</p>
                   <p className="text-xs font-medium text-amber-800 mt-1">{dasha.yearsRemaining} वर्ष शेष</p>
                 </div>
                 <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500 block mb-1">अंतर्दशा</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500 mb-1 flex items-center gap-1">अंतर्दशा <FieldInfo field="antardasha" /></span>
                   <p className="text-xl font-bold text-orange-900">{dasha.antardashaInfo.lord_hindi}</p>
                   <p className="text-xs text-orange-700 mt-1">{dasha.antardashaInfo.startDate} — {dasha.antardashaInfo.endDate}</p>
                   <p className="text-xs font-medium text-orange-800 mt-1">{dasha.antardashaInfo.yearsRemaining} वर्ष शेष</p>
                 </div>
                 <div className="bg-rose-50 rounded-xl p-4 border border-rose-200">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500 block mb-1">प्रत्यंतर्दशा</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500 mb-1 flex items-center gap-1">प्रत्यंतर्दशा <FieldInfo field="pratyantardasha" /></span>
                   <p className="text-xl font-bold text-rose-900">{dasha.pratyantardasha.lord_hindi}</p>
                   <p className="text-xs text-rose-700 mt-1">{dasha.pratyantardasha.startDate} — {dasha.pratyantardasha.endDate}</p>
                   <p className="text-xs font-medium text-rose-800 mt-1">{dasha.pratyantardasha.daysRemaining} दिन शेष</p>
@@ -175,7 +176,7 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
         <>
           {/* SECTION 3: Karma Ashtadal */}
           <section className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm">
-            <h2 className="text-2xl font-bold text-amber-900 mb-6 text-center">अष्ट-कर्म मंडल</h2>
+            <h2 className="text-2xl font-bold text-amber-900 mb-6 text-center flex items-center justify-center gap-2">अष्ट-कर्म मंडल <FieldInfo field="karmaIntensity" forExport={forExport} /></h2>
             <p className="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
               यह अष्टदल आपकी आत्मा पर छाए 8 कर्मों के वर्तमान भार (सघनता) को दर्शाता है। प्रत्येक पंखुड़ी पर क्लिक करके जानें कि वह कर्म आज आपके जीवन में किस रूप में प्रकट हो रहा है और उसकी निर्जरा का सटीक मार्ग क्या है।
             </p>
@@ -184,7 +185,7 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
 
           {/* SECTION 4: Gunasthana */}
           <section className="bg-gradient-to-r from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-200 shadow-sm">
-            <h2 className="text-2xl font-bold text-orange-900 mb-4 border-b border-orange-200 pb-2">आपका गुणस्थान: एक आध्यात्मिक परामर्श</h2>
+            <h2 className="text-2xl font-bold text-orange-900 mb-4 border-b border-orange-200 pb-2 flex items-center gap-2">आपका गुणस्थान: एक आध्यात्मिक परामर्श <FieldInfo field="gunasthana" forExport={forExport} /></h2>
             <div className="text-gray-800 leading-relaxed text-lg">
               <GunasthanaDescription name={profile.name} gunasthana={profile.gunasthana || 1} dominantKarma={profile.dominantKarma} dashaLord={dasha?.lord_hindi || dashaLord} />
             </div>
