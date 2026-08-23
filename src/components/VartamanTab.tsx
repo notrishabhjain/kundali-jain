@@ -7,6 +7,7 @@ import { calculateKarmaProfile } from '../lib/karmaEngine';
 import { buildIntelligenceDecision } from '../lib/intelligence/finalDecision';
 import type { IntelligenceDecision } from '../lib/intelligence/types';
 import DecisionTraceCard from './DecisionTraceCard';
+import { PANCH_SAMVAY } from '../data/jainCosmology';
 
 const GUNASTHANA_DATA: Record<number, { name: string; description: string; advice: string }> = {
   1: {
@@ -186,6 +187,35 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
             <h2 className="text-2xl font-bold text-orange-900 mb-4 border-b border-orange-200 pb-2">आपका गुणस्थान: एक आध्यात्मिक परामर्श</h2>
             <div className="text-gray-800 leading-relaxed text-lg">
               <GunasthanaDescription name={profile.name} gunasthana={profile.gunasthana || 1} dominantKarma={profile.dominantKarma} dashaLord={dasha?.lord_hindi || dashaLord} />
+            </div>
+          </section>
+
+          {/* SECTION 5: Panch Samvay Framework */}
+          <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2 border-b border-slate-200 pb-2">पंच-संवय (पाँच कारण-तत्त्व)</h2>
+            <p className="text-sm text-slate-500 mb-5">
+              स्रोत: तत्त्वार्थसूत्र अ. ५ — ये पाँच तत्त्व मिलकर आपकी वर्तमान स्थिति का निर्माण करते हैं। पुरुषार्थ एकमात्र परिवर्तनशील घटक है।
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {PANCH_SAMVAY.map((v, idx) => {
+                const isPursharth = v.name === 'Pursharth';
+                return (
+                  <div key={idx} className={`rounded-xl border p-4 ${isPursharth ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-100'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isPursharth ? 'bg-amber-400 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                        {idx + 1}
+                      </span>
+                      <span className={`font-bold text-sm ${isPursharth ? 'text-amber-800' : 'text-slate-800'}`}>
+                        {v.hindiName} <span className="font-normal text-slate-400">({v.name})</span>
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed mb-2">{v.description}</p>
+                    <p className={`text-[11px] font-medium italic ${isPursharth ? 'text-amber-700' : 'text-slate-500'}`}>
+                      इंजन भूमिका: {v.engineRole}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </section>
         </>

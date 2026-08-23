@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Compass, Calendar as CalendarIcon, FileWarning, Route, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { UserProfile } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
+import { VRATAS, getVratasByCategory } from '../data/vratas';
 
 interface DharmaMargProps {
   profile: UserProfile;
@@ -16,6 +17,16 @@ export default function DharmaMarg({ profile, forExport, part }: DharmaMargProps
   const nakshatraHindi = profile.birthNakshatraHindi || profile.birthNakshatra;
 
   const [expandedQuarter, setExpandedQuarter] = useState<number>(1);
+  const [expandedVrata, setExpandedVrata] = useState<number | null>(null);
+
+  const anuvratas = getVratasByCategory('Anuvrata');
+  const gunavratas = getVratasByCategory('Gunavrata');
+  const shikshavratas = getVratasByCategory('Shikshavrata');
+  const vrataCategories = [
+    { label: 'पाँच अणुव्रत', items: anuvratas, color: 'emerald' },
+    { label: 'तीन गुणव्रत', items: gunavratas, color: 'blue' },
+    { label: 'चार शिक्षाव्रत', items: shikshavratas, color: 'amber' },
+  ];
 
   const quarters = [
     {
@@ -139,27 +150,58 @@ export default function DharmaMarg({ profile, forExport, part }: DharmaMargProps
       {/* Deep Dive: Prayashchitta & 90-Day Plan & 12 Vratas */}
       {(!part || part === 2) && <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         
-        {/* 12 Vratas Contextualized */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        {/* 12 Vratas — full data-driven from VRATAS */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm md:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
             <ShieldCheck className="text-emerald-600 w-6 h-6" />
             <h3 className="text-xl font-bold text-gray-900">१२ श्रावक व्रत विधान</h3>
           </div>
-          <p className="text-sm text-gray-600 mb-4">{sadhana.karmaHindi} शमन हेतु आपके लिए मुख्य व्रत:</p>
-          <ul className="space-y-3 text-sm text-gray-700">
-            <li className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-              <strong className="text-emerald-800 block mb-1">अहिंसा अणुव्रत:</strong>
-              {profile.dominantKarmaEn === 'Mohaniya' || profile.dominantKarmaEn === 'Charitra Mohaniya' ? 'क्रोध पर विजय। मानसिक रूप से किसी का अहित न सोचना।' : 'जल और सूक्ष्म जीवों की रक्षा हेतु छानकर जल पीना और रात्रि-भोजन त्यागना।'}
-            </li>
-            <li className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-              <strong className="text-emerald-800 block mb-1">परिग्रह-परिमाण व्रत:</strong>
-              {sadhana.samanyaUpaya}
-            </li>
-            <li className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-              <strong className="text-emerald-800 block mb-1">देशावकाशिक व्रत:</strong>
-              दशानाथ {dashaLord} के प्रभाव को देखते हुए, मास में एक दिन अपनी सीमाओं (क्षेत्र/दूरी) को अत्यंत सीमित करना।
-            </li>
-          </ul>
+          <p className="text-sm text-gray-600 mb-4">
+            स्रोत: तत्त्वार्थसूत्र अ. ७ + रत्नकरंड श्रावकाचार। {sadhana.karmaHindi} शमन हेतु प्रमुख व्रत चिह्नित हैं।
+          </p>
+          <div className="space-y-4">
+            {vrataCategories.map(({ label, items, color }) => (
+              <div key={label}>
+                <p className={`text-xs font-bold text-${color}-700 uppercase tracking-wider mb-2`}>{label}</p>
+                <ul className="space-y-2">
+                  {items.map(v => {
+                    const isRelevant = v.karmaReduced.some(k =>
+                      k.includes(sadhana.karmaHindi?.slice(0, 3) || ''));
+                    return (
+                      <li key={v.id}>
+                        <button
+                          onClick={() => setExpandedVrata(expandedVrata === v.id ? null : v.id)}
+                          className={`w-full text-left px-3 py-2 rounded-lg border text-sm flex justify-between items-start gap-2 transition-colors
+                            ${isRelevant
+                              ? `bg-${color}-50 border-${color}-200 hover:bg-${color}-100`
+                              : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
+                        >
+                          <span className={`font-semibold ${isRelevant ? `text-${color}-800` : 'text-gray-700'}`}>
+                            {v.nameHindi}
+                          </span>
+                          {expandedVrata === v.id
+                            ? <ChevronUp className="w-4 h-4 shrink-0 mt-0.5 text-gray-400" />
+                            : <ChevronDown className="w-4 h-4 shrink-0 mt-0.5 text-gray-400" />
+                          }
+                        </button>
+                        {expandedVrata === v.id && (
+                          <div className="mt-1 px-3 py-2 bg-white border border-gray-100 rounded-lg text-xs text-gray-700 space-y-1">
+                            <p className="leading-relaxed">{v.descriptionHindi}</p>
+                            <p className="text-gray-500 italic">{v.dailyPracticeHindi}</p>
+                            {v.karmaReduced.length > 0 && (
+                              <p className="text-emerald-700 font-medium">
+                                कर्म-निर्जरा: {v.karmaReduced.join(', ')}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Deep Prayashchitta Guide */}

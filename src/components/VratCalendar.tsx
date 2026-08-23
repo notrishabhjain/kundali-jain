@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
-import { Calendar, Moon, Sun, AlertCircle, Star } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Calendar, Moon, Sun, AlertCircle, Star, Brain, ChevronDown, ChevronUp } from 'lucide-react';
 import { UserProfile, getUpcomingVratDates, UpcomingVrat } from '../lib/engineFacade';
 import { NAKSHATRAS } from '../data/nakshatras';
 import { JAIN_ANNUAL_FESTIVALS } from '../data/sadhana';
+import { BHAVANAS } from '../data/bhavanas';
 
 interface VratCalendarProps {
   profile: UserProfile;
@@ -47,6 +48,8 @@ function getVratTypeLabel(type: UpcomingVrat['vratType']): string {
 }
 
 export default function VratCalendar({ profile }: VratCalendarProps) {
+  const [expandedBhavana, setExpandedBhavana] = useState<number | null>(null);
+
   const birthNakshatraIndex = useMemo(() => {
     const idx = NAKSHATRAS.findIndex(n => n.name === profile.birthNakshatra);
     return idx >= 0 ? idx : 0;
@@ -128,6 +131,39 @@ export default function VratCalendar({ profile }: VratCalendarProps) {
               </div>
               <p className="text-xs font-semibold mb-1 opacity-90">{festival.karma_benefit}</p>
               <p className="text-xs opacity-75 leading-relaxed">{festival.sadhana}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* 12 Bhavanas Contemplation Guide */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-100 bg-violet-50/50 flex items-center gap-2">
+          <Brain className="w-5 h-5 text-violet-500" />
+          <h3 className="text-xl font-bold text-gray-800">१२ भावनाएँ (अनुप्रेक्षाएँ)</h3>
+        </div>
+        <p className="px-6 pt-4 text-sm text-gray-600">
+          जैन आगम (तत्त्वार्थसूत्र ९.७) के अनुसार ये बारह चिंतन-ध्यान कषायों को मंद करते हैं और कर्म-निर्जरा में सहायक होते हैं। आपके <strong>{profile.dominantKarma}</strong> कर्म की प्रबलता में विशेष उपयोगी भावनाएँ नीचे चिह्नित हैं।
+        </p>
+        <div className="p-6 grid sm:grid-cols-2 gap-3">
+          {BHAVANAS.map((b) => (
+            <div key={b.id} className="border border-violet-100 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setExpandedBhavana(expandedBhavana === b.id ? null : b.id)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-violet-50/60 hover:bg-violet-100/60 transition-colors text-left gap-2"
+              >
+                <div>
+                  <span className="font-bold text-violet-900 text-sm">{b.nameHindi}</span>
+                  <span className="ml-2 text-[10px] text-violet-500 font-medium">{b.sanskritName}</span>
+                </div>
+                {expandedBhavana === b.id ? <ChevronUp className="w-4 h-4 text-violet-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-violet-400 shrink-0" />}
+              </button>
+              {expandedBhavana === b.id && (
+                <div className="px-4 py-3 space-y-2 bg-white">
+                  <p className="text-xs text-gray-700 leading-relaxed">{b.contemplationHindi}</p>
+                  <p className="text-[11px] text-violet-700 font-medium">कर्म-प्रभाव: {b.karmaEffect}</p>
+                  <p className="text-[11px] text-gray-500 italic">{b.practiceHindi}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>

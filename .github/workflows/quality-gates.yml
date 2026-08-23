@@ -41,6 +41,16 @@ jobs:
       - name: PDF parity guard
         run: npm run check:pdfparity
 
+      # Oracle-free engine validation. The 8-karma dasha system is synthesized
+      # (see references/extracted/GAP_CLOSING_RESEARCH__synthesis.md §GV.5), so
+      # no external kundali can be diffed against it. These two guards assert
+      # how output must CHANGE with input, and that it genuinely personalises.
+      - name: Metamorphic guard
+        run: npm run check:metamorphic
+
+      - name: Entropy / personalisation guard
+        run: npm run check:entropy
+
       - name: Production build
         run: npm run build
 
@@ -68,5 +78,7 @@ jobs:
             echo "| Pancham Kaal guard | ✅ |"
             echo "| Karma quality guard | ✅ |"
             echo "| PDF parity guard | ✅ |"
+            echo "| Metamorphic guard | ✅ |"
+            echo "| Entropy guard | ✅ |"
             echo "| Build (vite) | ✅ |"
           } >> "$GITHUB_STEP_SUMMARY"

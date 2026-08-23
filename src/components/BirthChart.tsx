@@ -1,10 +1,11 @@
 import React from 'react';
-import { Moon, Orbit, Search, Sparkles } from 'lucide-react';
+import { Moon, Orbit, Search, Sparkles, Clock } from 'lucide-react';
 import { UserProfile } from '../lib/engineFacade';
 import { getNakshatraByName } from '../data/nakshatras';
 import { GRAHAS } from '../data/grahas';
 import { generatePredictions } from '../lib/predictionEngine';
 import { getKarmaSadhana } from '../data/sadhana';
+import { GRAHA_KARMA_MAPPINGS } from '../data/jainCosmology';
 
 interface BirthChartProps {
   profile: UserProfile;
@@ -15,6 +16,12 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
   const nakshatraData = getNakshatraByName(profile.birthNakshatra);
   const nakshatraHindi = profile.birthNakshatraHindi || profile.birthNakshatra;
   const nakshatraNatureHindi = profile.nakshatraNatureHindi || '';
+
+  // Graha-karma mappings relevant to dominant karma
+  const dominantKarmaGrahas = GRAHA_KARMA_MAPPINGS.filter(
+    m => m.indicatedKarma === profile.dominantKarmaEn ||
+         m.indicatedKarma === profile.dominantKarmaEn.replace('Charitra ', '')
+  );
 
   // Karma → primary graha mapping (Jain framework)
   const KARMA_GRAHA_MAP: Record<string, string[]> = {
@@ -131,6 +138,94 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
             </div>
           </div>
         </>
+      )}
+
+      {(!part || part === 1) && profile.ishtakaal && (
+        <div className="grid sm:grid-cols-2 gap-6">
+          {/* Ishtakaal */}
+          <div className="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden">
+            <div className="bg-amber-50 border-b border-amber-100 p-4 flex items-center gap-3">
+              <Clock className="text-amber-600 w-5 h-5 shrink-0" />
+              <h3 className="text-base font-bold text-amber-950">इष्टकाल (जन्म-समय निर्देशांक)</h3>
+            </div>
+            <div className="p-5 space-y-3 text-sm text-gray-700">
+              <p className="text-amber-900 font-bold text-lg">{profile.ishtakaal.formatted}</p>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                सूर्योदय से जन्म-क्षण तक का व्यतीत काल। स्रोत: सूर्यप्रज्ञप्ति + PARITY-REPORT-2026 §"Precise Ishtakaal Conversion"
+              </p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-amber-50 rounded-lg p-2 border border-amber-100">
+                  <span className="block text-xl font-bold text-amber-800">{profile.ishtakaal.ghatis}</span>
+                  <span className="text-[10px] text-amber-600 uppercase">घटी</span>
+                </div>
+                <div className="bg-amber-50 rounded-lg p-2 border border-amber-100">
+                  <span className="block text-xl font-bold text-amber-800">{profile.ishtakaal.palas}</span>
+                  <span className="text-[10px] text-amber-600 uppercase">पल</span>
+                </div>
+                <div className="bg-amber-50 rounded-lg p-2 border border-amber-100">
+                  <span className="block text-xl font-bold text-amber-800">{profile.ishtakaal.vipalas}</span>
+                  <span className="text-[10px] text-amber-600 uppercase">विपल</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">
+                समतुल्य मुहूर्त: <strong>{profile.ishtakaal.equivalentMuhurtas}</strong> मुहूर्त |
+                स्तोक: {profile.ishtakaal.microState.stokas} | लव: {profile.ishtakaal.microState.lavas}
+              </p>
+            </div>
+          </div>
+
+          {/* Jain Zodiac Projection */}
+          {profile.jainZodiacProjection && (
+            <div className="bg-white rounded-2xl border border-indigo-100 shadow-sm overflow-hidden">
+              <div className="bg-indigo-50 border-b border-indigo-100 p-4 flex items-center gap-3">
+                <Orbit className="text-indigo-600 w-5 h-5 shrink-0" />
+                <h3 className="text-base font-bold text-indigo-950">जैन राशि-प्रक्षेपण (अभिजित सहित)</h3>
+              </div>
+              <div className="p-5 space-y-3 text-sm text-gray-700">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl font-bold text-indigo-800">
+                    {Math.round(profile.jainZodiacProjection.graduatedMuhurtas)} मुहूर्त
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  सूर्यप्रज्ञप्ति के असमान नक्षत्र-विस्तार के अनुसार जन्म-चंद्र का स्थान।
+                  स्रोत: SP-1 अध्याय ३; PARITY-REPORT-2026 §"Sidereal Geometry"
+                </p>
+                <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-100 space-y-1">
+                  <p className="text-sm font-semibold text-indigo-900">
+                    सक्रिय नक्षत्र: {profile.jainZodiacProjection.activeNakshatra}
+                  </p>
+                  <p className="text-xs text-indigo-700">
+                    नक्षत्र-शेष: {Math.round(profile.jainZodiacProjection.balanceWithinNakshatraMuhurtas * 10) / 10} मुहूर्त
+                  </p>
+                  <p className="text-xs text-indigo-600">
+                    विस्तार-वर्ग: {profile.jainZodiacProjection.spanClass === 'long_span' ? 'विस्तृत (Long Span)' : profile.jainZodiacProjection.spanClass === 'short_span' ? 'संकुचित (Short Span)' : profile.jainZodiacProjection.spanClass === 'abhijit' ? 'अभिजित' : 'मानक (Standard)'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {(!part || part === 1) && dominantKarmaGrahas.length > 0 && (
+        <div className="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
+          <div className="bg-rose-50 border-b border-rose-100 p-4">
+            <h3 className="text-base font-bold text-rose-950">ग्रह-कर्म संकेतक ({profile.dominantKarma})</h3>
+            <p className="text-xs text-rose-700 mt-1">भद्रबाहु संहिता — ग्रह निमित्तज्ञान (सूचक), कारण नहीं</p>
+          </div>
+          <div className="p-5 grid sm:grid-cols-2 gap-4">
+            {dominantKarmaGrahas.map((m, idx) => (
+              <div key={idx} className="bg-rose-50/50 rounded-lg p-3 border border-rose-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-bold text-rose-800 text-sm">{m.grahaHindi} ({m.graha})</span>
+                  <span className="text-[10px] text-rose-500 font-medium">{m.karmaHindi}</span>
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">{m.afflictionIndicator}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {(!part || part === 2) && (
