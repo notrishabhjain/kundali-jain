@@ -22,7 +22,16 @@
     "Nirvana are fixed this way, lamps being lit while Kartik Amavasya runs.",
     "'nishitha' = local midnight - Sharad Purnima moon-viewing. 'madhyahna' = apparent",
     "noon. Using the wrong anchor shifts a festival by a full day.",
-    "Real sunrise/sunset for lat/lng is computed per entry; there is no fixed clock time."
+    "Real sunrise/sunset for lat/lng is computed per entry; there is no fixed clock time.",
+    "",
+    "VERIFICATION STATUS: all nine rows were corroborated against published festival",
+    "records and published tithi windows, and are now enforced. Two rows were WRONG as",
+    "originally seeded and are corrected: Mahavir Nirvana 2023 moved 12 Nov -> 13 Nov,",
+    "and both Nirvana rows moved from the pradosha anchor to udaya, because the Jain",
+    "observance is the dawn Nirvan Ladoo and not the evening Lakshmi Puja.",
+    "Each row records its evidence in `verifiedVia`. Note this is corroboration against",
+    "published observance dates and tithi windows, NOT a reading of CP-1950-2050; where",
+    "the Shatabdi Panchang disagrees, it is the higher authority and should win."
   ],
   "defaults": {
     "anchor": "udaya",
@@ -36,24 +45,24 @@
       "gregorian": "1946-10-10",
       "label": "Acharya Vidyasagar Ji Maharaj — birth",
       "source": "Biographies record the birth as Sharad Purnima (Ashvin Shukla Purnima), Sadalga, Karnataka",
-      "confidence": "tithi widely recorded; Gregorian date to be confirmed against CP-1950-2050",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "शुक्ल",
         "tithiNum": 15,
         "masa": "आश्विन"
       },
-      "anchor": "nishitha",
-      "lat": 28.6139,
-      "lng": 77.209
+      "anchor": "udaya",
+      "lat": 16.5527,
+      "lng": 74.7508,
+      "verifiedVia": "Multiple biographies concur: born 10 Oct 1946 on Sharad Purnima at Sadalga, Belgaum dist., Karnataka. Coordinates corrected from Delhi to the actual birthplace. Tithi resolves to Shukla 15 under all four anchors, so the row is insensitive to the anchor choice.",
+      "verifiedOn": "2026-08-23"
     },
     {
       "id": "mahavir-jayanti-2024",
       "gregorian": "2024-04-21",
       "label": "Mahavir Janma Kalyanak 2024",
       "source": "published Digambar festival calendar",
-      "confidence": "Chaitra Shukla Trayodashi is doctrinally fixed; Gregorian date to be confirmed",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "शुक्ल",
         "tithiNum": 13,
@@ -61,15 +70,16 @@
       },
       "anchor": "udaya",
       "lat": 28.6139,
-      "lng": 77.209
+      "lng": 77.209,
+      "verifiedVia": "Widely published as 21 April 2024 (Sunday); national holiday listings concur.",
+      "verifiedOn": "2026-08-23"
     },
     {
       "id": "mahavir-jayanti-2023",
       "gregorian": "2023-04-04",
       "label": "Mahavir Janma Kalyanak 2023",
       "source": "published Digambar festival calendar",
-      "confidence": "Gregorian date to be confirmed",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "शुक्ल",
         "tithiNum": 13,
@@ -77,15 +87,16 @@
       },
       "anchor": "udaya",
       "lat": 28.6139,
-      "lng": 77.209
+      "lng": 77.209,
+      "verifiedVia": "Widely published as 4 April 2023; national holiday listings concur.",
+      "verifiedOn": "2026-08-23"
     },
     {
       "id": "mahavir-jayanti-2025",
       "gregorian": "2025-04-10",
       "label": "Mahavir Janma Kalyanak 2025",
       "source": "published Digambar festival calendar",
-      "confidence": "Gregorian date to be confirmed",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "शुक्ल",
         "tithiNum": 13,
@@ -93,15 +104,16 @@
       },
       "anchor": "udaya",
       "lat": 28.6139,
-      "lng": 77.209
+      "lng": 77.209,
+      "verifiedVia": "Government of India news (newsonair.gov.in) reported nationwide observance on 10 April 2025. Published tithi window: Trayodashi 09 Apr 22:55 to 11 Apr 01:00, so Trayodashi prevails at sunrise on 10 Apr — consistent with the udaya anchor.",
+      "verifiedOn": "2026-08-23"
     },
     {
       "id": "das-lakshana-start-2024",
       "gregorian": "2024-09-08",
       "label": "Das Lakshana Parva — first day 2024",
       "source": "Digambar observance begins Bhadrapada Shukla Panchami",
-      "confidence": "tithi doctrinally fixed; Gregorian date to be confirmed",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "शुक्ल",
         "tithiNum": 5,
@@ -109,47 +121,50 @@
       },
       "anchor": "udaya",
       "lat": 28.6139,
-      "lng": 77.209
+      "lng": 77.209,
+      "verifiedVia": "Digambar Das Lakshan Parva 2024 published as 8-17 September 2024 by Jain society calendars.",
+      "verifiedOn": "2026-08-23"
     },
     {
       "id": "mahavir-nirvana-2024",
       "gregorian": "2024-11-01",
       "label": "Mahavir Nirvana Kalyanak (Diwali) 2024",
       "source": "Kartik Krishna Amavasya",
-      "confidence": "tithi doctrinally fixed; Gregorian date to be confirmed",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "कृष्ण",
         "tithiNum": 15,
         "masa": "कार्तिक"
       },
-      "anchor": "pradosha",
+      "anchor": "udaya",
       "lat": 28.6139,
-      "lng": 77.209
+      "lng": 77.209,
+      "verifiedVia": "Published Amavasya window: 15:52 on 31 Oct to 18:16 on 1 Nov 2024. Amavasya therefore prevails at sunrise on 1 Nov. ANCHOR CORRECTED pradosha -> udaya: Mahavir attained nirvana in the early morning and the Nirvan Ladoo is offered on Diwali MORNING, so the Jain observance is udaya-vyapini and does not follow the pradosha rule that fixes the Hindu Lakshmi Puja.",
+      "verifiedOn": "2026-08-23"
     },
     {
       "id": "mahavir-nirvana-2023",
-      "gregorian": "2023-11-12",
+      "gregorian": "2023-11-13",
       "label": "Mahavir Nirvana Kalyanak (Diwali) 2023",
       "source": "Kartik Krishna Amavasya",
-      "confidence": "Gregorian date to be confirmed",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "कृष्ण",
         "tithiNum": 15,
         "masa": "कार्तिक"
       },
-      "anchor": "pradosha",
+      "anchor": "udaya",
       "lat": 28.6139,
-      "lng": 77.209
+      "lng": 77.209,
+      "verifiedVia": "DATE CORRECTED 2023-11-12 -> 2023-11-13 and ANCHOR CORRECTED pradosha -> udaya. Published Amavasya window: 14:46 on 12 Nov to 14:58 on 13 Nov 2023, so Amavasya prevails at sunrise on the 13th, not the 12th. The 2550th Nirvana Mahotsav was observed on 13 November 2023.",
+      "verifiedOn": "2026-08-23"
     },
     {
       "id": "sharad-purnima-2024",
       "gregorian": "2024-10-16",
       "label": "Sharad Purnima 2024",
       "source": "Ashvin Shukla Purnima",
-      "confidence": "Gregorian date to be confirmed",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "शुक्ल",
         "tithiNum": 15,
@@ -157,15 +172,16 @@
       },
       "anchor": "nishitha",
       "lat": 28.6139,
-      "lng": 77.209
+      "lng": 77.209,
+      "verifiedVia": "Observed 16 October 2024. Published tithi window: Purnima begins 20:40 on 16 Oct and ends 16:55 on 17 Oct — so Purnima runs at midnight of the 16th, confirming the nishitha anchor. Under a sunrise rule this row would resolve to the 17th.",
+      "verifiedOn": "2026-08-23"
     },
     {
       "id": "shrut-panchami-2024",
       "gregorian": "2024-06-11",
       "label": "Shrut Panchami 2024",
       "source": "Jyeshtha Shukla Panchami — Digambar scriptural festival",
-      "confidence": "Gregorian date to be confirmed",
-      "verified": false,
+      "verified": true,
       "expect": {
         "paksha": "शुक्ल",
         "tithiNum": 5,
@@ -173,7 +189,9 @@
       },
       "anchor": "udaya",
       "lat": 28.6139,
-      "lng": 77.209
+      "lng": 77.209,
+      "verifiedVia": "Published as Tuesday 11 June 2024 (Jyeshtha Shukla Panchami).",
+      "verifiedOn": "2026-08-23"
     }
   ]
 }

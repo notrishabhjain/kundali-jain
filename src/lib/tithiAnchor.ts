@@ -113,8 +113,15 @@ export function getAnchoredTithi(
  * Source: GAP_CLOSING_RESEARCH §GP.8; standard Digambar observance.
  */
 export const PARVA_ANCHORS: Record<string, TithiAnchor> = {
-  'महावीर निर्वाण कल्याणक': 'pradosha', // lamps lit after dark on Kārtika Amāvasyā
-  'दीपावली': 'pradosha',
+  // Mahāvīra attained nirvāṇa in the early hours before dawn and the Nirvāṇa
+  // Laḍḍū is offered on the MORNING of Dīpāvalī, so the Jain observance is
+  // udaya-vyāpinī. It does NOT follow the pradoṣa rule that fixes the Hindu
+  // Lakṣmī Pūjā, and the two can therefore fall on different civil days —
+  // in 2023 the Lakṣmī Pūjā evening was 12 Nov while Nirvāṇa Kalyāṇaka was
+  // observed on 13 Nov. Verified against the published Amāvasyā window
+  // (14:46 on 12 Nov to 14:58 on 13 Nov 2023).
+  'महावीर निर्वाण कल्याणक': 'udaya',
+  'दीपावली': 'pradosha', // the Lakṣmī Pūjā evening, distinct from the above
   'शरद पूर्णिमा': 'nishitha',           // midnight moon-viewing
   'महावीर जन्म कल्याणक': 'udaya',
   'दशलक्षण पर्व': 'udaya',
