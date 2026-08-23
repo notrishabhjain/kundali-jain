@@ -13,19 +13,28 @@
 //   udaya    — the tithi running at SUNRISE. The general rule, and the default
 //              for vratas, upavāsa days, and aṣṭamī/caturdaśī parva tithis.
 //   pradosha — the tithi running during the ~2.4 ghaṭī after SUNSET. Used for
-//              observances performed after dark. Dīpāvalī / Mahāvīra Nirvāṇa
-//              Kalyāṇaka is fixed this way: the lamps are lit on the evening
-//              when Kārtika Amāvasyā is running, which can precede the sunrise
-//              that would name the day Amāvasyā.
+//              observances performed after dark, such as the Hindu Lakṣmī Pūjā
+//              on Dīpāvalī evening.
 //   nishitha — the tithi running at local MIDNIGHT. Used for night observances
 //              such as Śarada Pūrṇimā moon-viewing.
 //   madhyahna— the tithi running at local apparent noon. Used for a few midday
 //              observances.
 //
-// Verified against the back-test corpus: Dīpāvalī 2023 and Śarada Pūrṇimā 2024
-// both resolve one tithi short under `udaya` but correctly under `pradosha` and
-// `nishitha` respectively — the engine's elongation was right all along; the
-// anchor was the missing rule.
+// CORRECTION, recorded because the first version of this file got it wrong.
+// Mahāvīra Nirvāṇa Kalyāṇaka was initially assigned `pradosha` on the assumption
+// that the Jain observance follows the same evening rule as the Lakṣmī Pūjā. It
+// does not: Mahāvīra attained nirvāṇa in the early hours before dawn and the
+// Nirvāṇa Laḍḍū is offered on the MORNING of Dīpāvalī, so the observance is
+// udaya-vyāpinī. The two can therefore fall on different civil days — in 2023
+// the Lakṣmī Pūjā evening was 12 November while Nirvāṇa Kalyāṇaka was observed
+// on 13 November.
+//
+// Verified against published tithi windows: for 2023 the Amāvasyā ran 14:46 on
+// 12 Nov to 14:58 on 13 Nov, and this engine reproduces both boundaries to
+// within minutes; Śarada Pūrṇimā 2024 begins 20:40 on 16 Oct, which is why that
+// row needs `nishitha` and resolves one tithi short under a sunrise rule. In
+// every case the engine's elongation was already right and the anchor was the
+// missing rule.
 
 import { toJulianDay, getElongation } from './astronomy';
 import { calculateApparentSunTimes } from './sunriseEngine';
