@@ -17,7 +17,8 @@
     "check:entropy": "tsx scripts/check-entropy.ts",
     "check:backtest": "tsx scripts/check-backtest.ts",
     "check:doctrine": "tsx scripts/check-doctrine.ts",
-    "check:ephemeris": "tsx scripts/check-ephemeris.ts"
+    "check:ephemeris": "tsx scripts/check-ephemeris.ts",
+    "check:citations": "tsx scripts/check-citations.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

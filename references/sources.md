@@ -72,6 +72,7 @@ in `src/engine/*` and `android/.../domain/engine/*` must trace back to a citatio
 | BKT-1 | Bhaktamar Stotra — Manatunga Acharya (48 shlokas) | Referenced via RESEARCH-REPORT-2025 | partial | `BHAKTAMAR_SHLOKAS` in sadhana.ts + JainCosmologyData.kt. [REQUIRES_RESEARCH] Full verse OCR from canonical printed edition for Sanskrit verification. |
 | BDS-1 | Bhadrabahu Samhita | Referenced via RESEARCH-REPORT-2025 | unknown | Venus Mandala system, Saturn-in-Shravana rule, cometary tracking. [REQUIRES_RESEARCH] OCR from printed edition before citation-level implementation. |
 | SP-1 | Surya Prajnapti (सूर्य प्रज्ञप्ति) | Referenced via CPS + RESEARCH-REPORT-2025 | scanned | Jain sidereal geometry: 28 nakshatras, Shravana-first ordering, unequal muhurta spans, summer solstice epoch. |
+| JP-1 | Jambudvipa Prajnapti (जम्बूद्वीप प्रज्ञप्ति) | Referenced via CPS + RESEARCH-REPORT-2025 | scanned | Jain terrestrial cosmology: Jambudvipa geography, Meru-centred concentric model underlying the sidereal projection; cited alongside SP-1 in `src/data/jainCosmology.ts`. |
 
 ### Compendia & misc
 

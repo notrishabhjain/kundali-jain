@@ -48,6 +48,10 @@ jobs:
       # External-oracle layer: published astronomy this codebase did not produce.
       # Catches uniform errors (a wrong ayanamsa, a truncated lunar series) that
       # metamorphic testing is structurally blind to.
+      # Every doctrinal assertion must trace to catalogued Digambar literature.
+      - name: Citation audit
+        run: npm run check:citations
+
       - name: Ephemeris conformance guard
         run: npm run check:ephemeris
 
@@ -95,6 +99,7 @@ jobs:
             echo "| Pancham Kaal guard | ✅ |"
             echo "| Karma quality guard | ✅ |"
             echo "| PDF parity guard | ✅ |"
+            echo "| Citation audit | ✅ |"
             echo "| Ephemeris conformance | ✅ |"
             echo "| Metamorphic guard | ✅ |"
             echo "| Entropy guard | ✅ |"
