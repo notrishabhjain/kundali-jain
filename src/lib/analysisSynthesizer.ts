@@ -13,7 +13,7 @@
 import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/nakshatras';
 import { calculateIshtakaal, calculateJainZodiacProjection, type IshtakaalResult, type JainZodiacProjection } from '../data/jainCosmology';
 import { calculateApparentSunTimes } from './sunriseEngine';
-import { resolveShadGhatiTithi } from './calendarEngine';
+import { resolveShadGhatiTithi, getGandantStatus } from './calendarEngine';
 
 export interface BirthFormData {
   fullName: string;
@@ -61,6 +61,8 @@ export interface UserProfile {
   // Legacy fields kept for backward compatibility with existing components
   birthNakshatraLegacy?: string;  // same as birthNakshatra
   currentDashaLegacy?: string;    // same as currentDasha.lord_hindi
+  /** Set when the birth Moon sits in a Gandant junction (blueprint §B.7) */
+  gandantWarning?: string;
 }
 
 // ─── Astronomical calculations ───────────────────────────────────────────────
@@ -277,6 +279,18 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
   // Source: Research Report §4 + SP-1.
   const jainZodiacProjection = calculateJainZodiacProjection(siderealDeg);
 
+  // Gandant birth warning (blueprint §B.7) — Moon within ±10′ of a water→fire
+  // sign junction (Ashlesha→Magha, Jyeshtha→Mula, Revati→Ashvini).
+  let gandantWarning: string | undefined;
+  try {
+    const g = getGandantStatus(siderealDeg);
+    if (g.inGandant) {
+      gandantWarning = `गंडांत-क्षेत्र जन्म (${g.junctionHindi} संधि, ${g.distanceGhatis} घटी दूरी): मूल-शांति के रूप में णमोकार महामंत्र का विशेष जाप नियत करें।`;
+    }
+  } catch {
+    // never block profile generation on the advisory path
+  }
+
   return {
     name: data.fullName,
     gender: data.gender,
@@ -299,7 +313,8 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     jainZodiacProjection,
     // Legacy compatibility
     birthNakshatraLegacy: nakshatra.hindi_name,
-    currentDashaLegacy: dasha.lord_hindi
+    currentDashaLegacy: dasha.lord_hindi,
+    gandantWarning
   };
 }
 

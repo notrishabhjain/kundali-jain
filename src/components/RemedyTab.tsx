@@ -6,6 +6,8 @@ import TantraSadhana from './TantraSadhana';
 import { BookOpen, Layers, Flower2, Flame, ShieldCheck } from 'lucide-react';
 import { UserProfile, getTodayContext } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
+import { BHAKTAMAR_SADHANA_CATALOG } from '../data/bhaktamarTraditionalAssignments';
+import { LITURGICAL_STOTRAS, NAMOKAR_CRISIS_PRESCRIPTION } from '../data/liturgicalStotras';
 import { generateRemedies } from '../lib/remedyEngine';
 import { calculateRuleScore } from '../lib/intelligence/ruleScoring';
 import { composeNarrativeBundle } from '../lib/narrativeComposer';
@@ -99,6 +101,42 @@ export default function RemedyTab({ profile }: RemedyTabProps) {
                   जैन आगम रत्न-धारण को शमन-उपाय नहीं मानते। रत्न पृथ्वीकाय (स्थावर एकेंद्रिय) जीवों से निकले होते हैं,
                   अतः इनका खनन/धारण हिंसा का कारक है (मूलाचार, रत्नकरंड श्रावकाचार)। इसलिए यह इंजन आपको केवल
                   <strong> मंत्र + तप + दान + भावना</strong> के आगम-आधारित उपाय सुझाता है; रत्न या ग्रह-शांति विक्रय वस्तुओं की अनुशंसा नहीं करता।
+                </p>
+              </div>
+
+              {/* Bhaktamar graha-shanti mapping (blueprint §B.4) */}
+              <div className="bg-violet-50 p-5 rounded-xl border border-violet-200">
+                <span className="block text-sm font-bold text-violet-700 uppercase mb-3">भक्तामर स्तोत्र — ग्रह-शांति मैपिंग (पारम्परिक)</span>
+                <div className="space-y-2">
+                  {BHAKTAMAR_SADHANA_CATALOG.map(b => (
+                    <div key={b.shlokaNumber} className="bg-white p-3 rounded-lg border border-violet-100">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-bold text-sm text-violet-900">श्लोक {b.shlokaNumber} — {b.planetaryTarget === 'All' ? 'सर्व ग्रह' : b.planetaryTarget}</span>
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full border border-violet-200 bg-white text-violet-700">{b.jaapCount}× जाप</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">{b.remedyTarget}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-violet-700 mt-2">पूर्ण विधि (दिशा/समय/सोमैटिक क्रम) हेतु जाप साधना टैब देखें — वहाँ के पूर्ण प्रवेश प्राथमिक हैं।</p>
+              </div>
+
+              {/* Liturgical remedies (blueprint §B.6) */}
+              <div className="bg-teal-50 p-5 rounded-xl border border-teal-200">
+                <span className="block text-sm font-bold text-teal-700 uppercase mb-3">आगम-लौकिक स्तोत्र एवं माला-विधि</span>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  {LITURGICAL_STOTRAS.map(s => (
+                    <div key={s.key} className="bg-white p-3 rounded-lg border border-teal-100">
+                      <h4 className="font-bold text-sm text-teal-900">{s.hindiName}</h4>
+                      <p className="text-[11px] text-gray-500 mb-1">{s.attribution}</p>
+                      <p className="text-xs text-gray-700">{s.application}</p>
+                      <p className="text-xs text-teal-800 font-medium mt-1">{s.target}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-teal-900 mt-3">
+                  <strong>महा-संकट जाप:</strong> {NAMOKAR_CRISIS_PRESCRIPTION.totalJap} बार णमोकार — {NAMOKAR_CRISIS_PRESCRIPTION.occasionHindi} में
+                  (प्रतिदिन ≈ {NAMOKAR_CRISIS_PRESCRIPTION.dailyJap}) — {NAMOKAR_CRISIS_PRESCRIPTION.purposeHindi}
                 </p>
               </div>
 

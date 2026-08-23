@@ -96,3 +96,45 @@ export const KARMA_STATE_TRANSITIONS: KarmaStateTransition[] = [
 export function getSthitiBound(karmaEn: string): SthitiBound {
   return KARMA_STHITI_BOUNDS[karmaEn];
 }
+
+// ─── Ābādha-kāl & Niṣeka-kāl engine hooks (B.1) ──────────────────────────────
+// Source: GAP_CLOSING_RESEARCH B.1 — wire into sadhana intensity / dasha feedback.
+//
+//  - ĀBĀDHA-KĀL (latency before ripening): exactly 100 years per 1 Sagaropama
+//    of bondage density (extraction-library M5.2 anchor, confirmed).
+//  - NIṢEKA-KĀL (ripening distribution): the karmic payload discharges with a
+//    front-loaded decay — maximum intensity at dasha start, tapering toward the
+//    end. The exponential shape is [INFERRED] from the spec's qualitative law;
+//    no canonical numeric constant exists.
+export const ABADHA_KAAL_YEARS_PER_SAGAROPAMA = 100;
+
+export function abadhaKaalYears(bondageDensitySagaropama: number): number {
+  return Math.max(0, bondageDensitySagaropama) * ABADHA_KAAL_YEARS_PER_SAGAROPAMA;
+}
+
+/**
+ * Front-loaded udaya intensity weight across a dasha's progress.
+ * @param progress01 elapsed fraction of the dasha (0 → start, 1 → end)
+ * @returns multiplier in (0, 1]: ≈1 at the beginning, decaying toward the end.
+ */
+export function nisekaUdayaWeight(progress01: number): number {
+  const p = Math.min(1, Math.max(0, progress01));
+  return Math.exp(-3 * p);
+}
+
+// Blueprint §B.1-compatible API: discrete 10-segment ripening curve
+// (exp(-0.4·i)) for consumers that sample the dasha in equal slices.
+export interface KarmaDashaSpec {
+  karmaType: string;
+  bondageDensitySagaropama: number;
+}
+
+export function calculateDashaRipening(spec: KarmaDashaSpec): {
+  abadhaDurationYears: number;
+  intensityCurve: number[];
+} {
+  const abadhaDurationYears = spec.bondageDensitySagaropama * ABADHA_KAAL_YEARS_PER_SAGAROPAMA;
+  const intensityCurve: number[] = [];
+  for (let i = 0; i < 10; i++) intensityCurve.push(Math.exp(-0.4 * i));
+  return { abadhaDurationYears, intensityCurve };
+}

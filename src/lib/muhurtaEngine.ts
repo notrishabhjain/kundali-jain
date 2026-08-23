@@ -130,22 +130,30 @@ export function scanPersonalizedMuhurtas(
 }
 
 // ─── Fixed daily windows (GG.5) ───────────────────────────────────────────────
-// Source: GAP_CLOSING_RESEARCH GG.5 — VERIFIED (Shatabdi Panchang tradition).
+// Sources: GAP_CLOSING_RESEARCH GG.5 (Abhijit/Brahma) + A.6 (Gulika/Durmuhurta).
 //  - Abhijit Muhurta (~11:48–12:12 IST): universally auspicious; Abhijit is
 //    Adinatha's birth nakshatra → ideal for Navkar initiation.
 //  - Brahma Muhurta (96 minutes before sunrise): ideal for Samayika,
 //    Pratikramana, mantra recitation.
-//  - Durmuhurta: 2 inauspicious spans per day exist in the tradition; exact
-//    per-day computation is [REQUIRES_RESEARCH] — not computed here.
+//  - Gulika/Durmuhurta: divide the local Dinamaan into 8 equal khandas; lords
+//    assigned sequentially from the day's ruler (Varadipati) following the
+//    weekday order. The Saturn-ruled khanda = Gulika Kaal; the Mars-ruled
+//    khanda = Durmuhurta (both varjit for new undertakings).
 
 export interface FixedMuhurtaWindow {
-  key: 'abhijit' | 'brahma' | 'durmuhurta';
+  key: 'abhijit' | 'brahma' | 'gulika' | 'durmuhurta';
   hindiName: string;
   startHHMM: string;
   endHHMM: string;
   qualityHindi: string;
   guidance: string;
 }
+
+const WEEKDAY_LORDS = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'];
+const LORD_HINDI: Record<string, string> = {
+  Sun: 'सूर्य', Moon: 'चन्द्र', Mars: 'मंगल', Mercury: 'बुध',
+  Jupiter: 'गुरु', Venus: 'शुक्र', Saturn: 'शनि'
+};
 
 function hhmmToMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number);
@@ -158,10 +166,69 @@ function minutesToHHMM(mins: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-export function getFixedDailyWindows(sunriseHHMM = '06:00'): FixedMuhurtaWindow[] {
+/** Returns the [start,end] HHMM of the 8-part khanda ruled by `lord` during daytime. */
+function findLordKhanda(
+  lordEn: 'Mars' | 'Saturn',
+  startLordIdx: number,
+  riseMin: number,
+  setMin: number
+): { startHHMM: string; endHHMM: string } | null {
+  if (!(setMin > riseMin)) return null;
+  const partLen = (setMin - riseMin) / 8;
+  for (let i = 0; i < 8; i++) {
+    const lord = WEEKDAY_LORDS[(startLordIdx + i) % 7];
+    if (lord === lordEn) {
+      return {
+        startHHMM: minutesToHHMM(riseMin + i * partLen),
+        endHHMM: minutesToHHMM(riseMin + (i + 1) * partLen)
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * Night-side khandas — FINAL RULING (ultimate blueprint §2): Khanda-1 lord is
+ * the UPCOMING day's Varadipati (next-day's ruler), sequence continues in
+ * weekday order across the 8 parts.
+ */
+function findNightLordKhanda(
+  lordEn: 'Mars' | 'Saturn',
+  date: Date,
+  sunsetHHMM: string,
+  nextSunriseHHMM: string
+): { startHHMM: string; endHHMM: string } | null {
+  const setMin = hhmmToMinutes(sunsetHHMM);
+  let riseNext = hhmmToMinutes(nextSunriseHHMM);
+  if (riseNext <= setMin) riseNext += 1440; // crosses midnight
+  const nightLordIdx = (date.getDay() + 1) % 7; // upcoming weekday
+  const partLen = (riseNext - setMin) / 8;
+  for (let i = 0; i < 8; i++) {
+    const lord = WEEKDAY_LORDS[(nightLordIdx + i) % 7];
+    if (lord === lordEn) {
+      return {
+        startHHMM: minutesToHHMM(setMin + i * partLen),
+        endHHMM: minutesToHHMM(setMin + (i + 1) * partLen)
+      };
+    }
+  }
+  return null;
+}
+
+export function getFixedDailyWindows(
+  sunriseHHMM = '06:00',
+  sunsetHHMM = '18:00',
+  date: Date = new Date(),
+  nextSunriseHHMM?: string
+): FixedMuhurtaWindow[] {
   // Brahma Muhurta = 96 minutes before sunrise (per GG.5).
   const brahmaStart = minutesToHHMM(hhmmToMinutes(sunriseHHMM) - 96);
-  return [
+
+  // Day khandas start from the day's Varadipati.
+  const gulikaDay = findLordKhanda('Saturn', date.getDay(), hhmmToMinutes(sunriseHHMM), hhmmToMinutes(sunsetHHMM));
+  const durmuhurtaDay = findLordKhanda('Mars', date.getDay(), hhmmToMinutes(sunriseHHMM), hhmmToMinutes(sunsetHHMM));
+
+  const windows: FixedMuhurtaWindow[] = [
     {
       key: 'brahma',
       hindiName: 'ब्रह्म मुहूर्त',
@@ -177,14 +244,54 @@ export function getFixedDailyWindows(sunriseHHMM = '06:00'): FixedMuhurtaWindow[
       endHHMM: '12:12',
       qualityHindi: 'सर्व-शुभ',
       guidance: 'णमोकार मंत्र का उपनयन/संकल्प हेतु आदर्श — अभीजित आदिनाथ भगवान का जन्म-नक्षत्र है।'
-    },
-    {
-      key: 'durmuhurta',
-      hindiName: 'दुर्मुहूर्त',
-      startHHMM: '--:--',
-      endHHMM: '--:--',
-      qualityHindi: 'परिहार्य',
-      guidance: 'दिन में दो दुर्मुहूर्त होते हैं — नवारंभ परिहार्य। (सटीक स्पैन [REQUIRES_RESEARCH])'
     }
   ];
+
+  if (gulikaDay) {
+    windows.push({
+      key: 'gulika',
+      hindiName: 'गुलिक काल (दिन)',
+      startHHMM: gulikaDay.startHHMM,
+      endHHMM: gulikaDay.endHHMM,
+      qualityHindi: 'परिहार्य',
+      guidance: 'दिन का शनि-अधीन अष्टम-भाग — शुभ कार्यों का आरंभ वर्जित है।'
+    });
+  }
+  if (durmuhurtaDay) {
+    windows.push({
+      key: 'durmuhurta',
+      hindiName: 'दुर्मुहूर्त (दिन)',
+      startHHMM: durmuhurtaDay.startHHMM,
+      endHHMM: durmuhurtaDay.endHHMM,
+      qualityHindi: 'परिहार्य',
+      guidance: 'दिन का मंगल-अधीन अष्टम-भाग — नवारंभ परिहार्य।'
+    });
+  }
+
+  // Night khandas — ruled from the NEXT day's Varadipati (final ruling).
+  const nextRise = nextSunriseHHMM ?? sunriseHHMM;
+  const gulikaNight = findNightLordKhanda('Saturn', date, sunsetHHMM, nextRise);
+  const durmuhurtaNight = findNightLordKhanda('Mars', date, sunsetHHMM, nextRise);
+  if (gulikaNight) {
+    windows.push({
+      key: 'gulika',
+      hindiName: 'गुलिक काल (रात्रि)',
+      startHHMM: gulikaNight.startHHMM,
+      endHHMM: gulikaNight.endHHMM,
+      qualityHindi: 'परिहार्य',
+      guidance: 'रात्रि का शनि-अधीन खंड — रात्रि-मुहूर्त में शुभारंभ वर्जित।'
+    });
+  }
+  if (durmuhurtaNight) {
+    windows.push({
+      key: 'durmuhurta',
+      hindiName: 'दुर्मुहूर्त (रात्रि)',
+      startHHMM: durmuhurtaNight.startHHMM,
+      endHHMM: durmuhurtaNight.endHHMM,
+      qualityHindi: 'परिहार्य',
+      guidance: 'रात्रि का मंगल-अधीन खंड — रात्रि-नवारंभ परिहार्य।'
+    });
+  }
+
+  return windows;
 }

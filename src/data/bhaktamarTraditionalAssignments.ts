@@ -254,8 +254,124 @@ export const BHAKTAMAR_TRADITIONAL_ASSIGNMENTS: TraditionalBhaktamarAssignment[]
   }
 ];
 
+// ─── Verified Sanskrit first-lines, shlokas 25–44 (v3 §2 + final resolution) ──
+// Source: blueprint-v2 §2 (dedup pass) + final truncation resolution (37/39).
+export const BHAKTAMAR_VERIFIED_LINES: Record<number, string> = {
+  25: 'किं शर्वरीषु शशिनाह्नि विवस्वता वा',
+  26: 'मन्ये वरं हरिहरादय एव दृष्टाः',
+  27: 'ज्ञानं यथा त्वयि विभाति कृतावकाशं',
+  28: 'बुद्धस्त्वमेव विबुधाचितबुद्धिबोधात्',
+  29: 'त्वामामनन्ति मुनयः परमं पुमांसम्',
+  30: 'त्वं पावनं सुविमलं परिचिन्त्य रूपं',
+  31: 'द्योतान्तरं तव वपुः प्रविभक्तभासम्',
+  32: 'स्वर्गापवर्ग-गम-मार्ग-विमार्गणेष्टः',
+  33: 'छत्रत्रयं तव विभाति शशाङ्ककान्तम्',
+  34: 'गम्भीरतारवरशब्दमनोहरं ते',
+  35: 'मन्दारसुन्दरनमेरुसुपर्णपुष्पैः',
+  36: 'पादौ पदानि तव यत्र जिनेन्द्र जातानि',
+  37: 'श्यामावदातयमुनोदरवारिभङ्गयोग्याभिरासु तरलास्विव जाह्नवीषु',
+  38: 'छत्रत्रयेण तव चारुशशाङ्ककान्तम्',
+  39: 'उन्मग्नभीमभुजङ्गोदरदीप्तरत्नद्युतिव्यतिकरशबलप्रभामयूखम्',
+  40: 'यस्मिन्निह्नत शिखिनोऽप्यनुकूलवाता',
+  41: 'रक्ताश्रुसिक्तवपुषो द्रुतमापतन्तः',
+  42: 'वज्रं किमत्र यदि ते त्रिदशाङ्गनाभिः',
+  43: 'त्वत्कीर्तनेन मनुजा मनुजत्वमेव',
+  44: 'आक्रान्तभीमभुजङ्गमुच्छ्रितशिखं'
+};
+
 export function getBhaktamarAssignment(shlokaNumber: number): TraditionalBhaktamarAssignment | undefined {
   return BHAKTAMAR_TRADITIONAL_ASSIGNMENTS.find(s => s.shlokaNumber === shlokaNumber);
+}
+
+// ─── Planetary remedy mapping (blueprint §B.4) ────────────────────────────────
+// Traditional shloka ↔ graha assignments wired as a FALLBACK layer — full
+// BhaktamarShloka entries in sadhana.ts always take precedence.
+export interface BhaktamarSadhana {
+  shlokaNumber: number;
+  shlokaFirstLine: string;
+  planetaryTarget: string;   // graha name or 'All'
+  remedyTarget: string;
+  jaapCount: number;
+}
+
+export const BHAKTAMAR_SADHANA_CATALOG: BhaktamarSadhana[] = [
+  {
+    shlokaNumber: 2,
+    shlokaFirstLine: 'यस्मात् स्वयं निपुणबुद्धिरपि प्रवृत्तः...',
+    planetaryTarget: 'Mercury',
+    remedyTarget: 'नेत्र-रोग शमन, बुद्धि-स्पष्टता',
+    jaapCount: 108
+  },
+  {
+    shlokaNumber: 7,
+    shlokaFirstLine: 'उद्यदादित्यमिव प्रतापं...',
+    planetaryTarget: 'Sun',
+    remedyTarget: 'विष-मुक्ति, तेजोमय आभा',
+    jaapCount: 108
+  },
+  {
+    shlokaNumber: 15,
+    shlokaFirstLine: 'चित्रं किमत्र यदि ते त्रिदशाङ्गनाभिः...',
+    planetaryTarget: 'Mars',
+    remedyTarget: 'भौम अरिष्ट शमन (दुर्घटना-रक्षा, क्रोध-निरोध)',
+    jaapCount: 108
+  },
+  {
+    shlokaNumber: 25,
+    shlokaFirstLine: 'किं शर्वरीषु शशिनाह्नि विवस्वता वा...',
+    planetaryTarget: 'Saturn',
+    remedyTarget: 'शनि अरिष्ट शमन (दुःख, विलंब, दीर्घ वेदना)',
+    jaapCount: 1008
+  },
+  {
+    shlokaNumber: 36,
+    shlokaFirstLine: 'पादौ पदानि तव यत्र जिनेन्द्र जातानि...',
+    planetaryTarget: 'Rahu',
+    remedyTarget: 'राहु अरिष्ट शमन (भय, मोह, मनो-अवरोध)',
+    jaapCount: 108
+  },
+  {
+    shlokaNumber: 44,
+    shlokaFirstLine: 'आक्रान्तभीमभुजङ्गमुच्छ्रितशिखं...',
+    planetaryTarget: 'All',
+    remedyTarget: 'सर्व-रोग-निवारण (गंभीर शारीरिक विकार)',
+    jaapCount: 1008
+  },
+  {
+    shlokaNumber: 48,
+    shlokaFirstLine: 'यः संस्तवं स्रग्धरामनुपम्यबुद्धिः...',
+    planetaryTarget: 'All',
+    remedyTarget: 'बंधन-मुक्ति (अवरोध-निवारण)',
+    jaapCount: 108
+  }
+];
+
+export function getBhaktamarForGraha(grahaEn: string): BhaktamarSadhana[] {
+  const hits = BHAKTAMAR_SADHANA_CATALOG.filter(
+    s => s.planetaryTarget === grahaEn || s.planetaryTarget === 'All'
+  );
+  // Exact-graha matches first, universal remedies after.
+  return hits.sort((a, b) =>
+    (a.planetaryTarget === 'All' ? 1 : 0) - (b.planetaryTarget === 'All' ? 1 : 0)
+  );
+}
+
+// Additional graha-targeted rows from v3 §2 (completing the planetary map).
+export const BHAKTAMAR_SADHANA_CATALOG_EXTENDED: BhaktamarSadhana[] = [
+  { shlokaNumber: 26, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[26], planetaryTarget: 'Mercury', remedyTarget: 'बुद्धि-विकास, धर्म-मार्ग स्पष्टता', jaapCount: 108 },
+  { shlokaNumber: 31, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[31], planetaryTarget: 'Sun', remedyTarget: 'ज्योति-प्रकाश — यश एवं सौर-तेज', jaapCount: 108 },
+  { shlokaNumber: 33, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[33], planetaryTarget: 'Moon', remedyTarget: 'चन्द्र अरिष्ट शमन, भावनात्मक स्थैर्य', jaapCount: 108 },
+  { shlokaNumber: 35, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[35], planetaryTarget: 'Venus', remedyTarget: 'समृद्धि एवं लौकिक शांति', jaapCount: 108 },
+  { shlokaNumber: 40, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[40], planetaryTarget: 'Ketu', remedyTarget: 'केतु अरिष्ट, त्वचा-रोग, अग्नि-रक्षा', jaapCount: 108 },
+  { shlokaNumber: 41, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[41], planetaryTarget: 'Mars', remedyTarget: 'भौम अरिष्ट (क्रोध, हिंसा, शल्य-कवच)', jaapCount: 108 }
+];
+
+/** Full graha lookup across base + extended catalogs. */
+export function getBhaktamarForGrahaFull(grahaEn: string): BhaktamarSadhana[] {
+  const all = [...BHAKTAMAR_SADHANA_CATALOG, ...BHAKTAMAR_SADHANA_CATALOG_EXTENDED];
+  return all
+    .filter(s => s.planetaryTarget === grahaEn || s.planetaryTarget === 'All')
+    .sort((a, b) => (a.planetaryTarget === 'All' ? 1 : 0) - (b.planetaryTarget === 'All' ? 1 : 0));
 }
 
 /**

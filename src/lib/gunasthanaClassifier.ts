@@ -94,7 +94,8 @@ export function inferGunasthanaInputs(
 export function estimateGunasthana(
   nakshatraNature: string,
   dashaLord: string,
-  questionnaireInput?: Partial<GunasthanaInput>
+  questionnaireInput?: Partial<GunasthanaInput>,
+  activeMohaniyaSubtypes?: string[]
 ): number {
   const inferred = inferGunasthanaInputs(nakshatraNature, dashaLord);
   const merged: GunasthanaInput = {
@@ -102,7 +103,63 @@ export function estimateGunasthana(
     avirati:      questionnaireInput?.avirati      ?? inferred.avirati,
     kashayaLevel: questionnaireInput?.kashayaLevel ?? inferred.kashayaLevel,
   };
-  return classifyGunasthana(merged);
+  const base = classifyGunasthana(merged);
+  // Blueprint §B.3 — cap the estimate by the active Mohaniya sub-types.
+  if (activeMohaniyaSubtypes && activeMohaniyaSubtypes.length > 0) {
+    return capGunasthanaByMohaniya(base, activeMohaniyaSubtypes);
+  }
+  return base;
+}
+
+// ─── Mohaniya sub-type → Gunasthana blocking matrix (B.3) ─────────────────────
+// Source: blueprint §B.3 (Sarvarthasiddhi + Gommatsar staging) — each active
+// deluding sub-type caps the maximum reachable gunasthana.
+export interface GunasthanaBlockRule {
+  karmaSubtype: string;
+  maxGunasthanaAllowed: number;
+}
+
+export const MOHANIYA_GUNASTHANA_MATRIX: GunasthanaBlockRule[] = [
+  { karmaSubtype: 'Mithyatva',                          maxGunasthanaAllowed: 1 },
+  { karmaSubtype: 'Samyaktva-Mithyatva',                maxGunasthanaAllowed: 2 },
+  { karmaSubtype: 'Samyaktva',                          maxGunasthanaAllowed: 3 },
+  { karmaSubtype: 'Anantanubandhi Krodha',              maxGunasthanaAllowed: 3 },
+  { karmaSubtype: 'Anantanubandhi Mana',                maxGunasthanaAllowed: 3 },
+  { karmaSubtype: 'Anantanubandhi Maya',                maxGunasthanaAllowed: 3 },
+  { karmaSubtype: 'Anantanubandhi Lobha',               maxGunasthanaAllowed: 3 },
+  { karmaSubtype: 'Apratyakhyana Krodha',               maxGunasthanaAllowed: 4 },
+  { karmaSubtype: 'Apratyakhyana Mana',                 maxGunasthanaAllowed: 4 },
+  { karmaSubtype: 'Apratyakhyana Maya',                 maxGunasthanaAllowed: 4 },
+  { karmaSubtype: 'Apratyakhyana Lobha',                maxGunasthanaAllowed: 4 },
+  { karmaSubtype: 'Pratyakhyana Krodha',                maxGunasthanaAllowed: 5 },
+  { karmaSubtype: 'Pratyakhyana Mana',                  maxGunasthanaAllowed: 5 },
+  { karmaSubtype: 'Pratyakhyana Maya',                  maxGunasthanaAllowed: 5 },
+  { karmaSubtype: 'Pratyakhyana Lobha',                 maxGunasthanaAllowed: 5 },
+  { karmaSubtype: 'Sanjvalana Krodha',                  maxGunasthanaAllowed: 9 },
+  { karmaSubtype: 'Sanjvalana Mana',                    maxGunasthanaAllowed: 9 },
+  { karmaSubtype: 'Sanjvalana Maya',                    maxGunasthanaAllowed: 9 },
+  { karmaSubtype: 'Sanjvalana Lobha',                   maxGunasthanaAllowed: 10 }
+];
+
+/**
+ * Cap a classified gunasthana by every ACTIVE Mohaniya sub-type's ceiling
+ * (blueprint §B.3). The soul cannot reside above the block of any passion
+ * still operating in it.
+ */
+export function capGunasthanaByMohaniya(
+  classifiedGsn: number,
+  activeSubtypes: string[]
+): number {
+  let cap = 14;
+  for (const raw of activeSubtypes) {
+    const key = raw.trim().toLowerCase();
+    const rule = MOHANIYA_GUNASTHANA_MATRIX.find(r =>
+      r.karmaSubtype.toLowerCase() === key ||
+      key.startsWith(r.karmaSubtype.toLowerCase())
+    );
+    if (rule) cap = Math.min(cap, rule.maxGunasthanaAllowed);
+  }
+  return Math.min(classifiedGsn, cap);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

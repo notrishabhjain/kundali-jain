@@ -52,6 +52,18 @@ export default function Kundali({ profile }: KundaliProps) {
   return (
     <div className="space-y-6" style={{ borderRadius: NeoPopTokens.radius }}>
 
+      {/* Gandant birth warning (blueprint §B.7) */}
+      {profile.gandantWarning && (
+        <div className="print:hidden bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-900 leading-relaxed">
+              <strong>गंडांत सूचना:</strong> {profile.gandantWarning}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Priority Banner */}
       <div className="text-white p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-3">

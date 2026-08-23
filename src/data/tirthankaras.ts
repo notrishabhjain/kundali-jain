@@ -59,7 +59,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 2, name: "Ajitanatha", hindi_name: "अजितनाथ",
     father: "Jitashatru", mother: "Vijaya", birth_place: "अयोध्या",
     birth_nakshatra: "Rohini", birth_rashi: "Vrishabha (Taurus)",
-    birth_tithi: "Magha Shukla 8", nirvana_place: "शिखरजी (सम्मेद शिखर)",
+    birth_tithi: "Magha Shukla 10", nirvana_place: "शिखरजी (सम्मेद शिखर)",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Elephant", hindi_symbol: "हाथी (गज)",
     height: "1350 मीटर (450 धनुष)", lifespan: "72 लाख पूर्व",
@@ -71,8 +71,8 @@ export const TIRTHANKARAS: Tirthankara[] = [
   {
     id: 3, name: "Sambhavanatha", hindi_name: "सम्भवनाथ",
     father: "Jitari", mother: "Sena", birth_place: "श्रावस्ती",
-    birth_nakshatra: "Mrigashirsha", birth_rashi: "Mithuna (Gemini)",
-    birth_tithi: "Margashirsha Shukla 14", nirvana_place: "शिखरजी",
+    birth_nakshatra: "Mrigashira", birth_rashi: "Mithuna (Gemini)",
+    birth_tithi: "Kartika Shukla 15", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Horse", hindi_symbol: "घोड़ा (अश्व)",
     height: "1200 मीटर (400 धनुष)", lifespan: "60 लाख पूर्व",
@@ -85,7 +85,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 4, name: "Abhinandananatha", hindi_name: "अभिनन्दननाथ",
     father: "Samvara", mother: "Siddhartha Devi", birth_place: "अयोध्या",
     birth_nakshatra: "Punarvasu", birth_rashi: "Karkata (Cancer)",
-    birth_tithi: "Vaishakha Shukla 2", nirvana_place: "शिखरजी",
+    birth_tithi: "Magha Shukla 12", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Monkey", hindi_symbol: "बन्दर (वानर)",
     height: "1050 मीटर (350 धनुष)", lifespan: "50 लाख पूर्व",
@@ -97,8 +97,8 @@ export const TIRTHANKARAS: Tirthankara[] = [
   {
     id: 5, name: "Sumatinatha", hindi_name: "सुमतिनाथ",
     father: "Megharatha", mother: "Mangala", birth_place: "अयोध्या",
-    birth_nakshatra: "Krittika", birth_rashi: "Vrishabha (Taurus)",
-    birth_tithi: "Vaishakha Shukla 11", nirvana_place: "शिखरजी",
+    birth_nakshatra: "Magha", birth_rashi: "Simha (Leo)",
+    birth_tithi: "Chaitra Shukla 11", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Goose", hindi_symbol: "हंस",
     height: "900 मीटर (300 धनुष)", lifespan: "40 लाख पूर्व",
@@ -109,7 +109,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
   },
   {
     id: 6, name: "Padmaprabhu", hindi_name: "पद्मप्रभु",
-    father: "Shridhara", mother: "Susima", birth_place: "कौशाम्बी",
+    father: "Dharana", mother: "Susima", birth_place: "कौशाम्बी",
     birth_nakshatra: "Chitra", birth_rashi: "Kanya / Tula",
     birth_tithi: "Kartika Krishna 13", nirvana_place: "शिखरजी",
     varna: "Red", hindi_varna: "लाल (रक्त वर्ण)",
@@ -122,7 +122,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
   },
   {
     id: 7, name: "Suparshvanatha", hindi_name: "सुपार्श्वनाथ",
-    father: "Supratishtha", mother: "Prithvi", birth_place: "वाराणसी",
+    father: "Pratishtha", mother: "Prithvi", birth_place: "वाराणसी",
     birth_nakshatra: "Vishakha", birth_rashi: "Tula (Libra)",
     birth_tithi: "Jyeshtha Shukla 12", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
@@ -137,7 +137,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 8, name: "Chandraprabhu", hindi_name: "चन्द्रप्रभु",
     father: "Mahasena", mother: "Lakshmana", birth_place: "चन्द्रावती",
     birth_nakshatra: "Anuradha", birth_rashi: "Vrischika (Scorpio)",
-    birth_tithi: "Phalgun Krishna 12", nirvana_place: "शिखरजी",
+    birth_tithi: "Paush Krishna 11", nirvana_place: "शिखरजी",
     varna: "White", hindi_varna: "श्वेत (सफ़ेद)",
     symbol: "Crescent Moon", hindi_symbol: "चन्द्र (अर्धचन्द्र)",
     height: "450 मीटर (150 धनुष)", lifespan: "10 लाख पूर्व",
@@ -150,7 +150,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 9, name: "Suvidhinatha", hindi_name: "सुविधिनाथ", aka: "Pushpadanta",
     father: "Sugriva", mother: "Rama", birth_place: "काकंदी",
     birth_nakshatra: "Mula", birth_rashi: "Dhanu (Sagittarius)",
-    birth_tithi: "Margashirsha Shukla 5", nirvana_place: "शिखरजी",
+    birth_tithi: "Margashirsha Shukla 1", nirvana_place: "शिखरजी",
     varna: "White", hindi_varna: "श्वेत",
     symbol: "Crocodile", hindi_symbol: "मकर (घड़ियाल)",
     height: "300 मीटर (100 धनुष)", lifespan: "2 लाख पूर्व",
@@ -162,7 +162,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
   {
     id: 10, name: "Shitalanatha", hindi_name: "शीतलनाथ",
     father: "Dridharatha", mother: "Nanda", birth_place: "भद्दिलपुर",
-    birth_nakshatra: "Vishakha", birth_rashi: "Tula",
+    birth_nakshatra: "Purva Ashadha", birth_rashi: "Dhanu (Sagittarius)",
     birth_tithi: "Magha Krishna 12", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Kalpavriksha", hindi_symbol: "कल्पवृक्ष",
@@ -176,10 +176,10 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 11, name: "Shreyansanatha", hindi_name: "श्रेयांसनाथ",
     father: "Vishnuraja", mother: "Vishnu", birth_place: "सिंहपुरी",
     birth_nakshatra: "Shravana", birth_rashi: "Makara (Capricorn)",
-    birth_tithi: "Vaishakha Shukla 3", nirvana_place: "शिखरजी",
+    birth_tithi: "Phalguna Krishna 11", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Rhinoceros", hindi_symbol: "गैंडा",
-    height: "240 मीटर (80 धनुष)", lifespan: "84 लाख वर्ष",
+    height: "240 मीटर (80 धनुष)", lifespan: "84,000 वर्ष",
     yaksha: "Yaksheta", yakshini: "Manavi",
     tree: "Tanduka", karma_addressed: "Gyanavaraniya (shrutan gyan)",
     puja_benefit: "श्रुतज्ञानावरण कर्म के क्षयोपशम, शास्त्र स्वाध्याय में विशुद्धि हेतु निमित्त",
@@ -192,7 +192,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
     birth_tithi: "Phalgun Krishna 14", nirvana_place: "चम्पापुरी (जन्मस्थान पर ही निर्वाण)",
     varna: "Red", hindi_varna: "लाल (रक्त)",
     symbol: "Buffalo", hindi_symbol: "भैंसा (महिष)",
-    height: "210 मीटर (70 धनुष)", lifespan: "72 लाख वर्ष",
+    height: "210 मीटर (70 धनुष)", lifespan: "72,000 वर्ष",
     yaksha: "Kumara", yakshini: "Chandra",
     tree: "Patala", karma_addressed: "Vedaniya (asata vedaniya)",
     puja_benefit: "असाता वेदनीय कर्म के उदय को समता से सहने का आत्मबल",
@@ -201,11 +201,11 @@ export const TIRTHANKARAS: Tirthankara[] = [
   {
     id: 13, name: "Vimalanatha", hindi_name: "विमलनाथ",
     father: "Kritavarma", mother: "Shyama", birth_place: "कम्पिल्यपुर",
-    birth_nakshatra: "Uttara Phalguni", birth_rashi: "Kanya (Virgo)",
-    birth_tithi: "Bhadrapada Shukla 6", nirvana_place: "शिखरजी",
+    birth_nakshatra: "Purva Bhadrapada", birth_rashi: "Meena (Pisces)",
+    birth_tithi: "Magha Shukla 4", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Boar", hindi_symbol: "सूअर (वराह)",
-    height: "180 मीटर (60 धनुष)", lifespan: "60 लाख वर्ष",
+    height: "180 मीटर (60 धनुष)", lifespan: "60,000 वर्ष",
     yaksha: "Shanmukha", yakshini: "Vidita",
     tree: "Jambu", karma_addressed: "Darshanavaraniya",
     puja_benefit: "दर्शन मोह और दर्शनावरण की निर्जरा, आत्मिक निर्मलता की वृद्धि",
@@ -215,10 +215,10 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 14, name: "Anantanatha", hindi_name: "अनन्तनाथ",
     father: "Simhasena", mother: "Suyasha", birth_place: "अयोध्या",
     birth_nakshatra: "Revati", birth_rashi: "Meena (Pisces)",
-    birth_tithi: "Vaishakha Shukla 13", nirvana_place: "शिखरजी",
+    birth_tithi: "Jyeshtha Krishna 12", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Porcupine", hindi_symbol: "साही",
-    height: "150 मीटर (50 धनुष)", lifespan: "30 लाख वर्ष",
+    height: "150 मीटर (50 धनुष)", lifespan: "30,000 वर्ष",
     yaksha: "Patala", yakshini: "Ankusha",
     tree: "Ashoka", karma_addressed: "Mohaniya",
     puja_benefit: "संसार से वैराग्य की उत्पत्ति, मोहनीय कर्म के क्षय में निमित्त",
@@ -227,11 +227,11 @@ export const TIRTHANKARAS: Tirthankara[] = [
   {
     id: 15, name: "Dharmanatha", hindi_name: "धर्मनाथ",
     father: "Bhanu", mother: "Suvrata", birth_place: "रत्नपुरी",
-    birth_nakshatra: "Uttara Bhadrapada", birth_rashi: "Meena (Pisces)",
-    birth_tithi: "Margashirsha Shukla 3", nirvana_place: "शिखरजी",
+    birth_nakshatra: "Pushya", birth_rashi: "Karkata (Cancer)",
+    birth_tithi: "Magha Shukla 13", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Vajra", hindi_symbol: "वज्र",
-    height: "135 मीटर (45 धनुष)", lifespan: "10 लाख वर्ष",
+    height: "135 मीटर (45 धनुष)", lifespan: "10,000 वर्ष",
     yaksha: "Kinnara", yakshini: "Kandarpa",
     tree: "Dadhiparna", karma_addressed: "Charitra Mohaniya",
     puja_benefit: "धर्म में स्थिरता, चारित्र मोहनीय कर्म की निर्जरा में सहायक",
@@ -253,9 +253,9 @@ export const TIRTHANKARAS: Tirthankara[] = [
   },
   {
     id: 17, name: "Kunthunatha", hindi_name: "कुन्थुनाथ",
-    father: "Suraraja", mother: "Shridevi", birth_place: "हस्तिनापुर",
-    birth_nakshatra: "Ashvini", birth_rashi: "Mesha (Aries)",
-    birth_tithi: "Vaishakha Shukla 14", nirvana_place: "शिखरजी",
+    father: "Surasena", mother: "Shrimati", birth_place: "हस्तिनापुर",
+    birth_nakshatra: "Krittika", birth_rashi: "Mesha (Aries)",
+    birth_tithi: "Vaishakha Shukla 1", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Goat", hindi_symbol: "बकरा (अज)",
     height: "105 मीटर (35 धनुष)", lifespan: "95,000 वर्ष",
@@ -266,8 +266,8 @@ export const TIRTHANKARAS: Tirthankara[] = [
   },
   {
     id: 18, name: "Aranatha", hindi_name: "अरनाथ",
-    father: "Sudarshana", mother: "Devi", birth_place: "हस्तिनापुर",
-    birth_nakshatra: "Uttara Ashadha", birth_rashi: "Makara (Capricorn)",
+    father: "Sudarshana", mother: "Mitra", birth_place: "हस्तिनापुर",
+    birth_nakshatra: "Revati", birth_rashi: "Meena (Pisces)",
     birth_tithi: "Margashirsha Shukla 10", nirvana_place: "शिखरजी",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Fish", hindi_symbol: "मछली (मत्स्य)",
@@ -295,7 +295,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 20, name: "Munisuvrata", hindi_name: "मुनिसुव्रत",
     father: "Sumitraraja", mother: "Padmavati", birth_place: "राजगृह",
     birth_nakshatra: "Shravana", birth_rashi: "Makara (Capricorn)",
-    birth_tithi: "Vaishakha Krishna 8", nirvana_place: "शिखरजी",
+    birth_tithi: "Vaishakha Krishna 12", nirvana_place: "शिखरजी",
     varna: "Black", hindi_varna: "श्याम (काला)",
     symbol: "Tortoise", hindi_symbol: "कछुआ (कूर्म)",
     height: "60 मीटर (20 धनुष)", lifespan: "30,000 वर्ष",
@@ -306,9 +306,9 @@ export const TIRTHANKARAS: Tirthankara[] = [
   },
   {
     id: 21, name: "Naminatha", hindi_name: "नमिनाथ",
-    father: "Vijayaraja", mother: "Vapra", birth_place: "मिथिला",
+    father: "Vijaya", mother: "Vaprila", birth_place: "मिथिला",
     birth_nakshatra: "Ashvini", birth_rashi: "Mesha (Aries)",
-    birth_tithi: "Shravana Krishna 8", nirvana_place: "शिखरजी (सम्मेद शिखर)",
+    birth_tithi: "Ashadha Krishna 10", nirvana_place: "शिखरजी (सम्मेद शिखर)",
     varna: "Golden", hindi_varna: "सुवर्ण",
     symbol: "Blue Water Lily", hindi_symbol: "नीलकमल",
     height: "45 मीटर (15 धनुष)", lifespan: "10,000 वर्ष",
@@ -321,7 +321,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 22, name: "Neminatha", hindi_name: "नेमिनाथ", aka: "Aristanemi",
     father: "Samudravijaya", mother: "Shivadevi", birth_place: "सौरिपुर (द्वारका)",
     birth_nakshatra: "Chitra", birth_rashi: "Kanya / Tula",
-    birth_tithi: "Shravana Krishna 5", nirvana_place: "गिरनार (उज्जयंत पर्वत)",
+    birth_tithi: "Shravana Shukla 6", nirvana_place: "गिरनार (उज्जयंत पर्वत)",
     varna: "Black", hindi_varna: "श्याम (काला)",
     symbol: "Conch", hindi_symbol: "शंख",
     height: "30 मीटर (10 धनुष)", lifespan: "1,000 वर्ष",
@@ -335,7 +335,7 @@ export const TIRTHANKARAS: Tirthankara[] = [
     id: 23, name: "Parshvanatha", hindi_name: "पार्श्वनाथ",
     father: "Ashvasena", mother: "Vama Devi", birth_place: "वाराणसी (काशी)",
     birth_nakshatra: "Vishakha", birth_rashi: "Tula (Libra)",
-    birth_tithi: "Paush Krishna 10", nirvana_place: "शिखरजी (सम्मेद शिखर)",
+    birth_tithi: "Paush Krishna 11", nirvana_place: "शिखरजी (सम्मेद शिखर)",
     varna: "Green", hindi_varna: "हरित (हरा)",
     symbol: "Serpent", hindi_symbol: "नाग (साँप)",
     height: "4.1 मीटर (9 हाथ)", lifespan: "100 वर्ष",
@@ -367,4 +367,89 @@ export function getTirthankaraByNakshatra(nakshatra: string): Tirthankara[] {
   return TIRTHANKARAS.filter(t =>
     t.birth_nakshatra.toLowerCase().replace(/\s+/g, ' ') === nakshatra.toLowerCase().replace(/\s+/g, ' ')
   );
+}
+
+// ─── Panch Kalyanaka database (blueprint-v3 §4) ──────────────────────────────
+// Source: Brihat Shatabdi Panchang p. P-47 — all five milestones per Tirthankara,
+// doctrinally arbitrated (Shantinath janma/tap/moksha locked to Jyeshtha K14;
+// Anantnath/Aranath moksha restored to Chaitra Krishna 30).
+export interface PanchKalyanaka {
+  id: number;
+  name: string;
+  garbha: string;   // गर्भ कल्याणक
+  janma: string;    // जन्म कल्याणक
+  tap: string;      // तप (दीक्षा) कल्याणक
+  jnan: string;     // ज्ञान (केवलज्ञान) कल्याणक
+  moksha: string;   // मोक्ष (निर्वाण) कल्याणक
+}
+
+export const PANCH_KALYANAKAS: PanchKalyanaka[] = [
+  { id: 1,  name: 'Adinatha',       garbha: 'Ashadha K2',      janma: 'Chaitra K9',        tap: 'Chaitra K9',         jnan: 'Phalguna K11',      moksha: 'Magha K14' },
+  { id: 2,  name: 'Ajitnath',       garbha: 'Jyeshtha S15',    janma: 'Magha S10',         tap: 'Magha S10',          jnan: 'Pausha S11',        moksha: 'Chaitra S5' },
+  { id: 3,  name: 'Sambhavanath',   garbha: 'Phalguna S8',     janma: 'Kartika S15',       tap: 'Margashirsha S15',   jnan: 'Kartika K4',        moksha: 'Chaitra S6' },
+  { id: 4,  name: 'Abhinandananatha',garbha: 'Vaishakha S6',   janma: 'Magha S12',         tap: 'Magha S12',          jnan: 'Pausha S14',        moksha: 'Vaishakha S8' },
+  { id: 5,  name: 'Sumatinatha',    garbha: 'Bhadrapada S2',   janma: 'Chaitra S11',       tap: 'Vaishakha S12',      jnan: 'Chaitra S15',       moksha: 'Chaitra S11' },
+  { id: 6,  name: 'Padmaprabhu',    garbha: 'Magha K6',        janma: 'Kartika K13',       tap: 'Kartika S13',        jnan: 'Chaitra S15',       moksha: 'Phalguna K4' },
+  { id: 7,  name: 'Suparshvanatha', garbha: 'Bhadrapada S6',   janma: 'Jyeshtha S12',      tap: 'Jyeshtha S12',       jnan: 'Phalguna K7',       moksha: 'Phalguna K7' },
+  { id: 8,  name: 'Chandraprabhu',  garbha: 'Chaitra S5',      janma: 'Pausha K11',        tap: 'Pausha K11',         jnan: 'Phalguna K7',       moksha: 'Phalguna K7' },
+  { id: 9,  name: 'Pushpadanta',    garbha: 'Phalguna K9',     janma: 'Margashirsha S1',   tap: 'Margashirsha S1',    jnan: 'Kartika S2',        moksha: 'Bhadrapada S8' },
+  { id: 10, name: 'Shitalanatha',   garbha: 'Vaishakha K8',    janma: 'Magha K12',         tap: 'Magha K12',          jnan: 'Pausha K14',        moksha: 'Ashvina S8' },
+  { id: 11, name: 'Shreyansanatha', garbha: 'Jyeshtha K6',     janma: 'Phalguna K11',      tap: 'Phalguna K11',       jnan: 'Magha K14',         moksha: 'Shravana S15' },
+  { id: 12, name: 'Vasupujya',      garbha: 'Ashadha K14',     janma: 'Phalguna K14',      tap: 'Phalguna K14',       jnan: 'Magha S2',          moksha: 'Bhadrapada S14' },
+  { id: 13, name: 'Vimalanatha',    garbha: 'Jyeshtha K10',    janma: 'Magha S4',          tap: 'Magha S4',           jnan: 'Magha S6',          moksha: 'Ashadha K8' },
+  { id: 14, name: 'Anantanatha',    garbha: 'Kartika K1',      janma: 'Jyeshtha K12',      tap: 'Jyeshtha K12',       jnan: 'Chaitra K30',       moksha: 'Chaitra K30' },
+  { id: 15, name: 'Dharmanatha',    garbha: 'Vaishakha S7',    janma: 'Magha S13',         tap: 'Magha S13',          jnan: 'Pausha S15',        moksha: 'Jyeshtha S14' },
+  { id: 16, name: 'Shantinatha',    garbha: 'Bhadrapada K7',   janma: 'Jyeshtha K14',      tap: 'Jyeshtha K14',       jnan: 'Margashirsha S11',  moksha: 'Jyeshtha K14' },
+  { id: 17, name: 'Kunthunatha',    garbha: 'Shravana K10',    janma: 'Vaishakha S1',      tap: 'Vaishakha S1',       jnan: 'Chaitra S3',        moksha: 'Vaishakha S1' },
+  { id: 18, name: 'Aranatha',       garbha: 'Chaitra S3',      janma: 'Margashirsha S10',  tap: 'Margashirsha S10',   jnan: 'Kartika S12',       moksha: 'Chaitra K30' },
+  { id: 19, name: 'Mallinatha',     garbha: 'Chaitra S1',      janma: 'Margashirsha S11',  tap: 'Margashirsha S11',   jnan: 'Pausha S2',         moksha: 'Phalguna K12' },
+  { id: 20, name: 'Munisuvrata',    garbha: 'Ashvina K2',      janma: 'Vaishakha K12',     tap: 'Vaishakha K12',      jnan: 'Vaishakha K9',      moksha: 'Phalguna K14' },
+  { id: 21, name: 'Naminatha',      garbha: 'Ashvina K2',      janma: 'Ashadha K10',       tap: 'Ashadha K10',        jnan: 'Margashirsha S11',  moksha: 'Vaishakha S14' },
+  { id: 22, name: 'Neminatha',      garbha: 'Kartika S6',      janma: 'Shravana S6',       tap: 'Shravana S6',        jnan: 'Ashvina S1',        moksha: 'Ashadha S7' },
+  { id: 23, name: 'Parshvanatha',   garbha: 'Vaishakha K2',    janma: 'Pausha K11',        tap: 'Pausha K11',         jnan: 'Chaitra K4',        moksha: 'Shravana S7' },
+  { id: 24, name: 'Mahavira',       garbha: 'Ashadha S6',      janma: 'Chaitra S13',       tap: 'Chaitra S13',        jnan: 'Vaishakha S10',     moksha: 'Kartika K30 (Deepavali)' }
+];
+
+const KALYANAK_MONTH_MAP: Record<string, string> = {
+  'चैत्र': 'Chaitra',
+  'वैशाख': 'Vaishakha',
+  'ज्येष्ठ': 'Jyeshtha',
+  'आषाढ़': 'Ashadha',
+  'श्रावण': 'Shravana',
+  'भाद्रपद': 'Bhadrapada',
+  'आश्विन': 'Ashvina',
+  'कार्तिक': 'Kartika',
+  'मार्गशीर्ष': 'Margashirsha',
+  'पौष': 'Pausha',
+  'माघ': 'Magha',
+  'फाल्गुन': 'Phalguna'
+};
+
+/**
+ * Find kalyanaka anniversaries matching a lunar date.
+ * @param month  Hindi masa, e.g. 'चैत्र'
+ * @param paksha 'शुक्ल' | 'कृष्ण'
+ * @param tithiNum 1–15 within the paksha (30 → amavasya convention maps to 15)
+ */
+export function getKalyanakasForTithi(month: string, paksha: string, tithiNum: number): { tirthankara: string; eventHindi: string }[] {
+  const monthEn = KALYANAK_MONTH_MAP[month.trim()];
+  if (!monthEn) return [];
+  const pakshaCode = paksha.includes('शुक्ल') ? 'S' : 'K';
+  const t = tithiNum >= 30 ? 30 : tithiNum;
+
+  const out: { tirthankara: string; eventHindi: string }[] = [];
+  const events: [keyof PanchKalyanaka, string][] = [
+    ['garbha', 'गर्भ कल्याणक'], ['janma', 'जन्म कल्याणक'], ['tap', 'तप कल्याणक'],
+    ['jnan', 'ज्ञान कल्याणक'], ['moksha', 'मोक्ष कल्याणक']
+  ];
+  for (const pk of PANCH_KALYANAKAS) {
+    for (const [key, label] of events) {
+      const m = String(pk[key]).match(/^([A-Za-z]+)\s+([KS])(\d+)/);
+      if (!m) continue;
+      if (m[1] === monthEn && m[2] === pakshaCode && parseInt(m[3], 10) === t) {
+        out.push({ tirthankara: pk.name, eventHindi: label });
+      }
+    }
+  }
+  return out;
 }

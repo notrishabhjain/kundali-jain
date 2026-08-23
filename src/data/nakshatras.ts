@@ -1,6 +1,38 @@
 export type NakshatraNature = 'param_shubha' | 'shubha' | 'mishra' | 'ashubha';
 export type KarmaType = 'Gyanavaraniya' | 'Darshanavaraniya' | 'Vedaniya' | 'Mohaniya' | 'Ayushya' | 'Naam' | 'Gotra' | 'Antaraya' | 'Charitra Mohaniya' | 'Sarva karma kshay';
 
+// ─── Sanjna classes & nature re-audit (blueprint v2 §7 / v3) ──────────────────
+// Classical 7-Sanjna classification (matches extraction library M2.3 exactly):
+//   Dhruva: Rohini, U.Phalguni, U.Ashadha, U.Bhadrapada
+//   Char  : Punarvasu, Swati, Shravana, Dhanishtha, Shatabhisha
+//   Ugra  : Bharani, Magha, Purva Phalguni, Purva Ashadha, Purva Bhadrapada
+//   Kshipra: Ashvini, Pushya, Hasta, Abhijit
+//   Mridu : Mrigashira, Chitra, Anuradha, Revati
+//   Tikshna: Ardra, Ashlesha, Jyeshtha, Mula
+//   Mishra: Krittika, Vishakha
+//
+// Nature derivation rule (documented arbitration):
+//   ashubha      ← Ugra ∪ Tikshna
+//   mishra       ← Mishra
+//   param_shubha ← (tirthankara-birth host) ∧ benefic Sanjna {Dhruva,Char,Kshipra,Mridu}
+//   shubha       ← remaining benefic-Sanjna stars
+export type NakshatraSanjna = 'Dhruva' | 'Char' | 'Ugra' | 'Kshipra' | 'Mridu' | 'Tikshna' | 'Mishra';
+
+export const SANJNA_CLASS: Record<number, NakshatraSanjna> = {
+  0: 'Kshipra', 1: 'Ugra', 2: 'Mishra', 3: 'Dhruva', 4: 'Mridu', 5: 'Tikshna',
+  6: 'Char', 7: 'Kshipra', 8: 'Tikshna', 9: 'Ugra', 10: 'Ugra', 11: 'Dhruva',
+  12: 'Kshipra', 13: 'Mridu', 14: 'Char', 15: 'Mishra', 16: 'Mridu', 17: 'Tikshna',
+  18: 'Tikshna', 19: 'Ugra', 20: 'Dhruva', 21: 'Char', 22: 'Char', 23: 'Char',
+  24: 'Ugra', 25: 'Dhruva', 26: 'Mridu'
+};
+
+export function getSanjnaHindi(sanjna: NakshatraSanjna): string {
+  return ({
+    Dhruva: 'ध्रुव (स्थिर)', Char: 'चर (चल)', Ugra: 'उग्र', Kshipra: 'क्षिप्र (शीघ्र)',
+    Mridu: 'मृदु', Tikshna: 'तीक्ष्ण', Mishra: 'मिश्र'
+  })[sanjna];
+}
+
 export interface Nakshatra {
   index: number;            // 0-based (0 = Ashvini)
   name: string;             // English transliteration
@@ -31,7 +63,7 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 0, name: "Ashvini", hindi_name: "अश्विनी",
     start_deg: 0, end_deg: 13.333,
-    nature: "shubha", karma_type: "Gyanavaraniya",
+    nature: "param_shubha", karma_type: "Gyanavaraniya",
     tirthankaras_born: ["कुन्थुनाथ (17)", "नमिनाथ (21)"],
     ruling_jyotishi_dev: "अश्विनी ज्योतिषी देव",
     spiritual_traits: "गति, आरोग्य, नई शुरुआत, चिकित्सा ज्ञान",
@@ -42,24 +74,24 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 1, name: "Bharani", hindi_name: "भरणी",
     start_deg: 13.333, end_deg: 26.667,
-    nature: "mishra", karma_type: "Vedaniya",
+    nature: "ashubha", karma_type: "Vedaniya",
     tirthankaras_born: ["शान्तिनाथ (16)"],
     ruling_jyotishi_dev: "भरणी ज्योतिषी देव",
     spiritual_traits: "परिवर्तन, समाप्ति, नया जन्म, न्याय",
     karma_manifestation: "वेदनीय कर्म: भावनात्मक उतार-चढ़ाव, दुःख और सुख का तीव्र अनुभव",
     sadhana: "उत्तम मार्दव भावना का ध्यान 10 मिनट + एकासन व्रत सोमवार को",
-    deity_note: "जैन ज्योतिष में वैदिक यम देव नहीं — शान्तिनाथ तीर्थंकर का जन्म नक्षत्र होने से यह मिश्र स्वभाव का है।"
+    deity_note: "जैन ज्योतिष में वैदिक यम देव नहीं — शान्तिनाथ (षोडश तीर्थंकर) का जन्म नक्षत्र; फिर भी उग्र संज्ञा के कारण प्रकृति अशुभ।"
   },
   {
     index: 2, name: "Krittika", hindi_name: "कृत्तिका",
     start_deg: 26.667, end_deg: 40,
     nature: "mishra", karma_type: "Naam",
-    tirthankaras_born: ["सुमतिनाथ (5)"],
+    tirthankaras_born: ["कुन्थुनाथ (17)"],
     ruling_jyotishi_dev: "कृत्तिका ज्योतिषी देव",
     spiritual_traits: "शुद्धि, तेज, कड़ी मेहनत, परिष्कार",
     karma_manifestation: "नाम कर्म: शरीर और रूप से संबंधित चिंताएँ, पहचान की अनिश्चितता",
     sadhana: "देव-दर्शन प्रतिदिन + शुक्रवार को विशेष पंचामृत अभिषेक",
-    deity_note: "जैन ज्योतिष में वैदिक अग्नि देव नहीं — सुमतिनाथ तीर्थंकर का जन्म नक्षत्र।"
+    deity_note: "जैन ज्योतिष में वैदिक अग्नि देव नहीं — कुन्थुनाथ (सप्तदश तीर्थंकर) का जन्म नक्षत्र।"
   },
   {
     index: 3, name: "Rohini", hindi_name: "रोहिणी",
@@ -75,7 +107,7 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 4, name: "Mrigashirsha", hindi_name: "मृगशिरा",
     start_deg: 53.333, end_deg: 66.667,
-    nature: "shubha", karma_type: "Mohaniya",
+    nature: "param_shubha", karma_type: "Mohaniya",
     tirthankaras_born: ["सम्भवनाथ (3)"],
     ruling_jyotishi_dev: "मृगशिरा ज्योतिषी देव",
     spiritual_traits: "खोज, यात्रा, जिज्ञासा, संवेदनशीलता",
@@ -97,7 +129,7 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 6, name: "Punarvasu", hindi_name: "पुनर्वसु",
     start_deg: 80, end_deg: 93.333,
-    nature: "shubha", karma_type: "Naam",
+    nature: "param_shubha", karma_type: "Naam",
     tirthankaras_born: ["अभिनन्दननाथ (4)"],
     ruling_jyotishi_dev: "पुनर्वसु ज्योतिषी देव",
     spiritual_traits: "पुनः वापसी, उपचार, बहुमुखी प्रतिभा, उदारता",
@@ -108,13 +140,13 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 7, name: "Pushya", hindi_name: "पुष्य",
     start_deg: 93.333, end_deg: 106.667,
-    nature: "shubha", karma_type: "Gyanavaraniya",
-    tirthankaras_born: [],
+    nature: "param_shubha", karma_type: "Gyanavaraniya",
+    tirthankaras_born: ["धर्मनाथ (15)"],
     ruling_jyotishi_dev: "पुष्य ज्योतिषी देव",
     spiritual_traits: "पोषण, सुरक्षा, धर्म-कार्य, शांति",
     karma_manifestation: "ज्ञानावरणीय कर्म: शिक्षा में बाधा, धर्म ग्रंथों का अर्थ न समझ पाना",
     sadhana: "गुरुवार को विशेष स्वाध्याय + 16 बार णमोकार",
-    deity_note: "जैन ज्योतिष में वैदिक बृहस्पति नहीं — शुभ नक्षत्र, ज्ञानावरणीय कर्म निर्जरा में सहायक।"
+    deity_note: "जैन ज्योतिष में वैदिक बृहस्पति नहीं — धर्मनाथ (पंचदश तीर्थंकर) का जन्म नक्षत्र, ज्ञानावरणीय कर्म निर्जरा में सहायक।"
   },
   {
     index: 8, name: "Ashlesha", hindi_name: "आश्लेषा",
@@ -130,18 +162,18 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 9, name: "Magha", hindi_name: "मघा",
     start_deg: 120, end_deg: 133.333,
-    nature: "mishra", karma_type: "Gotra",
-    tirthankaras_born: [],
+    nature: "ashubha", karma_type: "Gotra",
+    tirthankaras_born: ["सुमतिनाथ (5)"],
     ruling_jyotishi_dev: "मघा ज्योतिषी देव",
     spiritual_traits: "पूर्वजों का आशीर्वाद, कुल-गौरव, नेतृत्व, उत्तराधिकार",
     karma_manifestation: "गोत्र कर्म: कुल से संबंधित बाधाएँ, पारिवारिक गौरव की चिंता",
-    sadhana: "पितर-तर्पण (जैन विधि से) + मल्लिनाथ का स्मरण",
-    deity_note: "जैन ज्योतिष में वैदिक पितृ देव नहीं — गोत्र कर्म से संबंधित मिश्र नक्षत्र।"
+    sadhana: "सुमतिनाथ का स्मरण + मल्लिनाथ का स्मरण",
+    deity_note: "जैन ज्योतिष में वैदिक पितृ देव नहीं — सुमतिनाथ (पंचम तीर्थंकर) का जन्म नक्षत्र।"
   },
   {
     index: 10, name: "Purva Phalguni", hindi_name: "पूर्व फाल्गुनी",
     start_deg: 133.333, end_deg: 146.667,
-    nature: "mishra", karma_type: "Vedaniya",
+    nature: "ashubha", karma_type: "Vedaniya",
     tirthankaras_born: [],
     ruling_jyotishi_dev: "पूर्व फाल्गुनी ज्योतिषी देव",
     spiritual_traits: "विश्राम, सृजन, प्रेम, कला, आनंद",
@@ -153,12 +185,12 @@ export const NAKSHATRAS: Nakshatra[] = [
     index: 11, name: "Uttara Phalguni", hindi_name: "उत्तर फाल्गुनी",
     start_deg: 146.667, end_deg: 160,
     nature: "param_shubha", karma_type: "Gyanavaraniya",
-    tirthankaras_born: ["महावीर स्वामी (24)", "विमलनाथ (13)"],
+    tirthankaras_born: ["महावीर स्वामी (24)"],
     ruling_jyotishi_dev: "उत्तर फाल्गुनी ज्योतिषी देव",
     spiritual_traits: "सेवा, संगठन, उत्तरदायित्व, सामाजिक न्याय",
     karma_manifestation: "ज्ञानावरणीय कर्म निर्जरा: ज्ञान की विशेष प्राप्ति, सेवा से पुण्यबंध",
     sadhana: "महावीर स्वामी का स्मरण + 'ॐ ह्रीं श्री महावीर स्वामिने नमः' 108 बार",
-    deity_note: "परम शुभ नक्षत्र — भगवान महावीर और विमलनाथ का जन्म नक्षत्र।"
+    deity_note: "परम शुभ नक्षत्र — भगवान महावीर (चतुर्विंश तीर्थंकर) का जन्म नक्षत्र।"
   },
   {
     index: 12, name: "Hasta", hindi_name: "हस्त",
@@ -174,7 +206,7 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 13, name: "Chitra", hindi_name: "चित्रा",
     start_deg: 173.333, end_deg: 186.667,
-    nature: "shubha", karma_type: "Naam",
+    nature: "param_shubha", karma_type: "Naam",
     tirthankaras_born: ["पद्मप्रभु (6)", "नेमिनाथ (22)"],
     ruling_jyotishi_dev: "चित्रा ज्योतिषी देव",
     spiritual_traits: "सौंदर्य, कला, रचनात्मकता, विविधता",
@@ -196,18 +228,18 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 15, name: "Vishakha", hindi_name: "विशाखा",
     start_deg: 200, end_deg: 213.333,
-    nature: "param_shubha", karma_type: "Charitra Mohaniya",
-    tirthankaras_born: ["सुपार्श्वनाथ (7)", "शीतलनाथ (10)", "पार्श्वनाथ (23)"],
+    nature: "mishra", karma_type: "Charitra Mohaniya",
+    tirthankaras_born: ["सुपार्श्वनाथ (7)", "पार्श्वनाथ (23)"],
     ruling_jyotishi_dev: "विशाखा ज्योतिषी देव",
     spiritual_traits: "लक्ष्य-प्राप्ति, दृढ़ता, दोहरी प्रकृति, परिवर्तन",
     karma_manifestation: "चारित्र मोहनीय कर्म: सही आचरण जानते हुए भी न करना, संकल्प टूटना",
     sadhana: "पार्श्वनाथ का अभिषेक + 'उवसग्गहरं पास' स्तोत्र का पाठ प्रतिदिन",
-    deity_note: "परम शुभ नक्षत्र — सुपार्श्वनाथ, शीतलनाथ और पार्श्वनाथ का जन्म नक्षत्र।"
+    deity_note: "मिश्र संज्ञा नक्षत्र — फिर भी सुपार्श्वनाथ (सप्तम) और पार्श्वनाथ (त्रयोविंश) तीर्थंकरों का जन्म नक्षत्र।"
   },
   {
     index: 16, name: "Anuradha", hindi_name: "अनुराधा",
     start_deg: 213.333, end_deg: 226.667,
-    nature: "shubha", karma_type: "Darshanavaraniya",
+    nature: "param_shubha", karma_type: "Darshanavaraniya",
     tirthankaras_born: ["चन्द्रप्रभु (8)"],
     ruling_jyotishi_dev: "अनुराधा ज्योतिषी देव",
     spiritual_traits: "मित्रता, सहयोग, भक्ति, सफलता की राह",
@@ -240,29 +272,29 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 19, name: "Purva Ashadha", hindi_name: "पूर्वाषाढ़ा",
     start_deg: 253.333, end_deg: 266.667,
-    nature: "mishra", karma_type: "Gotra",
-    tirthankaras_born: ["मल्लिनाथ (19)"],
+    nature: "ashubha", karma_type: "Gotra",
+    tirthankaras_born: ["शीतलनाथ (10)"],
     ruling_jyotishi_dev: "पूर्वाषाढ़ा ज्योतिषी देव",
     spiritual_traits: "अजेय शक्ति, जल-तत्व, शुद्धि, विजय की ओर",
     karma_manifestation: "गोत्र कर्म: कुल-परंपरा से संघर्ष, सामाजिक प्रतिष्ठा की चिंता",
-    sadhana: "मल्लिनाथ का पूजन + गुरुवार को कुल-देव दर्शन",
-    deity_note: "जैन ज्योतिष में वैदिक अपः देव नहीं — मल्लिनाथ का जन्म नक्षत्र।"
+    sadhana: "शीतलनाथ का पूजन + गुरुवार को कुल-देव दर्शन",
+    deity_note: "जैन ज्योतिष में वैदिक अपः देव नहीं — शीतलनाथ (दशम तीर्थंकर) का जन्म नक्षत्र।"
   },
   {
     index: 20, name: "Uttara Ashadha", hindi_name: "उत्तराषाढ़ा",
     start_deg: 266.667, end_deg: 280,
     nature: "param_shubha", karma_type: "Gyanavaraniya",
-    tirthankaras_born: ["ऋषभनाथ (1)", "अरनाथ (18)"],
+    tirthankaras_born: ["ऋषभनाथ (1)"],
     ruling_jyotishi_dev: "उत्तराषाढ़ा ज्योतिषी देव",
     spiritual_traits: "अंतिम विजय, धर्म की स्थापना, सत्य, अखंड संकल्प",
     karma_manifestation: "ज्ञानावरणीय कर्म निर्जरा: स्थायी ज्ञान-प्राप्ति, आत्म-साक्षात्कार की ओर",
     sadhana: "ऋषभदेव की विशेष पूजा + भक्तामर स्तोत्र के 48 श्लोक",
-    deity_note: "परम शुभ नक्षत्र — प्रथम तीर्थंकर ऋषभनाथ और अरनाथ का जन्म नक्षत्र।"
+    deity_note: "परम शुभ नक्षत्र — प्रथम तीर्थंकर ऋषभनाथ (आदिनाथ) का जन्म नक्षत्र (अभिजित-विस्तार क्षेत्र तक)।"
   },
   {
     index: 21, name: "Shravana", hindi_name: "श्रवण",
     start_deg: 280, end_deg: 293.333,
-    nature: "shubha", karma_type: "Gyanavaraniya",
+    nature: "param_shubha", karma_type: "Gyanavaraniya",
     tirthankaras_born: ["श्रेयांसनाथ (11)", "मुनिसुव्रत (20)"],
     ruling_jyotishi_dev: "श्रवण ज्योतिषी देव",
     spiritual_traits: "श्रवण, शिक्षा, धर्म-सेवा, समर्पण",
@@ -273,18 +305,18 @@ export const NAKSHATRAS: Nakshatra[] = [
   {
     index: 22, name: "Dhanishtha", hindi_name: "धनिष्ठा",
     start_deg: 293.333, end_deg: 306.667,
-    nature: "mishra", karma_type: "Naam",
+    nature: "shubha", karma_type: "Naam",
     tirthankaras_born: [],
     ruling_jyotishi_dev: "धनिष्ठा ज्योतिषी देव",
     spiritual_traits: "धन, संगीत, ताल, समृद्धि, मंगल-कार्य",
     karma_manifestation: "नाम कर्म: भौतिक समृद्धि की तीव्र इच्छा, शरीर के प्रति अत्यधिक आसक्ति",
     sadhana: "परिग्रह-परिमाण व्रत + मंगलवार को विशेष जाप",
-    deity_note: "जैन ज्योतिष में वैदिक अष्टवसु नहीं — नाम कर्म से जुड़ा मिश्र नक्षत्र।"
+    deity_note: "जैन ज्योतिष में वैदिक अष्टवसु नहीं — चर संज्ञा का शुभ नक्षत्र।"
   },
   {
     index: 23, name: "Shatabhisha", hindi_name: "शतभिषा",
     start_deg: 306.667, end_deg: 320,
-    nature: "mishra", karma_type: "Vedaniya",
+    nature: "param_shubha", karma_type: "Vedaniya",
     tirthankaras_born: ["वासुपूज्य (12)"],
     ruling_jyotishi_dev: "शतभिषा ज्योतिषी देव",
     spiritual_traits: "चिकित्सा, एकांत, रहस्य, अनुसंधान",
@@ -296,34 +328,34 @@ export const NAKSHATRAS: Nakshatra[] = [
     index: 24, name: "Purva Bhadrapada", hindi_name: "पूर्व भाद्रपद",
     start_deg: 320, end_deg: 333.333,
     nature: "ashubha", karma_type: "Mohaniya",
-    tirthankaras_born: [],
+    tirthankaras_born: ["विमलनाथ (13)"],
     ruling_jyotishi_dev: "पूर्व भाद्रपद ज्योतिषी देव",
     spiritual_traits: "अग्नि-तत्व, परिवर्तन, उग्रता, साहस",
     karma_manifestation: "मोहनीय कर्म: उग्र स्वभाव, क्रोध-लोभ का तीव्र उदय",
     sadhana: "उत्तम क्षमा + उत्तम सत्य भावना, मंगलवार को 108 णमोकार",
-    deity_note: "जैन ज्योतिष में वैदिक अजैकपाद नहीं — अशुभ नक्षत्र, मोहनीय कर्म का प्रबल उदय।"
+    deity_note: "जैन ज्योतिष में वैदिक अजैकपाद नहीं — विमलनाथ (त्रयोदश तीर्थंकर) का जन्म नक्षत्र।"
   },
   {
     index: 25, name: "Uttara Bhadrapada", hindi_name: "उत्तर भाद्रपद",
     start_deg: 333.333, end_deg: 346.667,
     nature: "shubha", karma_type: "Charitra Mohaniya",
-    tirthankaras_born: ["धर्मनाथ (15)"],
+    tirthankaras_born: [],
     ruling_jyotishi_dev: "उत्तर भाद्रपद ज्योतिषी देव",
     spiritual_traits: "गहरा ज्ञान, जल-तत्व, समाधि, पूर्णता",
     karma_manifestation: "चारित्र मोहनीय कर्म: व्रत और नियम तोड़ने की प्रवृत्ति",
-    sadhana: "धर्मनाथ का पूजन + गुरुवार को संपूर्ण व्रत-पालन",
-    deity_note: "जैन ज्योतिष में वैदिक अहिर्बुध्न्य नहीं — धर्मनाथ का जन्म नक्षत्र।"
+    sadhana: "गुरुवार को संपूर्ण व्रत-पालन + ध्यान 20 मिनट",
+    deity_note: "जैन ज्योतिष में वैदिक अहिर्बुध्न्य नहीं — चारित्र मोहनीय शमन हेतु शुभ नक्षत्र।"
   },
   {
     index: 26, name: "Revati", hindi_name: "रेवती",
     start_deg: 346.667, end_deg: 360,
-    nature: "shubha", karma_type: "Mohaniya",
-    tirthankaras_born: ["अनन्तनाथ (14)"],
+    nature: "param_shubha", karma_type: "Mohaniya",
+    tirthankaras_born: ["अनन्तनाथ (14)", "अरनाथ (18)"],
     ruling_jyotishi_dev: "रेवती ज्योतिषी देव",
     spiritual_traits: "यात्रा की समाप्ति, पोषण, करुणा, आध्यात्मिक पूर्णता",
     karma_manifestation: "मोहनीय कर्म: संसार-यात्रा का बोध, परंतु जाने का भय",
-    sadhana: "अनन्तनाथ का स्मरण + संसार-भावना 15 मिनट, रात को प्रतिक्रमण",
-    deity_note: "जैन ज्योतिष में वैदिक पूषा नहीं — अनन्तनाथ का जन्म नक्षत्र।"
+    sadhana: "अनन्तनाथ और अरनाथ का स्मरण + संसार-भावना 15 मिनट, रात को प्रतिक्रमण",
+    deity_note: "जैन ज्योतिष में वैदिक पूषा नहीं — अनन्तनाथ (चतुर्दश) और अरनाथ (अष्टादश) तीर्थंकरों का जन्म नक्षत्र।"
   }
 ];
 
@@ -357,4 +389,38 @@ export function getNakshatraByName(name: string): Nakshatra | undefined {
     n.name.toLowerCase() === name.toLowerCase() ||
     n.hindi_name === name
   );
+}
+
+// ─── Prashnavyakarana Kula families (GN.1) ────────────────────────────────────
+// Source: GAP_CLOSING_RESEARCH GN.1 — Prashnavyakarana Sutra via Bharatiya Jyotish
+// (Dr. Nemichandra Shastri, ch. 1, p. 58):
+//   "ता कहंते कुला उवकुला कुलावकुला आहितोति वदेज्जा? तत्थ खलु इमा बारस कुला बारस
+//    उवकुला चत्तारि कुलावकुला पण्णता॥"
+//   (12 Kula + 12 Upakula + 4 Kulopakula = 28, with Abhijit.)
+//
+// Keyed by the `index` field of NAKSHATRAS (0–26) plus 27 = Abhijit.
+export type NakshatraKulaFamily = 'kula' | 'upakula' | 'kulopakula';
+
+const KULA_INDICES = [22, 25, 0, 2, 4, 7, 9, 11, 13, 15, 18, 20];          // Dhanishtha, U.Bhadrapada, Ashvini, Krittika, Mrigashira, Pushya, Magha, U.Phalguni, Chitra, Vishakha, Mula, U.Ashadha
+const UPAKULA_INDICES = [21, 24, 26, 1, 3, 6, 8, 10, 12, 14, 17, 19];      // Shravana, P.Bhadrapada, Revati, Bharani, Rohini, Punarvasu, Ashlesha, P.Phalguni, Hasta, Svati, Jyeshtha, P.Ashadha
+const KULOPAKULA_INDICES = [27, 23, 5, 16];                                 // Abhijit, Shatabhisha, Ardra, Anuradha
+
+export const NAKSHATRA_KULA_ASSIGNMENTS: Record<number, NakshatraKulaFamily> = (() => {
+  const map: Record<number, NakshatraKulaFamily> = {};
+  for (const i of KULA_INDICES) map[i] = 'kula';
+  for (const i of UPAKULA_INDICES) map[i] = 'upakula';
+  for (const i of KULOPAKULA_INDICES) map[i] = 'kulopakula';
+  return map;
+})();
+
+export const KULA_FAMILY_HINDI: Record<NakshatraKulaFamily, string> = {
+  kula: 'कुल (मुख्य)',
+  upakula: 'उपकुल (अधीन मुख्य)',
+  kulopakula: 'कुलोपकुल (लघु मुख्य)'
+};
+
+export function getNakshatraKula(index: number): { family: NakshatraKulaFamily; hindi: string } {
+  // Abhijit is a standalone entry (index 27); other indices map through NAKSHATRAS.
+  const family = NAKSHATRA_KULA_ASSIGNMENTS[index] || 'kulopakula';
+  return { family, hindi: KULA_FAMILY_HINDI[family] };
 }

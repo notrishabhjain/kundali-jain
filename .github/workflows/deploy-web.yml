@@ -1,0 +1,74 @@
+# Optional web deployment to GitHub Pages.
+#
+# One-time repo setup (Settings → Pages → Build and deployment → Source:
+# "GitHub Actions"). Then run this manually from the Actions tab
+# ("Run workflow") or push a version tag like web-v1.
+#
+# The site is built with `--base=./` so it works from any sub-path
+# (https://<user>.github.io/<repo>/) without touching vite.config.ts.
+
+name: deploy-web
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags:
+      - 'web-v*'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Re-run the full gate suite before deploying — never ship unverified code.
+      - name: Type-check
+        run: npm run lint
+
+      - name: Doctrine guards
+        run: |
+          npm run check:hindi
+          npm run check:pancham
+          npm run check:karma
+          npm run check:pdfparity
+
+      - name: Build (relative base for GitHub Pages)
+        run: npm run build -- --base=./
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
