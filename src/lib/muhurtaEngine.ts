@@ -128,3 +128,63 @@ export function scanPersonalizedMuhurtas(
   // UNSUITABLE windows are filtered out. Source: PARITY-REPORT-2026.
   return windows.filter(w => w.suitability !== 'UNSUITABLE');
 }
+
+// ─── Fixed daily windows (GG.5) ───────────────────────────────────────────────
+// Source: GAP_CLOSING_RESEARCH GG.5 — VERIFIED (Shatabdi Panchang tradition).
+//  - Abhijit Muhurta (~11:48–12:12 IST): universally auspicious; Abhijit is
+//    Adinatha's birth nakshatra → ideal for Navkar initiation.
+//  - Brahma Muhurta (96 minutes before sunrise): ideal for Samayika,
+//    Pratikramana, mantra recitation.
+//  - Durmuhurta: 2 inauspicious spans per day exist in the tradition; exact
+//    per-day computation is [REQUIRES_RESEARCH] — not computed here.
+
+export interface FixedMuhurtaWindow {
+  key: 'abhijit' | 'brahma' | 'durmuhurta';
+  hindiName: string;
+  startHHMM: string;
+  endHHMM: string;
+  qualityHindi: string;
+  guidance: string;
+}
+
+function hhmmToMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+function minutesToHHMM(mins: number): string {
+  const wrapped = ((mins % 1440) + 1440) % 1440;
+  const h = Math.floor(wrapped / 60);
+  const m = wrapped % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+export function getFixedDailyWindows(sunriseHHMM = '06:00'): FixedMuhurtaWindow[] {
+  // Brahma Muhurta = 96 minutes before sunrise (per GG.5).
+  const brahmaStart = minutesToHHMM(hhmmToMinutes(sunriseHHMM) - 96);
+  return [
+    {
+      key: 'brahma',
+      hindiName: 'ब्रह्म मुहूर्त',
+      startHHMM: brahmaStart,
+      endHHMM: sunriseHHMM,
+      qualityHindi: 'अति शुभ',
+      guidance: 'सामायिक, प्रतिक्रमण और णमोकार जाप के लिए सर्वोत्तम समय।'
+    },
+    {
+      key: 'abhijit',
+      hindiName: 'अभीजीत मुहूर्त',
+      startHHMM: '11:48',
+      endHHMM: '12:12',
+      qualityHindi: 'सर्व-शुभ',
+      guidance: 'णमोकार मंत्र का उपनयन/संकल्प हेतु आदर्श — अभीजित आदिनाथ भगवान का जन्म-नक्षत्र है।'
+    },
+    {
+      key: 'durmuhurta',
+      hindiName: 'दुर्मुहूर्त',
+      startHHMM: '--:--',
+      endHHMM: '--:--',
+      qualityHindi: 'परिहार्य',
+      guidance: 'दिन में दो दुर्मुहूर्त होते हैं — नवारंभ परिहार्य। (सटीक स्पैन [REQUIRES_RESEARCH])'
+    }
+  ];
+}

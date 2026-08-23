@@ -94,6 +94,9 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
     // Higher gunasthana reduces intensity (Ratnatraya protective effect)
     if (gunasthana > 1) {
       intensity -= (gunasthana - 1) * 5;
+      // Nirjarā flip. Mechanism (GAP_CLOSING_RESEARCH GD.8, Gommatsar Karmakanda
+      // §22): intense sadhana enables UDIRANA — stored karma is brought to fruition
+      // prematurely and discharges at reduced strength before its natural udaya.
       if (intensity < 40) state = 'Nirjara';
     }
 

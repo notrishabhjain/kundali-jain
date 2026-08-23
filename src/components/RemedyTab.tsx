@@ -89,6 +89,19 @@ export default function RemedyTab({ profile }: RemedyTabProps) {
                 <p className="text-gray-800 text-sm leading-relaxed">{combined.dashaRemedy}</p>
               </div>
 
+              {/* Doctrinal note (GAP_CLOSING_RESEARCH GV.4): gemstones are NOT an
+                  Agama-grounded remedy — they require himsa to Prithvikaya
+                  (earth-bodied) beings (Mulachara §5, Ratnakaranda Shravakachara).
+                  This engine prescribes only mantra + tapas + dana + bhavana. */}
+              <div className="bg-stone-50 p-4 rounded-xl border border-stone-300">
+                <span className="block text-sm font-bold text-stone-700 uppercase mb-1">सिद्धांत-टिप्पणी (रत्न-धारण पर)</span>
+                <p className="text-stone-800 text-sm leading-relaxed">
+                  जैन आगम रत्न-धारण को शमन-उपाय नहीं मानते। रत्न पृथ्वीकाय (स्थावर एकेंद्रिय) जीवों से निकले होते हैं,
+                  अतः इनका खनन/धारण हिंसा का कारक है (मूलाचार, रत्नकरंड श्रावकाचार)। इसलिए यह इंजन आपको केवल
+                  <strong> मंत्र + तप + दान + भावना</strong> के आगम-आधारित उपाय सुझाता है; रत्न या ग्रह-शांति विक्रय वस्तुओं की अनुशंसा नहीं करता।
+                </p>
+              </div>
+
               <div className="bg-white p-5 rounded-xl border border-rose-200 shadow-sm">
                 <span className="block text-sm font-bold text-rose-600 uppercase mb-2">विशेष व्यक्तिगत उपाय ({profile.dominantKarma} कर्म शमन हेतु)</span>
                 <p className="text-gray-800 font-medium text-sm leading-relaxed">{combined.karmaRemedy}</p>

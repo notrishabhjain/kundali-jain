@@ -89,6 +89,12 @@ export const JAIN_DASHA_ORDER = [
 ];
 
 // Source: PARITY-REPORT-2026 STANDARD_DASHA_YEARS (primary; sums to 100).
+// PROVENANCE (GAP_CLOSING_RESEARCH GV.5): these year allocations are
+// [SYNTHESIZED] — proportional to each karma's Sthiti-bandha maximum from
+// Shatkhandagama/Dhavala (see data/karmaSthitiMatrix.ts: Mohaniya 70 Kodakodi
+// Sagaropama is the longest → 28 yrs; Ayushya is most constrained → 4 yrs).
+// No single Agamic text states them verbatim in human years; they are a
+// practical allocation consistent with canonical hierarchy.
 export const JAIN_DASHA_YEARS: Record<string, number> = {
   Gyanavaraniya: 15, Darshanavaraniya: 9, Vedaniya: 10, Mohaniya: 28,
   Ayushya: 4, Naam: 12, Gotra: 8, Antaraya: 14
