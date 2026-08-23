@@ -31,7 +31,12 @@
     "observance is the dawn Nirvan Ladoo and not the evening Lakshmi Puja.",
     "Each row records its evidence in `verifiedVia`. Note this is corroboration against",
     "published observance dates and tithi windows, NOT a reading of CP-1950-2050; where",
-    "the Shatabdi Panchang disagrees, it is the higher authority and should win."
+    "the Shatabdi Panchang disagrees, it is the higher authority and should win.",
+    "",
+    "ADHIKA MASA ROWS: an intercalary month is the hardest case for a lunar-month",
+    "algorithm - it exists precisely because a lunation contains NO solar ingress, so",
+    "a same-day solar bucket cannot represent it at all. These rows use scheme",
+    "'amanta' because adhika months are defined on the amanta lunation."
   ],
   "defaults": {
     "anchor": "udaya",
@@ -192,6 +197,54 @@
       "lng": 77.209,
       "verifiedVia": "Published as Tuesday 11 June 2024 (Jyeshtha Shukla Panchami).",
       "verifiedOn": "2026-08-23"
+    },
+    {
+      "id": "adhika-jyeshtha-2018",
+      "gregorian": "2018-05-29",
+      "label": "Adhika Jyeshtha 2018 — intercalary month",
+      "source": "Published: Jyeshtha occurs twice in 2018, the first being Adhika Jyeshtha",
+      "expect": {
+        "masa": "अधिक ज्येष्ठ"
+      },
+      "verifiedVia": "Published Hindu/Jain calendars record an Adhika Jyeshtha in 2018. The engine detects the intercalary lunation (no solar ingress between consecutive new moons) beginning 15 May 2018; 29 May falls inside it.",
+      "verified": true,
+      "verifiedOn": "2026-08-23",
+      "anchor": "udaya",
+      "lat": 28.6139,
+      "lng": 77.209,
+      "scheme": "amanta"
+    },
+    {
+      "id": "adhika-ashwin-2020",
+      "gregorian": "2020-10-01",
+      "label": "Adhika Ashwin 2020 — intercalary month",
+      "source": "Published: Ashwayuja occurs twice in 2020, the first being Adhika Ashwayuja",
+      "expect": {
+        "masa": "अधिक आश्विन"
+      },
+      "verifiedVia": "Published calendars record an Adhika Ashwin in 2020. Engine detects the intercalary lunation beginning 17 Sep 2020; 1 Oct falls inside it.",
+      "verified": true,
+      "verifiedOn": "2026-08-23",
+      "anchor": "udaya",
+      "lat": 28.6139,
+      "lng": 77.209,
+      "scheme": "amanta"
+    },
+    {
+      "id": "adhika-shravana-2023",
+      "gregorian": "2023-07-31",
+      "label": "Adhika Shravana 2023 — intercalary month",
+      "source": "Published: Shravana occurs twice in 2023; Adhik Shravan ran 18 Jul - 16 Aug 2023",
+      "expect": {
+        "masa": "अधिक श्रावण"
+      },
+      "verifiedVia": "Published as 18 July to 16 August 2023. Engine detects the intercalary lunation beginning 17 Jul 2023, consistent with an 18 Jul first tithi; 31 Jul falls inside it.",
+      "verified": true,
+      "verifiedOn": "2026-08-23",
+      "anchor": "udaya",
+      "lat": 28.6139,
+      "lng": 77.209,
+      "scheme": "amanta"
     }
   ]
 }

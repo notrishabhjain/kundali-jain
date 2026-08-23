@@ -20,6 +20,7 @@ import { generateUserProfile, BirthFormData } from '../src/lib/analysisSynthesiz
 import { tithiPravahPhaseCoefficient } from '../src/lib/dashaEngine';
 import { getMoonSiderealLongitude, toJulianDay, getElongation } from '../src/lib/astronomy';
 import { getLunarMonth } from '../src/lib/calendarEngine';
+import { lastNewMoonBefore, nextNewMoonAfter } from '../src/lib/astronomy';
 import { getAnchoredTithi } from '../src/lib/tithiAnchor';
 import { getNakshatraByDegree } from '../src/data/nakshatras';
 
@@ -341,6 +342,93 @@ function generateUserProfileFromDeg(deg: number): number {
   }
   // Over ~25 lunations the months must actually move, not sit still.
   assert(advances >= 20, 'MR-10 months advance over two years', `only ${advances} advances, ${repeats} repeats`);
+}
+
+// ── MR-11: calendar structure across 1950-2050 ──────────────────────────────
+// The golden back-test corpus is necessarily thin and clusters in recent years.
+// These assertions cover the whole supported range using constraints that are
+// ARITHMETIC rather than doctrinal, so they need no external corpus.
+{
+  // 19 tropical years = 235 lunations, so a Metonic window must contain 7
+  // intercalary months. Boundary effects on a window that starts mid-lunation
+  // can shift that by one, hence the 6-9 bound; a broken adhika rule departs
+  // from it dramatically (0, or one every month).
+  for (const startYear of [1950, 1969, 1988, 2007, 2026]) {
+    let nm = lastNewMoonBefore(toJulianDay(`${startYear}-01-01`, '12:00'));
+    const end = toJulianDay(`${startYear + 18}-12-31`, '12:00');
+    let adhika = 0;
+    let lunations = 0;
+    let guard = 0;
+    while (nm < end && guard++ < 400) {
+      if (getLunarMonth(nm + 2, 'amanta').isAdhika) adhika++;
+      lunations++;
+      nm = nextNewMoonAfter(nm);
+    }
+    assert(
+      lunations >= 230 && lunations <= 240,
+      `MR-11 lunation count ${startYear}-${startYear + 18}`,
+      `${lunations} lunations in 19 years, expected ~235`
+    );
+    assert(
+      adhika >= 6 && adhika <= 9,
+      `MR-11 Metonic adhika count ${startYear}-${startYear + 18}`,
+      `${adhika} intercalary months, expected 7 (bound 6-9)`
+    );
+  }
+
+  // Across the full supported range every lunation must yield a named month,
+  // an index in 0..11, and consecutive non-adhika months must advance by one.
+  for (const year of [1950, 1975, 2000, 2025, 2049]) {
+    let nm = lastNewMoonBefore(toJulianDay(`${year}-01-01`, '12:00'));
+    let prev = -1;
+    for (let i = 0; i < 13; i++) {
+      const m = getLunarMonth(nm + 2, 'amanta');
+      assert(m.index >= 0 && m.index < 12, `MR-11 month index ${year}+${i}`, `got ${m.index}`);
+      assert(!!m.name?.trim(), `MR-11 month named ${year}+${i}`);
+      if (prev >= 0 && !m.isAdhika) {
+        const delta = (m.index - prev + 12) % 12;
+        assert(
+          delta === 1 || delta === 0,
+          `MR-11 month advance ${year}+${i}`,
+          `${prev} -> ${m.index} (delta ${delta})`
+        );
+      }
+      prev = m.index;
+      nm = nextNewMoonAfter(nm);
+    }
+  }
+
+  // Tithi must sweep all 30 values across a lunation and never skip: kshaya
+  // (a tithi that never prevails at sunrise) and vriddhi (one that prevails on
+  // two) are civil-day phenomena, not gaps in the underlying 12-degree arcs.
+  {
+    const seen = new Set<number>();
+    const start = toJulianDay('2023-11-01', '00:00');
+    for (let h = 0; h < 30 * 24; h += 2) {
+      seen.add(Math.floor(getElongation(start + h / 24) / 12));
+    }
+    assert(seen.size === 30, 'MR-11 all 30 tithis occur in a lunation', `saw ${seen.size}`);
+  }
+
+  // Sampling one civil day at sunrise across a lunation must show at least one
+  // tithi skipped or repeated somewhere in a year — that is what kshaya and
+  // vriddhi ARE. If sunrise sampling never skips, the sampling is wrong.
+  {
+    let skips = 0;
+    let repeats = 0;
+    let prev = -1;
+    for (let d = 0; d < 365; d++) {
+      const t = Math.floor(getElongation(toJulianDay('2023-01-01', '06:00') + d) / 12);
+      if (prev >= 0) {
+        const delta = (t - prev + 30) % 30;
+        if (delta === 2) skips++;
+        if (delta === 0) repeats++;
+      }
+      prev = t;
+    }
+    assert(skips > 0, 'MR-11 kshaya tithis occur', `no tithi skipped at sunrise across 365 days`);
+    assert(repeats > 0, 'MR-11 vriddhi tithis occur', `no tithi repeated at sunrise across 365 days`);
+  }
 }
 
 // ── Invalid input must throw, never fabricate ───────────────────────────────
