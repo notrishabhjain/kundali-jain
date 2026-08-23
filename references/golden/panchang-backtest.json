@@ -13,17 +13,23 @@
     "data nobody checked, and never declared broken against a date that might itself be wrong.",
     "",
     "\"expect\" fields are all optional. Omit any field you cannot vouch for; only the fields",
-    "present are compared. \"sunriseLocal\" defaults to 06:00 IST — set it per-entry if a more",
     "precise sunrise matters for a boundary case.",
     "",
     "Tithi convention: a day is named for the tithi prevailing at SUNRISE, not at noon.",
-    "The harness samples at sunrise for this reason."
+    "",
+    "ANCHOR (vyapini rule): which moment of the day decides the tithi. 'udaya' = at",
+    "sunrise (the general rule). 'pradosha' = just after sunset - Diwali/Mahavir",
+    "Nirvana are fixed this way, lamps being lit while Kartik Amavasya runs.",
+    "'nishitha' = local midnight - Sharad Purnima moon-viewing. 'madhyahna' = apparent",
+    "noon. Using the wrong anchor shifts a festival by a full day.",
+    "Real sunrise/sunset for lat/lng is computed per entry; there is no fixed clock time."
   ],
-
   "defaults": {
-    "sunriseLocal": "06:00"
+    "anchor": "udaya",
+    "lat": 28.6139,
+    "lng": 77.209,
+    "utcOffsetHours": 5.5
   },
-
   "entries": [
     {
       "id": "vidyasagar-birth-1946",
@@ -32,7 +38,14 @@
       "source": "Biographies record the birth as Sharad Purnima (Ashvin Shukla Purnima), Sadalga, Karnataka",
       "confidence": "tithi widely recorded; Gregorian date to be confirmed against CP-1950-2050",
       "verified": false,
-      "expect": { "paksha": "शुक्ल", "tithiNum": 15, "masa": "आश्विन" }
+      "expect": {
+        "paksha": "शुक्ल",
+        "tithiNum": 15,
+        "masa": "आश्विन"
+      },
+      "anchor": "nishitha",
+      "lat": 28.6139,
+      "lng": 77.209
     },
     {
       "id": "mahavir-jayanti-2024",
@@ -41,7 +54,14 @@
       "source": "published Digambar festival calendar",
       "confidence": "Chaitra Shukla Trayodashi is doctrinally fixed; Gregorian date to be confirmed",
       "verified": false,
-      "expect": { "paksha": "शुक्ल", "tithiNum": 13, "masa": "चैत्र" }
+      "expect": {
+        "paksha": "शुक्ल",
+        "tithiNum": 13,
+        "masa": "चैत्र"
+      },
+      "anchor": "udaya",
+      "lat": 28.6139,
+      "lng": 77.209
     },
     {
       "id": "mahavir-jayanti-2023",
@@ -50,7 +70,14 @@
       "source": "published Digambar festival calendar",
       "confidence": "Gregorian date to be confirmed",
       "verified": false,
-      "expect": { "paksha": "शुक्ल", "tithiNum": 13, "masa": "चैत्र" }
+      "expect": {
+        "paksha": "शुक्ल",
+        "tithiNum": 13,
+        "masa": "चैत्र"
+      },
+      "anchor": "udaya",
+      "lat": 28.6139,
+      "lng": 77.209
     },
     {
       "id": "mahavir-jayanti-2025",
@@ -59,7 +86,14 @@
       "source": "published Digambar festival calendar",
       "confidence": "Gregorian date to be confirmed",
       "verified": false,
-      "expect": { "paksha": "शुक्ल", "tithiNum": 13, "masa": "चैत्र" }
+      "expect": {
+        "paksha": "शुक्ल",
+        "tithiNum": 13,
+        "masa": "चैत्र"
+      },
+      "anchor": "udaya",
+      "lat": 28.6139,
+      "lng": 77.209
     },
     {
       "id": "das-lakshana-start-2024",
@@ -68,7 +102,14 @@
       "source": "Digambar observance begins Bhadrapada Shukla Panchami",
       "confidence": "tithi doctrinally fixed; Gregorian date to be confirmed",
       "verified": false,
-      "expect": { "paksha": "शुक्ल", "tithiNum": 5, "masa": "भाद्रपद" }
+      "expect": {
+        "paksha": "शुक्ल",
+        "tithiNum": 5,
+        "masa": "भाद्रपद"
+      },
+      "anchor": "udaya",
+      "lat": 28.6139,
+      "lng": 77.209
     },
     {
       "id": "mahavir-nirvana-2024",
@@ -77,7 +118,14 @@
       "source": "Kartik Krishna Amavasya",
       "confidence": "tithi doctrinally fixed; Gregorian date to be confirmed",
       "verified": false,
-      "expect": { "paksha": "कृष्ण", "tithiNum": 15, "masa": "कार्तिक" }
+      "expect": {
+        "paksha": "कृष्ण",
+        "tithiNum": 15,
+        "masa": "कार्तिक"
+      },
+      "anchor": "pradosha",
+      "lat": 28.6139,
+      "lng": 77.209
     },
     {
       "id": "mahavir-nirvana-2023",
@@ -86,7 +134,14 @@
       "source": "Kartik Krishna Amavasya",
       "confidence": "Gregorian date to be confirmed",
       "verified": false,
-      "expect": { "paksha": "कृष्ण", "tithiNum": 15, "masa": "कार्तिक" }
+      "expect": {
+        "paksha": "कृष्ण",
+        "tithiNum": 15,
+        "masa": "कार्तिक"
+      },
+      "anchor": "pradosha",
+      "lat": 28.6139,
+      "lng": 77.209
     },
     {
       "id": "sharad-purnima-2024",
@@ -95,7 +150,14 @@
       "source": "Ashvin Shukla Purnima",
       "confidence": "Gregorian date to be confirmed",
       "verified": false,
-      "expect": { "paksha": "शुक्ल", "tithiNum": 15, "masa": "आश्विन" }
+      "expect": {
+        "paksha": "शुक्ल",
+        "tithiNum": 15,
+        "masa": "आश्विन"
+      },
+      "anchor": "nishitha",
+      "lat": 28.6139,
+      "lng": 77.209
     },
     {
       "id": "shrut-panchami-2024",
@@ -104,7 +166,14 @@
       "source": "Jyeshtha Shukla Panchami — Digambar scriptural festival",
       "confidence": "Gregorian date to be confirmed",
       "verified": false,
-      "expect": { "paksha": "शुक्ल", "tithiNum": 5, "masa": "ज्येष्ठ" }
+      "expect": {
+        "paksha": "शुक्ल",
+        "tithiNum": 5,
+        "masa": "ज्येष्ठ"
+      },
+      "anchor": "udaya",
+      "lat": 28.6139,
+      "lng": 77.209
     }
   ]
 }

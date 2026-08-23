@@ -14,6 +14,16 @@ import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/naks
 import { calculateIshtakaal, calculateJainZodiacProjection, type IshtakaalResult, type JainZodiacProjection } from '../data/jainCosmology';
 import { calculateApparentSunTimes } from './sunriseEngine';
 import { resolveShadGhatiTithi, getGandantStatus } from './calendarEngine';
+// Single source of astronomical truth — see src/lib/astronomy.ts. This file
+// previously carried its own 16-term lunar truncation that disagreed with
+// calendarEngine's 10-term one by up to 8.8 arcmin.
+import {
+  toJulianDay,
+  getSunLongitude,
+  getMoonTropicalLongitude,
+  getLahiriAyanamsa,
+  getMoonSiderealLongitude as getSiderealLongitude,
+} from './astronomy';
 
 export interface BirthFormData {
   fullName: string;
@@ -70,64 +80,12 @@ export interface UserProfile {
 function toRad(deg: number): number { return (deg * Math.PI) / 180; }
 function normDeg(d: number): number { return ((d % 360) + 360) % 360; }
 
-function toJulianDay(dateStr: string, timeStr: string): number {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const [hh, mm] = timeStr.split(':').map(Number);
-  // IST = UTC+5:30, so subtract 5.5h to get UTC
-  const utcHour = (hh + mm / 60 - 5.5 + 24) % 24;
-
-  let Y = year, M = month;
-  if (M <= 2) { Y -= 1; M += 12; }
-  const A = Math.floor(Y / 100);
-  const B = 2 - A + Math.floor(A / 4);
-  return Math.floor(365.25 * (Y + 4716)) + Math.floor(30.6001 * (M + 1)) + day + utcHour / 24 + B - 1524.5;
-}
 
 // Simplified Moon longitude (Meeus Ch. 47, major terms only)
 // Accurate to ~0.5° — sufficient for nakshatra identification
-function getMoonTropicalLongitude(jde: number): number {
-  const T = (jde - 2451545.0) / 36525;
-
-  // Mean elements
-  let L  = 218.3164477 + 481267.88123421 * T;   // mean longitude
-  const M  = normDeg(357.5291092 + 35999.0502909 * T);  // sun anomaly
-  const Mm = normDeg(134.9633964 + 477198.8675055 * T); // moon anomaly
-  const D  = normDeg(297.8501921 + 445267.1114034 * T); // elongation
-  const F  = normDeg(93.2720950  + 483202.0175233 * T); // lat argument
-
-  // Longitude corrections (major terms, degrees)
-  const sigma =
-    6.288774 * Math.sin(toRad(Mm)) +
-    1.274027 * Math.sin(toRad(2 * D - Mm)) +
-    0.658314 * Math.sin(toRad(2 * D)) +
-    0.213618 * Math.sin(toRad(2 * Mm)) -
-    0.185116 * Math.sin(toRad(M)) -
-    0.114332 * Math.sin(toRad(2 * F)) +
-    0.058793 * Math.sin(toRad(2 * D - 2 * Mm)) +
-    0.057066 * Math.sin(toRad(2 * D - M - Mm)) +
-    0.053322 * Math.sin(toRad(2 * D + Mm)) +
-    0.045758 * Math.sin(toRad(2 * D - M)) -
-    0.040923 * Math.sin(toRad(M - Mm)) -
-    0.034720 * Math.sin(toRad(D)) -
-    0.030383 * Math.sin(toRad(M + Mm)) +
-    0.015327 * Math.sin(toRad(2 * D - 2 * F)) -
-    0.012528 * Math.sin(toRad(Mm + 2 * F)) +
-    0.010980 * Math.sin(toRad(Mm - 2 * F));
-
-  return normDeg(L + sigma);
-}
 
 // Lahiri ayanamsa (cubic approximation per IAU/Lahiri)
-function getLahiriAyanamsa(jde: number): number {
-  const T = (jde - 2451545.0) / 36525;
-  return 23.85048 + 1.396971 * T + 0.000308 * T * T + 0.000002 * T * T * T;
-}
 
-function getSiderealLongitude(jde: number): number {
-  const tropical = getMoonTropicalLongitude(jde);
-  const ayanamsa = getLahiriAyanamsa(jde);
-  return normDeg(tropical - ayanamsa);
-}
 
 // ─── Rashi from sidereal longitude ───────────────────────────────────────────
 
@@ -385,16 +343,6 @@ const TITHI_NAMES_HINDI = [
   'एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी','पूर्णिमा'
 ];
 
-function getSunLongitude(jde: number): number {
-  const T = (jde - 2451545) / 36525;
-  const L0 = normDeg(280.46646 + 36000.76983 * T);   // mean longitude
-  const M  = normDeg(357.52911 + 35999.05029 * T - 0.0001537 * T * T);  // mean anomaly
-  // Equation of center (Meeus Ch.25)
-  const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(toRad(M))
-          + (0.019993 - 0.000101 * T) * Math.sin(toRad(2 * M))
-          + 0.000289 * Math.sin(toRad(3 * M));
-  return normDeg(L0 + C);
-}
 
 export function getUpcomingVratDates(birthNakshatraIndex: number, daysAhead = 60): UpcomingVrat[] {
   const SPECIAL_TITHIS = new Set([10, 13, 14, 25, 28, 29]);
