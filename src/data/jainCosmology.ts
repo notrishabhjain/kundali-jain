@@ -168,12 +168,20 @@ export const GRAHA_KARMA_MAPPINGS: GrahaKarmaMapping[] = [
 // 1. 28 nakshatras — includes Abhijit (α Lyrae)
 // 2. Unequal muhurta spans (not equal 13°20')
 // 3. Shravana-first ordering (epoch ~500 BCE summer solstice)
-// 4. Total zodiacal circumference: 819 + 11/67 muhurtas ≈ 819.164179 muhurtas
+// 4. Total zodiacal circumference: exactly 819 + 27/67 muhurtas
+//    (= 27 + 21/67 sidereal days × 30 muhurtas/day)
 // 5. Summer solstice epoch (vs Vedanga Jyotisha winter solstice)
 //
-// Verification: (1 × 9 + 11/67) + (6 × 15) + (6 × 45) + (15 × 30) = 819 + 11/67 ✓
+// ARBITRATION (latest extraction supersedes RESEARCH-REPORT-2025 §4):
+//   Abhijit span = 9 + 27/67 muhurtas (was 9 + 11/67); four nakshatras were
+//   reclassified between span classes — Shatabhisha & Jyeshtha: short→standard(30);
+//   Purva Phalguni & Hasta: standard→short(15). Both old and new tables close to
+//   their own totals; the new allocation (270 + 450 + 90 + 9·27/67) is adopted as
+//   authoritative per user directive on source precedence.
+//
+// Verification: (1 × 9 + 27/67) + (6 × 15) + (6 × 45) + (15 × 30) = 819 + 27/67 ✓
 
-export const JAIN_ZODIAC_TOTAL_MUHURTAS = 819 + 11 / 67; // ≈ 819.164179
+export const JAIN_ZODIAC_TOTAL_MUHURTAS = 819 + 27 / 67; // ≈ 819.402985
 
 export type NakshatraSpanClass = 'abhijit' | 'short_span' | 'long_span' | 'standard_span';
 
@@ -186,11 +194,11 @@ export interface JainNakshatraSpan {
 }
 
 // Shravana-first ordering per SP-1 (epoch ~500 BCE).
-// Source: Research Report §4 + SP-1 ch. 3.
+// Source: Research Report §4 + SP-1 ch.3; class memberships per latest arbitration.
 export const JAIN_NAKSHATRAS_ORDERED: JainNakshatraSpan[] = [
   { name: 'Shravana',          spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
   { name: 'Dhanistha',         spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
-  { name: 'Satabhisha',        spanClass: 'short_span',    zodiacStretchMuhurtas: 15, solarConjunctionDays: 6,  solarConjunctionMuhurtas: 21 },
+  { name: 'Satabhisha',        spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
   { name: 'Purvabhadrapada',   spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
   { name: 'Uttarabhadrapada',  spanClass: 'long_span',     zodiacStretchMuhurtas: 45, solarConjunctionDays: 20, solarConjunctionMuhurtas: 3  },
   { name: 'Revati',            spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
@@ -204,22 +212,100 @@ export const JAIN_NAKSHATRAS_ORDERED: JainNakshatraSpan[] = [
   { name: 'Pushya',            spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
   { name: 'Aslesha',           spanClass: 'short_span',    zodiacStretchMuhurtas: 15, solarConjunctionDays: 6,  solarConjunctionMuhurtas: 21 },
   { name: 'Magha',             spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
-  { name: 'Purvaphalguni',     spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
+  { name: 'Purvaphalguni',     spanClass: 'short_span',    zodiacStretchMuhurtas: 15, solarConjunctionDays: 6,  solarConjunctionMuhurtas: 21 },
   { name: 'Uttaraphalguni',    spanClass: 'long_span',     zodiacStretchMuhurtas: 45, solarConjunctionDays: 20, solarConjunctionMuhurtas: 3  },
-  { name: 'Hasta',             spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
+  { name: 'Hasta',             spanClass: 'short_span',    zodiacStretchMuhurtas: 15, solarConjunctionDays: 6,  solarConjunctionMuhurtas: 21 },
   { name: 'Chitra',            spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
   { name: 'Svati',             spanClass: 'short_span',    zodiacStretchMuhurtas: 15, solarConjunctionDays: 6,  solarConjunctionMuhurtas: 21 },
   { name: 'Vishakha',          spanClass: 'long_span',     zodiacStretchMuhurtas: 45, solarConjunctionDays: 20, solarConjunctionMuhurtas: 3  },
   { name: 'Anuradha',          spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
-  { name: 'Jyestha',           spanClass: 'short_span',    zodiacStretchMuhurtas: 15, solarConjunctionDays: 6,  solarConjunctionMuhurtas: 21 },
+  { name: 'Jyestha',           spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
   { name: 'Mula',              spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
   { name: 'Poorvashadha',      spanClass: 'standard_span', zodiacStretchMuhurtas: 30, solarConjunctionDays: 13, solarConjunctionMuhurtas: 12 },
   { name: 'Uttarashadha',      spanClass: 'long_span',     zodiacStretchMuhurtas: 45, solarConjunctionDays: 20, solarConjunctionMuhurtas: 3  },
-  { name: 'Abhijit',           spanClass: 'abhijit',       zodiacStretchMuhurtas: 9 + 11 / 67, solarConjunctionDays: 4, solarConjunctionMuhurtas: 6 }
+  { name: 'Abhijit',           spanClass: 'abhijit',       zodiacStretchMuhurtas: 9 + 27 / 67, solarConjunctionDays: 4, solarConjunctionMuhurtas: 6 }
 ];
 
-// Verify zodiac closure: sum of all spans = 819 + 11/67 ✓
-// (1 × 9.164) + (6 × 15) + (6 × 45) + (15 × 30) = 819.164
+// Verify zodiac closure: sum of all spans = 819 + 27/67 ✓
+// (1 × (9 + 27/67)) + (6 × 15) + (6 × 45) + (15 × 30) = 819.403
+
+// ─── Jyotish-Loka belt & Vimana metrics (GS.5) ───────────────────────────────
+// Source: GAP_CLOSING_RESEARCH GS.5 (SP/TP corpus) — VERIFIED.
+// The Jyotish Chakra belt resides strictly between 790 and 900 yojanas above the
+// Madhya Loka plane (thickness exactly 110 yojanas).
+export const JYOTISH_LOKA_BELT = {
+  minYojaans: 790,
+  maxYojaans: 900,
+  thicknessYojaans: 110,
+  bodies: [
+    { key: 'tara',      hindiName: 'तारागण',   heightYojaans: 790 },
+    { key: 'surya',     hindiName: 'सूर्य',     heightYojaans: 800 },
+    { key: 'chandra',   hindiName: 'चन्द्र',    heightYojaans: 880 },
+    { key: 'nakshatra', hindiName: 'नक्षत्र',   heightYojaans: 884 },
+    // Grahas scale progressively 888 → 900 (Budha 888, Shukra 891, Guru 894, Mangal 897, Shani 900).
+    { key: 'grahas',    hindiName: 'ग्रह (८८८–९००)', heightYojaans: 888 }
+  ] as const
+};
+
+// Vimana diameters (exact fractions of a yojana).
+export const VIMANA_DIAMETERS_YOJANA = {
+  surya: 48 / 61,
+  chandra: 56 / 61
+};
+
+// Path-wise day/night lengths in muhurtas (GS.5).
+// FINAL ARBITRATION (ultimate-blueprint resolution): the Sun is on the
+// INNERMOST Mandala at the SUMMER solstice (longest day = 18 muhurtas) and on
+// the OUTERMOST Mandala at the WINTER solstice (shortest day = 12). Equinoxes
+// = 15/15. This supersedes every earlier path-direction reading.
+export const SOLSTICE_DAY_NIGHT_MUHURTAS = {
+  summerSolsticeInnermostPath: { day: 18, night: 12 },
+  winterSolsticeOutermostPath: { day: 12, night: 18 },
+  equinoxes:               { day: 15, night: 15 }
+} as const;
+
+// ─── Solar Mandala progression (v3 §A / final ruling) ────────────────────────
+// 184 concentric paths; half-transit inner↔outer takes exactly 183 days.
+// Day-length change per daily path shift Δ = (18−12)/183 = 2/61 muhurta
+// ≈ 1 minute 34.4 seconds per day.
+export const MANDALA_PATH_PROGRESSION = {
+  totalPaths: 184,
+  halfTransitDays: 183,
+  dayLengthDeltaMuhurtasPerPath: 2 / 61,
+  dayLengthDeltaSecondsPerDay: (2 / 61) * 48 * 60 // ≈ 94.4 s
+} as const;
+
+// ─── Moon-revolution / bhabhog arithmetic (final micro-residual) ─────────────
+// A yuga holds exactly 67 sidereal lunar months; one sidereal month =
+// 27 + 21/67 days = 819 + 27/67 muhurtas. Per-orbit bhabhog parts of 67:
+export const MOON_SIDEREAL_MONTH_DAYS = 27 + 21 / 67;
+export const MOON_BHABHOG_PARTS_OF_67 = {
+  mahatStars:   { count: 6,  muhurtasEach: 45,           partsOf67Each: 45 * 67 },          // 3015
+  samaStars:    { count: 15, muhurtasEach: 30,           partsOf67Each: 30 * 67 },          // 2010
+  kanishthaStars:{ count: 6, muhurtasEach: 15,           partsOf67Each: 15 * 67 },          // 1005
+  abhijit:      { count: 1,  muhurtasExact: '9 + 27/67', partsOf67Total: (9 * 67 + 27) }    // 630
+} as const;
+
+// ─── Spatial unit conversions (final micro-residual) ─────────────────────────
+export const YOJANA_CONVERSIONS = {
+  vyavaharaYojanaKmRange: [12.8, 14.4] as const,
+  vyavaharaYojanaMilesRange: [8.0, 9.0] as const,
+  pramanaYojanaInVyavaharaYojanas: 500,
+  pramanaYojanaKmRange: [6400, 7200] as const,
+  rajjuMeters: 1.45e21
+} as const;
+
+// ─── Jyotishi-Dev vitals (final micro-residual) ──────────────────────────────
+export const JYOTISHI_DEV_VITALS = {
+  ayu: {
+    chandra:    { maxHindi: '१ पल्योपम + १,००,००० वर्ष', minHindi: '१/४ पल्योपम' },
+    surya:      { maxHindi: '१ पल्योपम',                 minHindi: '१/४ पल्योपम' },
+    nakshatras: { maxHindi: '१/२ पल्योपम',               minHindi: '१/४ पल्योपम' },
+    taras:      { maxHindi: '१/४ पल्योपम',               minHindi: '१/८ पल्योपम' }
+  },
+  ucchvasaIntervalMuhurtas: 4,   // breath once every ~4 muhurtas
+  aharIntervalDays: 4            // mānasik āhar once every ~4 days
+} as const;
 
 // ─── Coordinate Transformation: Standard Longitude → Jain Zodiac ─────────────
 // Transforms standard sidereal longitude (0-360°) into the graduated Jain zodiac
@@ -331,13 +417,13 @@ export function calculateIshtakaal(
 }
 
 // ─── Bhadrabahu Samhita: Venus Mandala System ─────────────────────────────────
-// Six Mandalas based on Venus's position (solar ingress). Each Mandala spans a
-// group of nakshatras and carries socio-economic indicators.
-// Source: Bhadrabahu Samhita (BDS-1); Research Report §5. [REQUIRES_RESEARCH] BDS-1 OCR.
-
+// Three Mandalas (vessels) — planets change effects when crossing them.
+// Source: GAP_CLOSING_RESEARCH GG.4 (blueprint §A.4) — supersedes the earlier
+// six-mandala RESEARCH-REPORT-2025 stub, which was flagged [REQUIRES_RESEARCH].
 export interface VenusMandala {
   id: number;
   name: string;
+  hindiName: string;
   nakshatras: string[];
   indicator: string;
   indicatorHindi: string;
@@ -345,42 +431,61 @@ export interface VenusMandala {
 
 export const VENUS_MANDALAS: VenusMandala[] = [
   {
-    id: 1, name: 'Rakta',
-    nakshatras: ['Bharani', 'Krittika', 'Rohini', 'Mrigashira'],
-    indicator: 'Ordinary rain and standard crop yields',
-    indicatorHindi: 'सामान्य वर्षा और सामान्य उपज — मध्यम जन-जीवन'
+    id: 1, name: 'Abhyantara', hindiName: 'अभ्यंतर मंडल (आंतरिक)',
+    nakshatras: ['Krittika', 'Rohini', 'Mrigashira', 'Ardra', 'Punarvasu', 'Pushya'],
+    indicator: 'High spiritual potency, stable rainfall',
+    indicatorHindi: 'उच्च आध्यात्मिक सामर्थ्य, स्थिर वर्षा'
   },
   {
-    id: 2, name: 'Parush',
-    nakshatras: ['Ardra', 'Punarvasu', 'Pushya', 'Aslesha'],
-    indicator: 'Destruction of public wealth, water resources, agricultural infrastructure',
-    indicatorHindi: 'सार्वजनिक धन-नाश, जल-संकट, कृषि-अवसंरचना का विनाश'
+    id: 2, name: 'Madhyama', hindiName: 'मध्यम मंडल',
+    nakshatras: ['Ashlesha', 'Magha', 'Purva Phalguni', 'Uttara Phalguni', 'Hasta', 'Chitra'],
+    indicator: 'Worldly development, political transitions',
+    indicatorHindi: 'लौकिक विकास, राजनीतिक परिवर्तन'
   },
   {
-    id: 3, name: 'Deeptimaan',
-    nakshatras: ['Magha', 'Purvaphalguni', 'Uttaraphalguni', 'Hasta', 'Chitra'],
-    indicator: 'Pathogen outbreaks, illness, elevated mortality',
-    indicatorHindi: 'महामारी, रोग-प्रसार, मृत्यु-दर में वृद्धि'
-  },
-  {
-    id: 4, name: 'Urdhva',
-    nakshatras: ['Svati', 'Vishakha', 'Anuradha'],
-    indicator: 'Excellent productivity, economic growth, and stability',
-    indicatorHindi: 'उत्तम उत्पादकता, आर्थिक वृद्धि और स्थिरता'
-  },
-  {
-    id: 5, name: 'Chanda',
-    nakshatras: ['Jyestha', 'Mula', 'Poorvashadha', 'Uttarashadha'],
-    indicator: 'Inauspicious alignments, civil unrest, water scarcity',
-    indicatorHindi: 'अशुभ संयोग, नागरिक-अशांति, जल-अभाव (ज्येष्ठा में विशेष संकट)'
-  },
-  {
-    id: 6, name: 'Teekshna',
-    nakshatras: ['Abhijit', 'Shravana', 'Dhanistha', 'Satabhisha', 'Purvabhadrapada', 'Revati', 'Ashwini'],
-    indicator: 'Highly favorable: expansion of trade and infrastructure',
-    indicatorHindi: 'अत्यंत शुभ — व्यापार-विस्तार और अवसंरचना-विकास'
+    id: 3, name: 'Bahya', hindiName: 'बाह्य मंडल',
+    nakshatras: ['Svati', 'Vishakha', 'Anuradha', 'Jyeshtha', 'Mula', 'Purvashadha', 'Uttarashadha'],
+    indicator: 'Worldly upheavals, droughts, market volatility',
+    indicatorHindi: 'सांसारिक उथल-पुथल, अकाल, बाज़ार-अस्थिरता'
   }
 ];
+
+export function getVenusMandalaForNakshatra(nakshatraName: string): VenusMandala | undefined {
+  return VENUS_MANDALAS.find(m => m.nakshatras.includes(nakshatraName));
+}
+
+// ─── Gochara base-house table (GG.4) ─────────────────────────────────────────
+// Auspicious transit houses counted from the natal Moon sign.
+// Source: GAP_CLOSING_RESEARCH GG.4 (blueprint §A.4) — first Agamic-grounded
+// gochara baseline; per-graha vedha rules remain [REQUIRES_RESEARCH] (BDS-1 OCR).
+export const GOCHARA_AUSPICIOUS_HOUSES: Record<string, number[]> = {
+  Sun:    [3, 6, 10, 11],
+  Moon:   [1, 3, 6, 7, 10, 11],
+  Mars:   [3, 6, 11],
+  Mercury:[2, 4, 6, 8, 10, 11],
+  Jupiter:[2, 5, 7, 9, 11],
+  Venus:  [1, 2, 3, 4, 5, 8, 9, 11, 12],
+  Saturn: [3, 6, 11]
+};
+
+const GOCHARA_GRAHA_HINDI: Record<string, string> = {
+  Sun: 'सूर्य', Moon: 'चन्द्र', Mars: 'मंगल', Mercury: 'बुध',
+  Jupiter: 'गुरु', Venus: 'शुक्र', Saturn: 'शनि'
+};
+
+/** True when a graha transiting `houseFromMoon` (1–12) is auspicious for the native. */
+export function isGocharaAuspicious(grahaEn: string, houseFromMoon: number): boolean {
+  const houses = GOCHARA_AUSPICIOUS_HOUSES[grahaEn];
+  return Array.isArray(houses) && houses.includes(houseFromMoon);
+}
+
+export function getGocharaSummary(grahaEn: string, houseFromMoon: number): string {
+  const hindi = GOCHARA_GRAHA_HINDI[grahaEn] || grahaEn;
+  if (isGocharaAuspicious(grahaEn, houseFromMoon)) {
+    return `${hindi} का आपकी चन्द्र-राशि से ${houseFromMoon}वें भाव में गोचर शुभ है।`;
+  }
+  return `${hindi} का ${houseFromMoon}वें भाव में गोचर साधना-दृष्टि से सावधानी माँगता है — नियमित णमोकार जाप बढ़ाएँ।`;
+}
 
 // ─── Bhadrabahu Samhita: Venus Veethi (Orbital Lane) ─────────────────────────
 // Three orbital lanes of Venus, each spanning a group of nakshatras.

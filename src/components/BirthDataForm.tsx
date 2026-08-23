@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Calendar, Clock, MapPin, Navigation, User, Loader2 } from 'lucide-react';
 import { BirthFormData } from '../lib/engineFacade';
-import { getJainPanchang } from '../lib/calendarEngine';
+import { getJainPanchang, getVarjitYogas, isSiddhaCombo } from '../lib/calendarEngine';
 
 interface BirthDataFormProps {
   onSubmit: (data: BirthFormData) => void;
@@ -137,6 +137,26 @@ export default function BirthDataForm({ onSubmit }: BirthDataFormProps) {
                     <div><strong>तिथि:</strong> {panchang.tithi}</div>
                     <div><strong>मास:</strong> {panchang.masa}</div>
                     <div><strong>वार:</strong> {panchang.vara}</div>
+                    <div>
+                      <strong>करण:</strong> {panchang.karanaHindi}
+                      {panchang.isVishtiKarana && (
+                        <span className="ml-1 text-rose-600 font-bold">(भद्रा — नवारंभ वर्जित)</span>
+                      )}
+                    </div>
+                    {(() => {
+                      const varjit = getVarjitYogas(panchang.varaIndex, panchang.tithiNum);
+                      const siddha = isSiddhaCombo(panchang.varaIndex, panchang.tithiNum);
+                      return (
+                        <>
+                          {varjit.summaryHindi && (
+                            <div className="col-span-2 text-rose-600 font-bold">⚠ {varjit.summaryHindi} — शुभ कार्य वर्जित</div>
+                          )}
+                          {siddha && (
+                            <div className="col-span-2 text-emerald-700 font-bold">✓ सिद्ध योग — सफलता-दायक संयोग</div>
+                          )}
+                        </>
+                      );
+                    })()}
                     {panchang.jainFestival && <div className="col-span-2 text-rose-600 font-bold mt-1">✨ {panchang.jainFestival}</div>}
                   </div>
                 </div>

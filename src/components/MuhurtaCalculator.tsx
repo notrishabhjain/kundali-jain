@@ -3,6 +3,9 @@ import { Calendar, Clock, Star, AlertCircle, Sun } from 'lucide-react';
 import { UserProfile, getUpcomingVratDates, UpcomingVrat } from '../lib/engineFacade';
 import { getKarmaSadhana } from '../data/sadhana';
 import { NAKSHATRAS } from '../data/nakshatras';
+import { getNavatara } from '../lib/navataraEngine';
+import { getFixedDailyWindows } from '../lib/muhurtaEngine';
+import { toJulianDay, getSiderealLongitude } from '../lib/calendarEngine';
 
 interface MuhurtaCalculatorProps {
   profile: UserProfile;
@@ -14,6 +17,10 @@ const WEEKDAYS_HINDI = ['रविवार', 'सोमवार', 'मंग�
 
 function toHindiNum(n: number): string {
   return String(n).split('').map(d => HINDI_DIGITS[parseInt(d)]).join('');
+}
+
+function toHindiTime(hhmm: string): string {
+  return hhmm.split('').map(ch => (/\d/.test(ch) ? HINDI_DIGITS[parseInt(ch)] : ch)).join('');
 }
 
 function formatHindiDate(d: Date): string {
@@ -96,6 +103,18 @@ export default function MuhurtaCalculator({ profile }: MuhurtaCalculatorProps) {
   const featured = muhurtas.slice(0, 3);
   const rest = muhurtas.slice(3);
 
+  // Navatara (GN.3): today's star counted from the birth star.
+  const navatara = useMemo(() => {
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const todayIdx = Math.min(Math.floor(getSiderealLongitude(toJulianDay(dateStr, timeStr)) / 13.333333), 26);
+    return getNavatara(birthNakshatraIdx, todayIdx);
+  }, [birthNakshatraIdx]);
+
+  // Fixed daily windows (GG.5): Brahma/Abhijit/Durmuhurta.
+  const fixedWindows = useMemo(() => getFixedDailyWindows('06:00'), []);
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
@@ -120,6 +139,45 @@ export default function MuhurtaCalculator({ profile }: MuhurtaCalculatorProps) {
             <> वर्तमान <strong>{profile.currentDasha.antardashaInfo.lord_hindi} अंतर्दशा</strong> में इन तिथियों की ऊर्जा और प्रबल है।</>
           )}
         </p>
+      </div>
+
+      {/* Navatara — today's star from birth star (GN.3) */}
+      <div className={`p-4 rounded-xl border ${
+        navatara.key === 'vadha' || navatara.key === 'vipat' || navatara.key === 'pratyari'
+          ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}`}>
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
+          <h3 className="font-bold text-gray-900">आज का नवतारा: <span className="text-indigo-800">{navatara.hindi}</span></h3>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+            navatara.key === 'vadha' || navatara.key === 'vipat' || navatara.key === 'pratyari'
+              ? 'border-rose-300 text-rose-700 bg-white' : 'border-emerald-300 text-emerald-700 bg-white'}`}>
+            {navatara.natureHindi}
+          </span>
+        </div>
+        <p className="text-sm text-gray-700">{navatara.guidance}</p>
+      </div>
+
+      {/* Fixed daily windows (GG.5) */}
+      <div>
+        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-indigo-600" /> दैनिक निश्चित मुहूर्त
+        </h3>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {fixedWindows.map(w => (
+            <div key={w.key} className={`p-4 rounded-xl border ${
+              w.qualityHindi === 'परिहार्य' ? 'bg-gray-50 border-gray-200' : 'bg-indigo-50 border-indigo-200'}`}>
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="font-bold text-gray-900 text-sm">{w.hindiName}</h4>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full border bg-white border-indigo-200 text-indigo-700">
+                  {w.qualityHindi}
+                </span>
+              </div>
+              {w.startHHMM !== '--:--' && (
+                <p className="text-sm font-medium text-indigo-900 mb-1">{toHindiTime(w.startHHMM)} – {toHindiTime(w.endHHMM)}</p>
+              )}
+              <p className="text-xs text-gray-700 leading-relaxed">{w.guidance}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Featured 3 */}

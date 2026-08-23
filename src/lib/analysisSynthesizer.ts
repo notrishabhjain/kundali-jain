@@ -13,6 +13,7 @@
 import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/nakshatras';
 import { calculateIshtakaal, calculateJainZodiacProjection, type IshtakaalResult, type JainZodiacProjection } from '../data/jainCosmology';
 import { calculateApparentSunTimes } from './sunriseEngine';
+import { resolveShadGhatiTithi, getGandantStatus } from './calendarEngine';
 
 export interface BirthFormData {
   fullName: string;
@@ -60,6 +61,8 @@ export interface UserProfile {
   // Legacy fields kept for backward compatibility with existing components
   birthNakshatraLegacy?: string;  // same as birthNakshatra
   currentDashaLegacy?: string;    // same as currentDasha.lord_hindi
+  /** Set when the birth Moon sits in a Gandant junction (blueprint §B.7) */
+  gandantWarning?: string;
 }
 
 // ─── Astronomical calculations ───────────────────────────────────────────────
@@ -276,6 +279,18 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
   // Source: Research Report §4 + SP-1.
   const jainZodiacProjection = calculateJainZodiacProjection(siderealDeg);
 
+  // Gandant birth warning (blueprint §B.7) — Moon within ±10′ of a water→fire
+  // sign junction (Ashlesha→Magha, Jyeshtha→Mula, Revati→Ashvini).
+  let gandantWarning: string | undefined;
+  try {
+    const g = getGandantStatus(siderealDeg);
+    if (g.inGandant) {
+      gandantWarning = `गंडांत-क्षेत्र जन्म (${g.junctionHindi} संधि, ${g.distanceGhatis} घटी दूरी): मूल-शांति के रूप में णमोकार महामंत्र का विशेष जाप नियत करें।`;
+    }
+  } catch {
+    // never block profile generation on the advisory path
+  }
+
   return {
     name: data.fullName,
     gender: data.gender,
@@ -298,7 +313,8 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     jainZodiacProjection,
     // Legacy compatibility
     birthNakshatraLegacy: nakshatra.hindi_name,
-    currentDashaLegacy: dasha.lord_hindi
+    currentDashaLegacy: dasha.lord_hindi,
+    gandantWarning
   };
 }
 
@@ -357,6 +373,10 @@ export interface UpcomingVrat {
   nakshatraIndex: number;  // 0-26
   vratType: VratType;
   name: string;
+  /** true when the Shad-Ghati rule moved this vrat to the preceding civil day */
+  shadGhatiAdjusted?: boolean;
+  /** present when a Kshaya (lost) tithi was detected around this date */
+  kshayaNote?: string;
 }
 
 const TITHI_NAMES_HINDI = [
@@ -402,8 +422,14 @@ export function getUpcomingVratDates(birthNakshatraIndex: number, daysAhead = 60
     const sidereal = getSiderealLongitude(jde);
     const nakshatraIdx = Math.min(Math.floor(normDeg(sidereal) / 13.333333), 26);
 
-    // Tithi-based vrats — record when tithi changes to a special value
+    // Tithi-based vrats — record when tithi changes to a special value.
+    // Shad-Ghati rule (GAP_CLOSING_RESEARCH GP.8/GP.9 — Jain panchang parva-nirnay):
+    // a tithi present at sunrise must survive ≥6 ghatis after sunrise; otherwise the
+    // vrat is observed on the PRECEDING day. Kshaya (lost) tithi also shifts earlier.
     if (tithiRaw !== prevTithiRaw && SPECIAL_TITHIS.has(tithiRaw)) {
+      const resolution = resolveShadGhatiTithi(dateStr, '06:00', i > 0 ? prevTithiRaw : undefined);
+      const shadGhatiAdjusted = !resolution.shadGhatiValid;
+
       let vratType: VratType;
       let name: string;
       if (tithiRaw === 10)  { vratType = 'ekadashi';    name = 'शुक्ल एकादशी'; }
@@ -412,7 +438,24 @@ export function getUpcomingVratDates(birthNakshatraIndex: number, daysAhead = 60
       else if (tithiRaw === 28) { vratType = 'chaturdashi'; name = 'कृष्ण चतुर्दशी'; }
       else if (tithiRaw === 14) { vratType = 'purnima';  name = 'पूर्णिमा'; }
       else                       { vratType = 'amavasya'; name = 'अमावस्या'; }
-      results.push({ date: new Date(d), tithiRaw, paksha, tithiNum, tithiHindi, nakshatraIndex: nakshatraIdx, vratType, name });
+
+      if (shadGhatiAdjusted) {
+        name += ' (षड्-घटि: पूर्व दिन संपन्न)';
+      }
+
+      // Under the Shad-Ghati shift the vrat belongs to the preceding civil day.
+      const eventDate = shadGhatiAdjusted ? new Date(d.getTime() - 24 * 60 * 60 * 1000) : new Date(d);
+
+      results.push({
+        date: eventDate,
+        tithiRaw, paksha, tithiNum, tithiHindi,
+        nakshatraIndex: nakshatraIdx,
+        vratType, name,
+        shadGhatiAdjusted,
+        kshayaNote: resolution.kshayaDetected
+          ? 'क्षय तिथि — तिथि सूर्योदय के मध्य ही समाप्त; व्रत पूर्व दिन अथवा इसी दिन प्रातः संपन्न करें।'
+          : undefined
+      });
     }
 
     // Nakshatra-based vrat — record when moon enters birth nakshatra
