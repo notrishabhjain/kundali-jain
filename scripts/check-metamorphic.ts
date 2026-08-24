@@ -18,6 +18,10 @@
 
 import { generateUserProfile, BirthFormData } from '../src/lib/analysisSynthesizer';
 import { tithiPravahPhaseCoefficient } from '../src/lib/dashaEngine';
+import { getMoonSiderealLongitude, toJulianDay, getElongation } from '../src/lib/astronomy';
+import { getLunarMonth } from '../src/lib/calendarEngine';
+import { lastNewMoonBefore, nextNewMoonAfter } from '../src/lib/astronomy';
+import { getAnchoredTithi } from '../src/lib/tithiAnchor';
 import { getNakshatraByDegree } from '../src/data/nakshatras';
 
 const errors: string[] = [];
@@ -231,6 +235,199 @@ function generateUserProfileFromDeg(deg: number): number {
       `INV remaining ≤ total (${y})`,
       `${d.yearsRemaining} > ${d.yearsTotal}`
     );
+  }
+}
+
+// ── MR-8: cross-path consistency ────────────────────────────────────────────
+// The birth-chart path and the panchang path must report the SAME Moon for the
+// same instant. They once had separate lunar series that diverged by up to
+// 8.8 arcmin, flipping the nakshatra on 0.30% of charts and the pada on 1.10%.
+// Both now delegate to src/lib/astronomy.ts; this locks that in.
+{
+  let worstArcmin = 0;
+  for (let y = 1950; y <= 2025; y += 5) {
+    for (const [md, time] of [['-02-14', '04:20'], ['-07-03', '13:45'], ['-11-27', '21:10']] as const) {
+      const dob = `${y}${md}`;
+      const p = generateUserProfile(at({ dob, time }));
+      const direct = getMoonSiderealLongitude(toJulianDay(dob, time));
+      let d = Math.abs(p.moonLongitude - direct);
+      if (d > 180) d = 360 - d;
+      worstArcmin = Math.max(worstArcmin, d * 60);
+
+      assert(
+        getNakshatraByDegree(p.moonLongitude).name === getNakshatraByDegree(direct).name,
+        `MR-8 nakshatra agrees across paths ${dob}`,
+        `chart says ${getNakshatraByDegree(p.moonLongitude).name}, panchang says ${getNakshatraByDegree(direct).name}`
+      );
+    }
+  }
+  // profile.moonLongitude is rounded to 2 decimals (0.6'), so allow 1'.
+  assert(
+    worstArcmin <= 1.0,
+    'MR-8 longitude agrees across paths',
+    `worst divergence ${worstArcmin.toFixed(3)} arcmin, bound 1.0`
+  );
+}
+
+// ── MR-9: tithi and paksha follow strictly from elongation ──────────────────
+// Guards against a tithi computed from anything other than Moon−Sun elongation.
+{
+  for (let y = 1960; y <= 2020; y += 10) {
+    for (const md of ['-01-09', '-05-23', '-09-30']) {
+      const dob = `${y}${md}`;
+      const jde = toJulianDay(dob, '06:00');
+      const e = getElongation(jde);
+      const idx = Math.floor(e / 12);
+      const expectedPaksha = e < 180 ? 'शुक्ल' : 'कृष्ण';
+      const expectedNum = idx < 15 ? idx + 1 : idx - 14;
+      const t = getAnchoredTithi(dob, 'udaya', 28.6139, 77.209);
+
+      assert(idx >= 0 && idx <= 29, `MR-9 tithi index range ${dob}`, `got ${idx}`);
+      assert(
+        expectedNum >= 1 && expectedNum <= 15,
+        `MR-9 tithi number range ${dob}`,
+        `got ${expectedNum}`
+      );
+      // The anchored tithi samples at real sunrise, not 06:00, so only the
+      // structural invariants are asserted here, not equality.
+      assert(
+        t.tithiNum >= 1 && t.tithiNum <= 15,
+        `MR-9 anchored tithi in range ${dob}`,
+        `got ${t.tithiNum}`
+      );
+      assert(
+        t.paksha === 'शुक्ल' || t.paksha === 'कृष्ण',
+        `MR-9 paksha valid ${dob}`,
+        `got ${t.paksha}`
+      );
+      assert(
+        (t.elongation < 180) === (t.paksha === 'शुक्ल'),
+        `MR-9 paksha matches elongation ${dob}`,
+        `elong ${t.elongation.toFixed(2)}° but paksha ${t.paksha}`
+      );
+      void expectedPaksha;
+    }
+  }
+}
+
+// ── MR-10: lunar month is well-formed and advances monotonically ────────────
+// The month must be one of the twelve (or a marked adhika), and stepping
+// forward one lunation must advance the month index by exactly one, except
+// across an intercalary month where it repeats.
+{
+  const MASA_COUNT = 12;
+  let prevIndex = -1;
+  let advances = 0;
+  let repeats = 0;
+  for (let k = 0; k < 26; k++) {
+    const jde = toJulianDay('2023-01-15', '06:00') + k * 29.53;
+    const m = getLunarMonth(jde, 'amanta');
+    assert(
+      m.index >= 0 && m.index < MASA_COUNT,
+      `MR-10 month index range step ${k}`,
+      `got ${m.index}`
+    );
+    assert(!!m.name?.trim(), `MR-10 month named step ${k}`);
+    if (prevIndex >= 0) {
+      const delta = (m.index - prevIndex + MASA_COUNT) % MASA_COUNT;
+      if (delta === 1) advances++;
+      else if (delta === 0) repeats++;
+      assert(
+        delta === 1 || delta === 0,
+        `MR-10 month advances by 0 or 1 at step ${k}`,
+        `${prevIndex} → ${m.index} (delta ${delta})`
+      );
+    }
+    prevIndex = m.index;
+  }
+  // Over ~25 lunations the months must actually move, not sit still.
+  assert(advances >= 20, 'MR-10 months advance over two years', `only ${advances} advances, ${repeats} repeats`);
+}
+
+// ── MR-11: calendar structure across 1950-2050 ──────────────────────────────
+// The golden back-test corpus is necessarily thin and clusters in recent years.
+// These assertions cover the whole supported range using constraints that are
+// ARITHMETIC rather than doctrinal, so they need no external corpus.
+{
+  // 19 tropical years = 235 lunations, so a Metonic window must contain 7
+  // intercalary months. Boundary effects on a window that starts mid-lunation
+  // can shift that by one, hence the 6-9 bound; a broken adhika rule departs
+  // from it dramatically (0, or one every month).
+  for (const startYear of [1950, 1969, 1988, 2007, 2026]) {
+    let nm = lastNewMoonBefore(toJulianDay(`${startYear}-01-01`, '12:00'));
+    const end = toJulianDay(`${startYear + 18}-12-31`, '12:00');
+    let adhika = 0;
+    let lunations = 0;
+    let guard = 0;
+    while (nm < end && guard++ < 400) {
+      if (getLunarMonth(nm + 2, 'amanta').isAdhika) adhika++;
+      lunations++;
+      nm = nextNewMoonAfter(nm);
+    }
+    assert(
+      lunations >= 230 && lunations <= 240,
+      `MR-11 lunation count ${startYear}-${startYear + 18}`,
+      `${lunations} lunations in 19 years, expected ~235`
+    );
+    assert(
+      adhika >= 6 && adhika <= 9,
+      `MR-11 Metonic adhika count ${startYear}-${startYear + 18}`,
+      `${adhika} intercalary months, expected 7 (bound 6-9)`
+    );
+  }
+
+  // Across the full supported range every lunation must yield a named month,
+  // an index in 0..11, and consecutive non-adhika months must advance by one.
+  for (const year of [1950, 1975, 2000, 2025, 2049]) {
+    let nm = lastNewMoonBefore(toJulianDay(`${year}-01-01`, '12:00'));
+    let prev = -1;
+    for (let i = 0; i < 13; i++) {
+      const m = getLunarMonth(nm + 2, 'amanta');
+      assert(m.index >= 0 && m.index < 12, `MR-11 month index ${year}+${i}`, `got ${m.index}`);
+      assert(!!m.name?.trim(), `MR-11 month named ${year}+${i}`);
+      if (prev >= 0 && !m.isAdhika) {
+        const delta = (m.index - prev + 12) % 12;
+        assert(
+          delta === 1 || delta === 0,
+          `MR-11 month advance ${year}+${i}`,
+          `${prev} -> ${m.index} (delta ${delta})`
+        );
+      }
+      prev = m.index;
+      nm = nextNewMoonAfter(nm);
+    }
+  }
+
+  // Tithi must sweep all 30 values across a lunation and never skip: kshaya
+  // (a tithi that never prevails at sunrise) and vriddhi (one that prevails on
+  // two) are civil-day phenomena, not gaps in the underlying 12-degree arcs.
+  {
+    const seen = new Set<number>();
+    const start = toJulianDay('2023-11-01', '00:00');
+    for (let h = 0; h < 30 * 24; h += 2) {
+      seen.add(Math.floor(getElongation(start + h / 24) / 12));
+    }
+    assert(seen.size === 30, 'MR-11 all 30 tithis occur in a lunation', `saw ${seen.size}`);
+  }
+
+  // Sampling one civil day at sunrise across a lunation must show at least one
+  // tithi skipped or repeated somewhere in a year — that is what kshaya and
+  // vriddhi ARE. If sunrise sampling never skips, the sampling is wrong.
+  {
+    let skips = 0;
+    let repeats = 0;
+    let prev = -1;
+    for (let d = 0; d < 365; d++) {
+      const t = Math.floor(getElongation(toJulianDay('2023-01-01', '06:00') + d) / 12);
+      if (prev >= 0) {
+        const delta = (t - prev + 30) % 30;
+        if (delta === 2) skips++;
+        if (delta === 0) repeats++;
+      }
+      prev = t;
+    }
+    assert(skips > 0, 'MR-11 kshaya tithis occur', `no tithi skipped at sunrise across 365 days`);
+    assert(repeats > 0, 'MR-11 vriddhi tithis occur', `no tithi repeated at sunrise across 365 days`);
   }
 }
 

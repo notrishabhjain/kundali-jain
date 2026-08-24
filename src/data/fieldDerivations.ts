@@ -1,4 +1,8 @@
 // Field derivation registry — how every displayed value is computed.
+// Source: per-entry `source` fields below carry the citation for each field;
+// the basis taxonomy (ganita / agama / sankalita) follows GAP_CLOSING_RESEARCH
+// §GV.5, which established which engine constants are canonical and which are
+// synthesized.
 //
 // Each entry explains, in Hindi, three things the user deserves to know about
 // any number the app shows them:
@@ -48,11 +52,11 @@ export const FIELD_DERIVATIONS: Record<string, FieldDerivation> = {
     key: 'moonLongitude',
     label: 'चन्द्र स्फुट (सायन → निरयण)',
     derivation:
-      'आपके जन्म-क्षण को जूलियन दिनांक में बदला जाता है। फिर मीयस (Meeus) की चन्द्र-गति गणना के प्रमुख पदों से सायन चन्द्र-स्फुट निकाला जाता है, और उसमें से लाहिड़ी अयनांश घटाकर निरयण (सिडीरियल) स्फुट प्राप्त होता है — जैन ज्योतिष निरयण पद्धति पर आधारित है।',
+      'आपके जन्म-क्षण को जूलियन दिनांक में बदला जाता है। फिर मीयस (Meeus) की चन्द्र-गति गणना के पूर्ण ६० पदों से सायन चन्द्र-स्फुट निकाला जाता है (नूतन-चलन सहित), और उसमें से लाहिड़ी अयनांश घटाकर निरयण (सिडीरियल) स्फुट प्राप्त होता है — जैन ज्योतिष निरयण पद्धति पर आधारित है।',
     formula: 'निरयण स्फुट = सायन चन्द्र-स्फुट − लाहिड़ी अयनांश (वर्तमान युग में ≈ २३.८५°)',
     analysis:
-      'यही एक संख्या नक्षत्र, पाद, राशि और दशा — चारों का मूल है। इसकी परिशुद्धता लगभग ०.५° है, अतः नक्षत्र-संधि के अत्यंत निकट जन्म होने पर पाद बदल सकता है।',
-    source: 'Meeus, Astronomical Algorithms ch. 47; लाहिड़ी अयनांश',
+      'यही एक संख्या नक्षत्र, पाद, राशि और दशा — चारों का मूल है। इसकी परिशुद्धता लगभग १० विकला (arcsec) है — एक पाद ३°२०\' का होता है, अतः केवल संधि के कुछ सेकंडों के भीतर जन्म होने पर ही पाद संदिग्ध रहता है।',
+    source: 'Meeus, Astronomical Algorithms ch. 47 (पूर्ण तालिका 47.A); लाहिड़ी अयनांश; Ex.47.a से ०.११ विकला तक सत्यापित',
     basis: 'ganita',
   }),
 

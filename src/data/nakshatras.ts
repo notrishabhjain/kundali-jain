@@ -64,7 +64,7 @@ export const NAKSHATRAS: Nakshatra[] = [
     index: 0, name: "Ashvini", hindi_name: "अश्विनी",
     start_deg: 0, end_deg: 13.333,
     nature: "param_shubha", karma_type: "Gyanavaraniya",
-    tirthankaras_born: ["कुन्थुनाथ (17)", "नमिनाथ (21)"],
+    tirthankaras_born: ["नमिनाथ (21)"],
     ruling_jyotishi_dev: "अश्विनी ज्योतिषी देव",
     spiritual_traits: "गति, आरोग्य, नई शुरुआत, चिकित्सा ज्ञान",
     karma_manifestation: "ज्ञानावरणीय कर्म: नई बातें सीखने में बाधा, उचित निर्णय लेने में विलंब",

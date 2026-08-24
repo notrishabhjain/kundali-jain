@@ -45,6 +45,21 @@ jobs:
       # (see references/extracted/GAP_CLOSING_RESEARCH__synthesis.md §GV.5), so
       # no external kundali can be diffed against it. These two guards assert
       # how output must CHANGE with input, and that it genuinely personalises.
+      # External-oracle layer: published astronomy this codebase did not produce.
+      # Catches uniform errors (a wrong ayanamsa, a truncated lunar series) that
+      # metamorphic testing is structurally blind to.
+      # The nakshatra -> Tirthankara table underlies every reading; 19 of 24
+      # entries are pinned against the published record, the rest reported.
+      - name: Tirthankara table guard
+        run: npm run check:tirthankara
+
+      # Every doctrinal assertion must trace to catalogued Digambar literature.
+      - name: Citation audit
+        run: npm run check:citations
+
+      - name: Ephemeris conformance guard
+        run: npm run check:ephemeris
+
       - name: Metamorphic guard
         run: npm run check:metamorphic
 
@@ -89,6 +104,9 @@ jobs:
             echo "| Pancham Kaal guard | ✅ |"
             echo "| Karma quality guard | ✅ |"
             echo "| PDF parity guard | ✅ |"
+            echo "| Tirthankara table | ✅ |"
+            echo "| Citation audit | ✅ |"
+            echo "| Ephemeris conformance | ✅ |"
             echo "| Metamorphic guard | ✅ |"
             echo "| Entropy guard | ✅ |"
             echo "| Panchang back-test | ✅ |"

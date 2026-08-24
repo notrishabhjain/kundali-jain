@@ -1,3 +1,9 @@
+// Nine grahas in the Jain frame. These are Jyotishi Devs — celestial beings of
+// the Jyotishka order — NOT Vedic deities, and they are Nimitta (indicative),
+// never causal: a graha does not cause a karma, it marks one already bound.
+// Source: TLP-1 ch. 7 (jyotishi-dev classes); BDS-1 via RESEARCH-REPORT-2025 §1
+// (graha→karma indication table). [REQUIRES_RESEARCH] verse-level BDS-1 OCR
+// pending for the per-graha affliction readings.
 export interface Graha {
   id: number;
   name: string;

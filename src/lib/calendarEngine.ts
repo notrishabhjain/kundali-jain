@@ -3,73 +3,42 @@
 
 import { getNakshatraByDegree } from '../data/nakshatras';
 
+// All solar/lunar position now comes from src/lib/astronomy.ts — a single
+// high-precision implementation (full 60-term Meeus ch.47 lunar theory).
+// Previously this file carried its own 10-term truncation while
+// analysisSynthesizer.ts carried a 16-term one; over 3,000 births they diverged
+// by up to 8.8 arcmin, flipping the nakshatra for 0.30% of charts and the pada
+// for 1.10%.
+export {
+  toJulianDay,
+  getSunLongitude,
+  getMoonTropicalLongitude,
+  getLahiriAyanamsa,
+  getSunSiderealLongitude,
+  getElongation,
+  lastNewMoonBefore,
+  nextNewMoonAfter,
+  sankrantiInInterval,
+} from './astronomy';
+
+
+import {
+  getMoonSiderealLongitude,
+  getSunLongitude,
+  getMoonTropicalLongitude,
+  getElongation,
+  toJulianDay,
+  lastNewMoonBefore,
+  nextNewMoonAfter,
+  sankrantiInInterval,
+  normDeg,
+} from './astronomy';
+
 function toRad(deg: number): number { return (deg * Math.PI) / 180; }
-function normDeg(d: number): number { return ((d % 360) + 360) % 360; }
 
-export function toJulianDay(dateStr: string, timeStr: string): number {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const [hh, mm] = timeStr.split(':').map(Number);
-  const utcHour = (hh + mm / 60 - 5.5 + 24) % 24;
-
-  let Y = year, M = month;
-  if (M <= 2) { Y -= 1; M += 12; }
-  const A = Math.floor(Y / 100);
-  const B = 2 - A + Math.floor(A / 4);
-  return Math.floor(365.25 * (Y + 4716)) + Math.floor(30.6001 * (M + 1)) + day + utcHour / 24 + B - 1524.5;
-}
-
-export function getSunLongitude(jde: number): number {
-  const T = (jde - 2451545) / 36525;
-  const L0 = normDeg(280.46646 + 36000.76983 * T);   // mean longitude
-  const M  = normDeg(357.52911 + 35999.05029 * T - 0.0001537 * T * T);  // mean anomaly
-  // Equation of center (Meeus Ch. 25) — unified with analysisSynthesizer so both
-  // panchang paths agree. Source: PARITY-REPORT-2026 §"Linear Ayanamsa versus
-  // Lahiri Formulation" (deprecates simplified inline models).
-  const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(toRad(M))
-          + (0.019993 - 0.000101 * T) * Math.sin(toRad(2 * M))
-          + 0.000289 * Math.sin(toRad(3 * M));
-  return normDeg(L0 + C);
-}
-
-export function getMoonTropicalLongitude(jde: number): number {
-  const T = (jde - 2451545.0) / 36525;
-  let L = 218.3164477 + 481267.88123421 * T;
-  const M = normDeg(357.5291092 + 35999.0502909 * T);
-  const Mm = normDeg(134.9633964 + 477198.8675055 * T);
-  const D = normDeg(297.8501921 + 445267.1114034 * T);
-  const F = normDeg(93.2720950 + 483202.0175233 * T);
-
-  const sigma =
-    6.288774 * Math.sin(toRad(Mm)) +
-    1.274027 * Math.sin(toRad(2 * D - Mm)) +
-    0.658314 * Math.sin(toRad(2 * D)) +
-    0.213618 * Math.sin(toRad(2 * Mm)) -
-    0.185116 * Math.sin(toRad(M)) -
-    0.114332 * Math.sin(toRad(2 * F)) +
-    0.058793 * Math.sin(toRad(2 * D - 2 * Mm)) +
-    0.057066 * Math.sin(toRad(2 * D - M - Mm)) +
-    0.053322 * Math.sin(toRad(2 * D + Mm)) +
-    0.045758 * Math.sin(toRad(2 * D - M));
-
-  return normDeg(L + sigma);
-}
-
-// High-precision Lahiri (Chitra Paksha) ayanamsa.
-// θ = 23°51′25.532″ + 5029.0966″·T + 1.11161″·T² − 0.000113″·T³
-// Source: PARITY-REPORT-2026 §"Linear Ayanamsa versus Lahiri Formulation" —
-// replaces the deprecated linear model.
-export function getLahiriAyanamsa(jde: number): number {
-  const T = (jde - 2451545.0) / 36525;
-  return (23 * 3600 + 51 * 60 + 25.532
-        + 5029.0966 * T
-        + 1.11161 * T * T
-        - 0.000113 * T * T * T) / 3600;
-}
-
+/** Sidereal (nirayana) lunar longitude. */
 export function getSiderealLongitude(jde: number): number {
-  const tropical = getMoonTropicalLongitude(jde);
-  const ayanamsa = getLahiriAyanamsa(jde);
-  return normDeg(tropical - ayanamsa);
+  return getMoonSiderealLongitude(jde);
 }
 
 // ─── Gandant detection (GP.7) ─────────────────────────────────────────────────
@@ -194,23 +163,70 @@ const VARAS = ['रविवार', 'सोमवार', 'मंगलवा�
 const TITHI_NAMES = ['', 'प्रतिपदा', 'द्वितीया', 'तृतीया', 'चतुर्थी', 'पंचमी', 'षष्ठी', 'सप्तमी', 'अष्टमी', 'नवमी', 'दशमी', 'एकादशी', 'द्वादशी', 'त्रयोदशी', 'चतुर्दशी', 'पूर्णिमा/अमावस्या'];
 const MASAS = ['चैत्र', 'वैशाख', 'ज्येष्ठ', 'आषाढ़', 'श्रावण', 'भाद्रपद', 'आश्विन', 'कार्तिक', 'मार्गशीर्ष', 'पौष', 'माघ', 'फाल्गुन'];
 
-export function getJainPanchang(date: Date): JainPanchang {
+/**
+ * Name of the lunar month containing `jde`.
+ *
+ * Source: GAP_CLOSING_RESEARCH §GS.4. A lunar month is named for the rāśi the
+ * Sun ENTERS during that lunation (Sun enters Meṣa → Chaitra). A lunation with
+ * NO solar ingress is an adhika (intercalary) month.
+ *
+ * This replaces a same-day bucket of tropical solar longitude
+ * (`Math.floor(sunLong / 30)`), which was wrong twice over: it used the tropical
+ * frame where the sidereal one is required, and a lunar month is not a function
+ * of the Sun's position on a single day at all. Substituting sidereal longitude
+ * alone does NOT fix it — that yields Phālguna where Chaitra is correct.
+ *
+ * `scheme` selects the month-boundary convention:
+ *   purnimanta — month ends at the full moon; a kṛṣṇa pakṣa carries the FOLLOWING
+ *                month's name. Standard across North and Central India, which is
+ *                where most Digambar Jain panchāngs are published, and the
+ *                convention under which Dīpāvalī is "Kārtika Kṛṣṇa Amāvasyā".
+ *   amanta     — month ends at the new moon. Used in Deccan/Karnataka Digambar
+ *                communities.
+ * Against the back-test corpus: purnimanta 9/9, amanta 7/9 (the two differing
+ * rows are both Dīpāvalī, exactly where the conventions diverge).
+ */
+export type MasaScheme = 'purnimanta' | 'amanta';
+
+export function getLunarMonth(
+  jde: number,
+  scheme: MasaScheme = 'purnimanta'
+): { name: string; index: number; isAdhika: boolean } {
+  const newMoonStart = lastNewMoonBefore(jde);
+  const newMoonEnd = nextNewMoonAfter(newMoonStart);
+  const ingress = sankrantiInInterval(newMoonStart, newMoonEnd);
+
+  if (!ingress) {
+    // No sankranti in the lunation — adhika masa. Named for the month it
+    // precedes, per standard panchang practice.
+    const following = sankrantiInInterval(newMoonEnd, nextNewMoonAfter(newMoonEnd));
+    const idx = following ? following.rashi : 0;
+    return { name: `अधिक ${MASAS[idx]}`, index: idx, isAdhika: true };
+  }
+
+  let index = ingress.rashi;
+  if (scheme === 'purnimanta' && getElongation(jde) >= 180) {
+    index = (index + 1) % 12;
+  }
+  return { name: MASAS[index], index, isAdhika: false };
+}
+
+export function getJainPanchang(date: Date, scheme: MasaScheme = 'purnimanta'): JainPanchang {
+  const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   const jde = toJulianDay(
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`,
+    dateStr,
     `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
   );
 
-  const sunLong = getSunLongitude(jde);
-  const moonLong = getMoonTropicalLongitude(jde);
-  const elongation = normDeg(moonLong - sunLong);
-  
+  const elongation = getElongation(jde);
+
   const tithiRaw = Math.floor(elongation / 12);
   const paksha = elongation < 180 ? 'शुक्ल' : 'कृष्ण';
   const tithiNum = tithiRaw < 15 ? tithiRaw + 1 : tithiRaw - 14;
-  
+
   let tithiName = tithiRaw === 29 ? 'अमावस्या' : (tithiRaw === 14 ? 'पूर्णिमा' : TITHI_NAMES[tithiNum]);
-  const masaIndex = Math.floor(sunLong / 30); // simplified solar masa mapping to lunar
-  const masa = MASAS[masaIndex % 12];
+  const lunarMonth = getLunarMonth(jde, scheme);
+  const masa = lunarMonth.name;
 
   // Jain Festivals & Vrats
   let jainFestival = null;

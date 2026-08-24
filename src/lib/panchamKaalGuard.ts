@@ -1,3 +1,7 @@
+// Pancham Kaal (5th Ara) doctrinal ceiling. Moksha is not attainable in this
+// Ara; samyak-darshan, punya-bandha and deva-gati are. The practical gunasthana
+// ceiling is 5 (deshavirata) on the Digambar strict view.
+// Source: TLP-3 (time-cycle / aras); Sarvarthasiddhi §9-10; Codex constraint C4.
 // Pancham Kāla (5th Ara) doctrinal constraints and guidance.
 //
 // Sources (see references/sources.md):

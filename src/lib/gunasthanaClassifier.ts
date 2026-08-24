@@ -53,38 +53,117 @@ export function classifyGunasthana(input: GunasthanaInput): number {
 }
 
 /**
- * Infer the 3 axes from available birth-chart signals when no questionnaire
- * data is present. This is a best-effort approximation — the questionnaire
- * path is always preferred.
- * Source: PARITY-REPORT-2026 §"Fallback Inference from Nakshatra+Dasha".
+ * Infer the 3 axes from birth-chart signals when no questionnaire data exists.
+ *
+ * DOCTRINAL BASIS FOR THE WEAK MAPPING BELOW
+ * A birth chart cannot determine gunasthana. Gunasthana is fixed by the udaya
+ * state of darshana-mohaniya and by the intensity-tier of the kashayas — inner
+ * facts about the soul, not positions in the sky. Grahas and nakshatras are
+ * Nimitta (indicative), never causal; see the same principle stated in
+ * src/data/grahas.ts. An inference from a chart is therefore a weak prior, and
+ * must be expressed as one.
+ *
+ * WHAT THIS REPLACES, AND WHY
+ * The previous mapping let two single factors each pin the output:
+ *   nakshatraNature === 'ashubha'          → mithyatva 3    → always stage 1
+ *   dashaLord is Mohaniya or Antaraya      → kashaya 3      → always stage 1
+ * Measured over 3,000 charts that produced gunasthana 1 for 100% of everyone in
+ * a Mohaniya or Antaraya mahadasha (51% of the population) and for 100% of
+ * ashubha-nakshatra births, giving 67% of all users "complete spiritual
+ * delusion" as their reading.
+ *
+ * Two things were wrong with it:
+ *
+ * 1. It conflated WHICH karma is fruiting with HOW INTENSE the kashayas are.
+ *    A Mohaniya mahadasha means mohaniya karma is in udaya — a timing fact. It
+ *    says nothing about whether the passions sit at the anantanubandhi tier
+ *    (which destroys samyaktva) or the sanjvalana tier (compatible with stages
+ *    6-7). Collapsing the sixteen-kashaya taxonomy of Gommatsar Karmakanda into
+ *    one bit keyed on the dasha lord is not supported by any source.
+ *
+ * 2. It made gunasthana 4 unreachable for anyone in Mohaniya dasha. Stage 4,
+ *    Avirata-Samyagdrshti, exists precisely to name right belief held WHILE
+ *    karma remains active. A rule that forbids it whenever mohaniya is fruiting
+ *    negates the category the tradition defines.
+ *
+ * The gates inside classifyGunasthana are NOT changed: anantanubandhi kashayas
+ * active does doctrinally bar stages 4 and above (Sarvarthasiddhi §9.1). What
+ * changes is that a chart alone may no longer assert that tier.
+ *
+ * Source: Sarvarthasiddhi §1.1-1.8 (the three determinants); Gommatsar
+ * Karmakanda (kashaya tiers vs gunasthana, see GAP_CLOSING_RESEARCH §GK.1);
+ * Codex constraint C4 — do not assert doctrine the sources do not support.
  */
 export function inferGunasthanaInputs(
   nakshatraNature: string,
   dashaLord: string
 ): GunasthanaInput {
-  // Mithyatva: param_shubha nakshatra suggests greater receptivity to samyak-darshan
+  // Mithyatva — a weak central prior. The extremes are deliberately excluded:
+  // 0 would assert established samyak-darshan and 3 would assert entrenched
+  // false belief, and a birth chart is evidence for neither.
   let mithyatva: GunasthanaInput['mithyatva'] = 2;
-  if (nakshatraNature === 'param_shubha') mithyatva = 0;
-  else if (nakshatraNature === 'shubha')  mithyatva = 1;
-  else if (nakshatraNature === 'mishra')  mithyatva = 2;
-  else                                     mithyatva = 3;
+  if (nakshatraNature === 'param_shubha') mithyatva = 1;
+  else if (nakshatraNature === 'shubha') mithyatva = 1;
+  else mithyatva = 2; // mishra and ashubha alike — nimitta, not determinant
 
-  // Avirati: most people in Pancham Kal hold no formal vows (avirati=2).
-  // A param_shubha nakshatra hints at the householder vow stage (avirati=1).
-  const avirati: GunasthanaInput['avirati'] =
-    nakshatraNature === 'param_shubha' ? 1 : 2;
+  // Avirati — vows are an act of will, wholly unobservable from a chart.
+  // Most householders in Pancham Kaal hold no formal vrata, so that is the
+  // prior, and it is not varied by nakshatra.
+  const avirati: GunasthanaInput['avirati'] = 2;
 
-  // Kashaya: destructive dasha lords escalate the kashaya estimate.
+  // Kashaya — nudged by at most one step around the central tier, never to
+  // anantanubandhi. Which karma is in udaya may hint at the texture of the
+  // period; it cannot establish the tier of the passions.
   let kashayaLevel: GunasthanaInput['kashayaLevel'] = 2;
   if (dashaLord === 'Mohaniya' || dashaLord === 'Antaraya') {
-    kashayaLevel = 3;
-  } else if (dashaLord === 'Gyanavaraniya' || dashaLord === 'Darshanavaraniya') {
-    kashayaLevel = 2;
+    kashayaLevel = 2; // a difficult period, not evidence of anantanubandhi
   } else if (nakshatraNature === 'param_shubha') {
     kashayaLevel = 1;
   }
 
   return { mithyatva, avirati, kashayaLevel };
+}
+
+/** How the gunasthana figure was arrived at. */
+export type GunasthanaConfidence = 'self-assessed' | 'estimated';
+
+export interface GunasthanaEstimate {
+  gunasthana: number;
+  confidence: GunasthanaConfidence;
+  /** Which axes came from the questionnaire rather than from the chart. */
+  selfAssessedAxes: Array<keyof GunasthanaInput>;
+  inputs: GunasthanaInput;
+}
+
+/**
+ * Gunasthana with provenance. A chart-only figure is `estimated` and should be
+ * presented as a prompt to self-assess, never as a finding about the soul.
+ */
+export function estimateGunasthanaWithConfidence(
+  nakshatraNature: string,
+  dashaLord: string,
+  questionnaireInput?: Partial<GunasthanaInput>,
+  activeMohaniyaSubtypes?: string[]
+): GunasthanaEstimate {
+  const inferred = inferGunasthanaInputs(nakshatraNature, dashaLord);
+  const selfAssessedAxes = (['mithyatva', 'avirati', 'kashayaLevel'] as const).filter(
+    (k) => questionnaireInput?.[k] !== undefined
+  );
+  const inputs: GunasthanaInput = {
+    mithyatva: questionnaireInput?.mithyatva ?? inferred.mithyatva,
+    avirati: questionnaireInput?.avirati ?? inferred.avirati,
+    kashayaLevel: questionnaireInput?.kashayaLevel ?? inferred.kashayaLevel,
+  };
+  let g = classifyGunasthana(inputs);
+  if (activeMohaniyaSubtypes && activeMohaniyaSubtypes.length > 0) {
+    g = capGunasthanaByMohaniya(g, activeMohaniyaSubtypes);
+  }
+  return {
+    gunasthana: g,
+    confidence: selfAssessedAxes.length === 3 ? 'self-assessed' : 'estimated',
+    selfAssessedAxes: [...selfAssessedAxes],
+    inputs,
+  };
 }
 
 /**
