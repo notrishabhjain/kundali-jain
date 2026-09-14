@@ -43,6 +43,7 @@ import {
   getLahiriAyanamsa,
   lastNewMoonBefore,
   normDeg,
+  toJulianDay as toJulianDayIST,
 } from '../src/lib/astronomy';
 
 const errors: string[] = [];
@@ -80,6 +81,61 @@ function expect(label: string, actualArcmin: number, boundArcmin: number) {
   if (!ok) {
     errors.push(
       `Meeus Ex.47.a — lunar longitude off by ${errArcsec.toFixed(2)}", expected ≤30"; lunar series likely incomplete`
+    );
+  }
+}
+
+// ── 0b. Pre-dawn births land on the correct UTC day ─────────────────────────
+// REGRESSION GUARD. IST is UTC+5:30, so a birth before 05:30 IST belongs to the
+// PREVIOUS UTC day. The original toJulianDay computed
+//     utcHour = ((h + m/60 - 5.5) + 24) % 24
+// and then added it to an UNDECREMENTED day number, so the modulo wrapped a
+// negative offset up to ~19.9 hours and every birth between 00:00 and 05:29 IST
+// was computed a full day late. The Moon moves ~13.2°/day, so those charts came
+// out ~11.85° wrong — normally a different nakshatra, which changes tirthankar
+// affinity, dominant karma and the dasha starting lord.
+//
+// That is roughly 23% of all births (5.5 of 24 hours). Confirmed against a real
+// chart: 1993-09-05 01:25 IST gave Moon 11.05° (Ashvini) under the old form; the
+// correct value is 359.20° (Revati).
+//
+// No metamorphic relation catches this: a one-minute delta shifts both samples
+// equally, so continuity still holds on a uniformly wrong day. It needs an
+// absolute anchor, which is why it lives here.
+{
+  // Midnight-to-dawn and post-dawn births on the same civil date must differ by
+  // only the elapsed hours of Moon motion, never by a whole day.
+  const moonAt = (t: string) => getMoonSiderealLongitude(toJulianDayIST('1993-09-05', t));
+  const preDawn = moonAt('01:25');
+  const postDawn = moonAt('08:00');
+  // 6h35m of Moon motion ≈ 3.6°; a day-shift would show ~11.8°.
+  // Wrap the difference: this pair straddles 0°, so a raw subtraction reads
+  // ~357° instead of ~3°.
+  const gap = Math.abs(((postDawn - preDawn + 180 + 360) % 360) - 180);
+  checks++;
+  const ok = gap < 6;
+  notes.push(
+    `  ${ok ? 'ok  ' : 'FAIL'} ${'pre-dawn birth stays on the same day'.padEnd(46)} 01:25 vs 08:00 differ by ${gap.toFixed(2)}° (bound 6°)`
+  );
+  if (!ok) {
+    errors.push(
+      `pre-dawn date handling — Moon at 01:25 and 08:00 on the same date differ by ${gap.toFixed(2)}°, ` +
+        `which is a whole-day shift, not ~3.6° of real motion. The IST offset is being wrapped ` +
+        `instead of carried into the day number.`
+    );
+  }
+
+  // The specific real chart that exposed it.
+  const m = moonAt('01:25');
+  checks++;
+  const inRevati = m >= 346.6667 && m < 360;
+  notes.push(
+    `  ${inRevati ? 'ok  ' : 'FAIL'} ${'1993-09-05 01:25 IST is Revati, not Ashvini'.padEnd(46)} moon=${m.toFixed(2)}°`
+  );
+  if (!inRevati) {
+    errors.push(
+      `1993-09-05 01:25 IST gives Moon ${m.toFixed(2)}°; verified correct value is 359.20° (Revati pada 4). ` +
+        `A value near 11° means the pre-dawn day-shift bug has returned.`
     );
   }
 }
