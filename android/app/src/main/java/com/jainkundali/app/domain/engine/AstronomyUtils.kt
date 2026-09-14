@@ -17,15 +17,33 @@ object AstronomyUtils {
             val day = dateParts[2]
             val hh = timeParts[0]
             val mm = if (timeParts.size > 1) timeParts[1] else 0
-            // IST = UTC+5:30
-            val utcHour = ((hh + mm / 60.0 - 5.5) + 24.0) % 24.0
+
+            // IST = UTC+5:30. A birth before 05:30 IST falls on the PREVIOUS UTC
+            // day, so the offset must be carried into the day number rather than
+            // wrapped away.
+            //
+            // The previous form was:
+            //     val utcHour = ((hh + mm / 60.0 - 5.5) + 24.0) % 24.0
+            //     ... + day + utcHour / 24.0 + ...
+            // The `% 24.0` wrapped a negative offset up to ~19.9 while `day` was
+            // left untouched, so every birth between 00:00 and 05:29 IST was
+            // computed a FULL DAY LATE — moving the Moon about 11.85 degrees and
+            // usually landing it in the wrong nakshatra entirely. That is roughly
+            // 23% of all births (5.5 of 24 hours).
+            //
+            // Confirmed against a real chart: 1993-09-05 01:25 IST returned Moon
+            // 11.05 deg (Ashvini) under the old form; the correct value is
+            // 359.20 deg (Revati). The web engine carried the identical defect and
+            // was corrected when src/lib/astronomy.ts was written.
+            val utcOffsetHours = hh + mm / 60.0 - 5.5
+            val dayWithFraction = day + utcOffsetHours / 24.0
 
             var Y = year0
             var M = month0
             if (M <= 2) { Y -= 1; M += 12 }
             val A = Y / 100
             val B = 2 - A + A / 4
-            floor(365.25 * (Y + 4716)) + floor(30.6001 * (M + 1)) + day + utcHour / 24.0 + B - 1524.5
+            floor(365.25 * (Y + 4716)) + floor(30.6001 * (M + 1)) + dayWithFraction + B - 1524.5
         } catch (e: Exception) {
             // Return JDE for J2000.0 epoch as safe fallback
             2451545.0

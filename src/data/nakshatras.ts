@@ -16,6 +16,35 @@ export type KarmaType = 'Gyanavaraniya' | 'Darshanavaraniya' | 'Vedaniya' | 'Moh
 //   mishra       ← Mishra
 //   param_shubha ← (tirthankara-birth host) ∧ benefic Sanjna {Dhruva,Char,Kshipra,Mridu}
 //   shubha       ← remaining benefic-Sanjna stars
+//
+// ─── Two independent claims, deliberately NOT merged (decision 2026-09-14) ────
+// CLAUDE.md rule 4 reads "Tirthankar nakshatras = param_shubha" with no
+// qualifier; the derivation above gates param_shubha behind a benefic Sanjna as
+// well. Both cite MP-§C1, and for seven nakshatras they disagree:
+//
+//   Bharani (Ugra)          शान्तिनाथ (16)
+//   Magha (Ugra)            सुमतिनाथ (5)
+//   Purva Ashadha (Ugra)    शीतलनाथ (10), मल्लिनाथ (19)
+//   Purva Bhadrapada (Ugra) विमलनाथ (13)
+//   Mula (Tikshna)          सुविधिनाथ (9)
+//   Krittika (Mishra)       कुन्थुनाथ (17)
+//   Vishakha (Mishra)       सुपार्श्वनाथ (7), पार्श्वनाथ (23)
+//
+// They disagree because they are not the same claim. Hosting a Tirthankara
+// birth is a fact about sacred history; Sanjna is a muhurta grade describing
+// what kind of undertaking the star favours. A star can carry the highest
+// sanctity and still be Ugra for the purpose of beginning work. Collapsing the
+// two into one enum forces a false choice and silently loses whichever fact
+// loses the argument.
+//
+// So `nature` keeps its Sanjna-derived meaning above and NOTHING is
+// reclassified, while `isTirthankaraHost()` / `getBirthSanctity()` expose the
+// birth-sanctity claim separately. Both are surfaced in the reading. Neither is
+// derived from the other, and `check-doctrine` asserts each independently.
+//
+// Single source of truth for the sanctity claim is `tirthankaras_born` — it is
+// NOT duplicated into a boolean column, because a boolean that must be kept in
+// step with the array is a desync waiting to happen.
 export type NakshatraSanjna = 'Dhruva' | 'Char' | 'Ugra' | 'Kshipra' | 'Mridu' | 'Tikshna' | 'Mishra';
 
 export const SANJNA_CLASS: Record<number, NakshatraSanjna> = {
@@ -389,6 +418,67 @@ export function getNakshatraByName(name: string): Nakshatra | undefined {
     n.name.toLowerCase() === name.toLowerCase() ||
     n.hindi_name === name
   );
+}
+
+// ─── Birth sanctity — the second, independent claim ───────────────────────────
+// Separate from `nature` by deliberate decision; see the header block. `nature`
+// answers "what does this star favour?" (Sanjna, a muhurta grade).
+// `getBirthSanctity` answers "was a Tirthankara born under it?" (sacred
+// history). Neither is computed from the other.
+//
+// Source: MP-§C2 (Tirthankara birth-nakshatra block) for the underlying mapping;
+// CLAUDE.md rule 4 for the sanctity claim itself.
+
+export type BirthSanctity = 'param_shubha_by_birth' | 'none';
+
+/** True when at least one Tirthankara was born in this nakshatra. */
+export function isTirthankaraHost(n: Nakshatra): boolean {
+  return (n.tirthankaras_born?.length ?? 0) > 0;
+}
+
+export function getBirthSanctity(n: Nakshatra): BirthSanctity {
+  return isTirthankaraHost(n) ? 'param_shubha_by_birth' : 'none';
+}
+
+/**
+ * Hindi label for the sanctity claim. Phrased so it never reads as a muhurta
+ * verdict — it states the historical fact and the reverence that follows from
+ * it, and leaves the auspiciousness grading to `nature`.
+ */
+export function getBirthSanctityHindi(n: Nakshatra): string {
+  if (!isTirthankaraHost(n)) return 'इस नक्षत्र में किसी तीर्थंकर का जन्म नहीं हुआ';
+  const who = n.tirthankaras_born.join(', ');
+  return `परम शुभ (जन्म-सान्निध्य) — इस नक्षत्र में ${who} का जन्म हुआ`;
+}
+
+/**
+ * The two claims read together, for the narrative layer. Where they diverge the
+ * sentence says so plainly rather than letting one silently override the other:
+ * a star may carry Tirthankara-birth sanctity and still be Ugra or Tikshna for
+ * the purpose of beginning an undertaking.
+ */
+export function describeNakshatraStanding(n: Nakshatra): string {
+  const sanjna = SANJNA_CLASS[n.index];
+  const host = isTirthankaraHost(n);
+  const benefic = sanjna === 'Dhruva' || sanjna === 'Char' || sanjna === 'Kshipra' || sanjna === 'Mridu';
+  if (host && benefic) {
+    return `${getBirthSanctityHindi(n)}। मुहूर्त-दृष्टि से भी यह ${getSanjnaHindi(sanjna)} संज्ञा का शुभ नक्षत्र है।`;
+  }
+  if (host && !benefic) {
+    return `${getBirthSanctityHindi(n)}। मुहूर्त-दृष्टि इससे भिन्न है: संज्ञा ${getSanjnaHindi(sanjna)} है, ` +
+      `अतः नवीन कार्य-आरम्भ हेतु यह नक्षत्र संयत नहीं माना जाता। दोनों बातें साथ सत्य हैं — ` +
+      `जन्म-सान्निध्य का माहात्म्य पृथक् है, कार्यारम्भ की योग्यता पृथक्।`;
+  }
+  return `इस नक्षत्र में किसी तीर्थंकर का जन्म नहीं हुआ। संज्ञा ${getSanjnaHindi(sanjna)} है।`;
+}
+
+/** Every nakshatra where the two claims point in different directions. */
+export function getDivergentStandingNakshatras(): Nakshatra[] {
+  return NAKSHATRAS.filter((n) => {
+    const sanjna = SANJNA_CLASS[n.index];
+    const benefic = sanjna === 'Dhruva' || sanjna === 'Char' || sanjna === 'Kshipra' || sanjna === 'Mridu';
+    return isTirthankaraHost(n) && !benefic;
+  });
 }
 
 // ─── Prashnavyakarana Kula families (GN.1) ────────────────────────────────────

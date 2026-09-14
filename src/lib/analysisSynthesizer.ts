@@ -10,7 +10,12 @@
 //  - Three-layer dashā synthesis (mahā → antar → pratyantar): MP-§D2.
 //  - Tirthankara affinity weaving: MP-§C1 + MP-§C2.
 //
-import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/nakshatras';
+import { computeGrahaChart, type GrahaChart } from './planets';
+import {
+  NAKSHATRAS, getNakshatraByDegree, getNakshatraPada,
+  getBirthSanctity, getBirthSanctityHindi, describeNakshatraStanding,
+  type BirthSanctity
+} from '../data/nakshatras';
 import { calculateIshtakaal, calculateJainZodiacProjection, type IshtakaalResult, type JainZodiacProjection } from '../data/jainCosmology';
 import { calculateApparentSunTimes } from './sunriseEngine';
 import { resolveShadGhatiTithi, getGandantStatus } from './calendarEngine';
@@ -57,6 +62,15 @@ export interface UserProfile {
   nakshatraKarmaType: string;     // dominant karma type for this nakshatra
   nakshatraNature: string;        // param_shubha / shubha / mishra / ashubha
   nakshatraNatureHindi: string;
+  // Birth sanctity — the SECOND, independent claim. `nakshatraNature` above is a
+  // Sanjna-derived muhurta grade; these say whether a Tirthankara was born in
+  // the star. Neither is computed from the other, and for seven nakshatras they
+  // point different ways. See the header of src/data/nakshatras.ts.
+  // Source: MP-§C2 + CLAUDE.md rule 4.
+  nakshatraBirthSanctity: BirthSanctity;
+  nakshatraBirthSanctityHindi: string;
+  /** Both claims stated together; says so plainly where they diverge. */
+  nakshatraStanding: string;
   currentDasha: DashaInfo;
   dominantKarma: string;          // Hindi karma name
   dominantKarmaEn: string;        // English karma name for comparisons
@@ -68,6 +82,11 @@ export interface UserProfile {
   // Jain sidereal zodiac projection (unequal muhurta spans from Surya Prajnapti).
   // Source: Research Report §4 + SP-1.
   jainZodiacProjection: JainZodiacProjection;
+  // Nine grahas, lagna and whole-sign bhavas. Positions only — the grahas are
+  // Jyotishi Devs and NIMITTA (indicative), never causal; see src/lib/planets.ts
+  // for why computing them does not breach G2-C1, and grahas.ts for the frame
+  // they are read in. Undefined when the birth coordinates are unparsable.
+  grahaChart?: GrahaChart;
   // Legacy fields kept for backward compatibility with existing components
   birthNakshatraLegacy?: string;  // same as birthNakshatra
   currentDashaLegacy?: string;    // same as currentDasha.lord_hindi
@@ -237,6 +256,19 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
   // Source: Research Report §4 + SP-1.
   const jainZodiacProjection = calculateJainZodiacProjection(siderealDeg);
 
+  // Nine grahas + lagna. Never allowed to block profile generation: the karma
+  // reading is the primary output and must survive a coordinate it cannot parse.
+  let grahaChart: GrahaChart | undefined;
+  try {
+    const lat = parseFloat(data.lat);
+    const lng = parseFloat(data.lng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      grahaChart = computeGrahaChart(data.dob, data.time || '12:00', lat, lng);
+    }
+  } catch {
+    grahaChart = undefined;
+  }
+
   // Gandant birth warning (blueprint §B.7) — Moon within ±10′ of a water→fire
   // sign junction (Ashlesha→Magha, Jyeshtha→Mula, Revati→Ashvini).
   let gandantWarning: string | undefined;
@@ -262,6 +294,9 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     nakshatraKarmaType: karmaType,
     nakshatraNature: nakshatra.nature,
     nakshatraNatureHindi: NATURE_HINDI[nakshatra.nature] || nakshatra.nature,
+    nakshatraBirthSanctity: getBirthSanctity(nakshatra),
+    nakshatraBirthSanctityHindi: getBirthSanctityHindi(nakshatra),
+    nakshatraStanding: describeNakshatraStanding(nakshatra),
     currentDasha: dasha,
     dominantKarma: dominantKarmaHindi,
     dominantKarmaEn: karmaType,
@@ -269,6 +304,7 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     formData: data,
     ishtakaal,
     jainZodiacProjection,
+    grahaChart,
     // Legacy compatibility
     birthNakshatraLegacy: nakshatra.hindi_name,
     currentDashaLegacy: dasha.lord_hindi,

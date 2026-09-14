@@ -81,6 +81,12 @@ const FullPrintableReport = ({ profile, forExport }: Props) => {
                <div className="flex justify-between border-b border-amber-100 pb-3"><span className="text-amber-700">नाम:</span> <span>{profile.name}</span></div>
                <div className="flex justify-between border-b border-amber-100 pb-3"><span className="text-amber-700">जन्म-स्थान:</span> <span>{profile.formData?.place || '-'}</span></div>
                <div className="flex justify-between border-b border-amber-100 pb-3"><span className="text-amber-700">जन्म-नक्षत्र:</span> <span>{profile.birthNakshatraHindi || profile.birthNakshatra}</span></div>
+               <div className="flex justify-between border-b border-amber-100 pb-3"><span className="text-amber-700">नक्षत्र स्वभाव (मुहूर्त):</span> <span>{profile.nakshatraNatureHindi || '-'}</span></div>
+               {/* Birth sanctity is printed as its own row, never folded into the
+                   muhurta grade above — the two are independent claims. */}
+               {profile.nakshatraBirthSanctity === 'param_shubha_by_birth' && (
+                 <div className="flex justify-between border-b border-amber-100 pb-3"><span className="text-amber-700">जन्म-सान्निध्य:</span> <span className="font-bold text-amber-800">परम शुभ — तीर्थंकर जन्म-नक्षत्र</span></div>
+               )}
                <div className="flex justify-between border-b border-amber-100 pb-3"><span className="text-amber-700">महादशा:</span> <span>{profile.currentDasha?.lord_hindi || profile.currentDashaLegacy}</span></div>
                <div className="flex justify-between border-b border-amber-100 pb-3"><span className="text-amber-700">अंतर्दशा:</span> <span>{profile.currentDasha?.antardashaInfo?.lord_hindi || '-'}</span></div>
                <div className="flex justify-between border-b border-amber-100 pb-3"><span className="text-amber-700">प्रत्यंतर्दशा:</span> <span>{profile.currentDasha?.pratyantardasha?.lord_hindi || '-'}</span></div>
@@ -153,6 +159,12 @@ const FullPrintableReport = ({ profile, forExport }: Props) => {
 
       <ReportPage pageNumber={5} totalPages={23}>
         <div className="w-full"><BirthChart profile={profile} part={2} /></div>
+      </ReportPage>
+
+      {/* Grahas, lagna and bhavas get a page of their own — the table and the
+          twelve-bhava grid do not fit legibly alongside the nakshatra analysis. */}
+      <ReportPage pageNumber={5} totalPages={23}>
+        <div className="w-full"><BirthChart profile={profile} part={3} /></div>
       </ReportPage>
 
       <ReportPage pageNumber={6} totalPages={23}>

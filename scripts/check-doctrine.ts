@@ -17,15 +17,27 @@
 //   D9 Gunasthana provenance     — a chart alone may not claim the soul's stage
 //   D10 Ladder is reachable      — self-assessment spans stages; only the two
 //                                  Sarvarthasiddhi gates may pin the result
+//   D11 Two-claim separation     — Tirthankara-birth sanctity and the Sanjna
+//                                  muhurta grade are independent; neither may be
+//                                  derived from, nor silently overwrite, the other
+//   D12 Grahas stay nimitta      — planetary positions are indicative, never
+//                                  causal; no graha may be given agency, and a
+//                                  position may never become a prediction
 //
 // A violation here is a doctrinal defect, not a style nit: it means the app
 // could tell a Jain user something the tradition holds to be false.
 
-import { generateUserProfile, AnalysisSynthesizer, BirthFormData } from '../src/lib/analysisSynthesizer';
+import { generateUserProfile, AnalysisSynthesizer, BirthFormData, type UserProfile } from '../src/lib/analysisSynthesizer';
 import { getTodayContext } from '../src/lib/analysisSynthesizer';
 import { generatePredictions } from '../src/lib/predictionEngine';
 import { generateRemedies } from '../src/lib/remedyEngine';
+import { readFileSync } from 'node:fs';
 import { calculateKarmaProfile } from '../src/lib/karmaEngine';
+import {
+  NAKSHATRAS, SANJNA_CLASS, getSanjnaHindi,
+  isTirthankaraHost, getBirthSanctity, describeNakshatraStanding,
+  getDivergentStandingNakshatras
+} from '../src/data/nakshatras';
 import {
   estimateGunasthanaWithConfidence,
   classifyGunasthana,
@@ -128,6 +140,18 @@ for (let i = 0; i < N; i++) {
   }
 
   const ctx = `${profile.formData.dob} ${profile.birthNakshatra}/${profile.dominantKarmaEn}`;
+
+  // D11g — both nakshatra claims must survive all the way into the profile the
+  // user actually reads. A field that exists in the data but never reaches the
+  // output is the same defect as not having it.
+  checks++;
+  if (!profile.nakshatraStanding || profile.nakshatraStanding.length < 20) {
+    violation('D11', `${ctx}: nakshatraStanding missing or truncated in the generated profile`);
+  }
+  checks++;
+  if (profile.nakshatraBirthSanctity !== 'param_shubha_by_birth' && profile.nakshatraBirthSanctity !== 'none') {
+    violation('D11', `${ctx}: nakshatraBirthSanctity="${profile.nakshatraBirthSanctity}" is not one of the two permitted values`);
+  }
 
   // D1 — Pancham Kaal ceiling
   checks++;
@@ -314,6 +338,194 @@ for (let i = 0; i < N; i++) {
   }
 }
 
+// ── D11 — the two nakshatra claims must stay independent ────────────────────
+// Decision of 2026-09-14: `nature` is a Sanjna-derived muhurta grade, and
+// Tirthankara-birth sanctity is a separate fact about sacred history. The two
+// were previously conflated, so a Bharani birth — hosting शान्तिनाथ — was told it
+// had "अशुभ आध्यात्मिक क्षमता".
+//
+// This guard fails if either claim is recomputed from the other, if a divergent
+// nakshatra stops reporting both facts, or if `nature` drifts off its own
+// documented derivation.
+// Source: MP-§C1 (Sanjna classification) and MP-§C2 (Tirthankara birth
+// nakshatras) — two distinct blocks making two distinct claims.
+{
+  const BENEFIC = new Set(['Dhruva', 'Char', 'Kshipra', 'Mridu']);
+  const divergent = getDivergentStandingNakshatras();
+
+  // D11a — the split must not become empty. If every Tirthankara-hosting star
+  // were benefic, the two claims would be observationally identical and someone
+  // could collapse them again without a single test noticing.
+  checks++;
+  if (divergent.length === 0) {
+    violation('D11', 'no nakshatra now pairs Tirthankara-birth sanctity with a non-benefic Sanjna — the two claims have become indistinguishable, so their separation is no longer tested by anything');
+  }
+
+  // D11b — the seven known divergent stars must still diverge.
+  const EXPECTED_DIVERGENT = ['Bharani', 'Krittika', 'Magha', 'Vishakha', 'Mula', 'Purva Ashadha', 'Purva Bhadrapada'];
+  const actual = new Set(divergent.map((n) => n.name));
+  for (const name of EXPECTED_DIVERGENT) {
+    checks++;
+    if (!actual.has(name)) {
+      violation('D11', `${name} hosts a Tirthankara birth under a non-benefic Sanjna but no longer reports as divergent — check whether nature was merged into the sanctity claim`);
+    }
+  }
+
+  for (const n of NAKSHATRAS) {
+    const host = isTirthankaraHost(n);
+    const benefic = BENEFIC.has(SANJNA_CLASS[n.index]);
+    const sanctity = getBirthSanctity(n);
+    const standing = describeNakshatraStanding(n);
+
+    // D11c — sanctity tracks tirthankaras_born and nothing else.
+    checks++;
+    if ((sanctity === 'param_shubha_by_birth') !== host) {
+      violation('D11', `${n.name}: birth sanctity disagrees with tirthankaras_born — sanctity must be read off sacred history alone`);
+    }
+
+    // D11d — sanctity must not be a rename of nature.
+    checks++;
+    if (host && !benefic && n.nature === 'param_shubha') {
+      violation('D11', `${n.name}: non-benefic Sanjna (${SANJNA_CLASS[n.index]}) yet nature=param_shubha — the muhurta grade has been overwritten by the sanctity claim`);
+    }
+
+    // D11e — nature must still follow its own documented derivation.
+    checks++;
+    const expectedNature = !benefic
+      ? (SANJNA_CLASS[n.index] === 'Mishra' ? 'mishra' : 'ashubha')
+      : (host ? 'param_shubha' : 'shubha');
+    if (n.nature !== expectedNature) {
+      violation('D11', `${n.name}: nature=${n.nature} but the documented Sanjna derivation gives ${expectedNature} (Sanjna ${SANJNA_CLASS[n.index]}, tirthankara-host=${host})`);
+    }
+
+    // D11f — a divergent star must state BOTH facts, never quietly drop one.
+    if (host && !benefic) {
+      checks++;
+      const namesTirthankara = n.tirthankaras_born.some((t) => standing.includes(t.split(' (')[0]));
+      if (!namesTirthankara) {
+        violation('D11', `${n.name}: standing text omits the Tirthankara(s) born there`);
+      }
+      checks++;
+      if (!standing.includes(getSanjnaHindi(SANJNA_CLASS[n.index]))) {
+        violation('D11', `${n.name}: standing text omits the Sanjna muhurta grade`);
+      }
+    }
+  }
+}
+
+// ── D12 — grahas are nimitta, never causal ─────────────────────────────────
+// Adding planetary positions is the single largest doctrinal exposure in this
+// engine, because a graha table is exactly the surface on which Vedic causal
+// astrology normally gets built. CLAUDE.md rule 1 and grahas.ts are explicit:
+// the grahas are Jyotishi Devs and they INDICATE a karma already bound; they do
+// not produce one. This guard is the tripwire for that line being crossed.
+// Source: TLP-1 ch. 7; CLAUDE.md rule 1; Codex G2-C1.
+{
+  const chartsWithGrahas: UserProfile[] = [];
+  for (let i = 0; i < 120; i++) {
+    try { chartsWithGrahas.push(generateUserProfile(birth(i))); } catch { /* covered elsewhere */ }
+  }
+
+  // D12a — the positions must actually be computed, or the whole feature is
+  // decorative and the rest of this rule tests nothing.
+  const withChart = chartsWithGrahas.filter((p) => p.grahaChart);
+  checks++;
+  if (withChart.length === 0) {
+    violation('D12', 'no generated chart carries grahaChart — planetary positions are not reaching the profile at all');
+  }
+
+  for (const p of withChart) {
+    const gc = p.grahaChart!;
+    const ctx = `${p.formData.dob}`;
+
+    // D12b — nine grahas, no more and no fewer.
+    checks++;
+    if (gc.grahas.length !== 9) {
+      violation('D12', `${ctx}: ${gc.grahas.length} grahas, expected exactly 9`);
+    }
+
+    // D12c — every position must be a real number in range. A NaN here would
+    // propagate silently into a rashi index of NaN and render as blank.
+    for (const g of gc.grahas) {
+      checks++;
+      if (!Number.isFinite(g.siderealLongitude) || g.siderealLongitude < 0 || g.siderealLongitude >= 360) {
+        violation('D12', `${ctx}: ${g.key} longitude ${g.siderealLongitude} out of [0,360)`);
+      }
+      checks++;
+      if (g.rashiIndex < 0 || g.rashiIndex > 11 || g.nakshatraIndex < 0 || g.nakshatraIndex > 26 || g.pada < 1 || g.pada > 4) {
+        violation('D12', `${ctx}: ${g.key} indices out of domain (rashi ${g.rashiIndex}, nak ${g.nakshatraIndex}, pada ${g.pada})`);
+      }
+    }
+
+    // D12d — Rahu and Ketu are one axis. If they ever drift apart, the node
+    // derivation has been broken.
+    const rahu = gc.grahas.find((g) => g.key === 'Rahu');
+    const ketu = gc.grahas.find((g) => g.key === 'Ketu');
+    checks++;
+    if (rahu && ketu) {
+      // This helper returns 0 for conjunction and 180 for opposition, so the
+      // test is against 180, not against 0. (It was written against 0 first and
+      // failed all 120 charts while reporting "180.000000 deg from opposition",
+      // which is the message telling you the comparison is the bug.)
+      const d = Math.abs(((rahu.siderealLongitude - ketu.siderealLongitude) + 540) % 360 - 180);
+      if (Math.abs(d - 180) > 1e-6) {
+        violation('D12', `${ctx}: Rahu and Ketu are ${d.toFixed(6)} deg from opposition, must be exactly 180`);
+      }
+    }
+
+    // D12e — bhava assignment must be consistent with the lagna. A graha's bhava
+    // is a pure function of its rashi and the lagna's rashi under whole-sign, so
+    // any disagreement means one of the two was computed from stale state.
+    for (const g of gc.grahas) {
+      checks++;
+      const expected = ((g.rashiIndex - gc.bhava.lagnaRashiIndex + 12) % 12) + 1;
+      if (gc.bhava.grahaBhava[g.key] !== expected) {
+        violation('D12', `${ctx}: ${g.key} in bhava ${gc.bhava.grahaBhava[g.key]}, whole-sign gives ${expected}`);
+      }
+    }
+
+    // D12f — the twelve bhavas must be twelve distinct consecutive rashis.
+    checks++;
+    if (new Set(gc.bhava.houses).size !== 12) {
+      violation('D12', `${ctx}: bhava houses are not 12 distinct rashis`);
+    }
+  }
+
+  // D12g — NO PREDICTION FROM A POSITION. The rendered graha surface must not
+  // contain causal or fatalistic language about what a graha will do. This is
+  // the rule that actually keeps the feature Jain rather than Vedic.
+  //
+  // The patterns below are causal-verb constructions ("the graha WILL GIVE",
+  // "BECAUSE OF the graha"), not mere mentions of a graha.
+  const CAUSAL = [
+    /ग्रह\s*\S*\s*(देगा|देंगे|देती\s*है|कराएगा|कराएंगे)/,
+    /(के\s*कारण|की\s*वजह\s*से)\s*\S*\s*(ग्रह|राशि|भाव)/,
+    /(ग्रह|राशि|भाव)\s*\S*\s*(के\s*कारण|की\s*वजह\s*से)/,
+    /(मंगल|शनि|राहु|केतु|गुरु|शुक्र|बुध)\s*(दोष|पीड़ा)\s*(देगा|देता\s*है)/,
+    /रत्न\s*(धारण|पहन)/,
+  ];
+  const grahaSurface = readFileSync('src/components/GrahaChart.tsx', 'utf8');
+  for (const re of CAUSAL) {
+    checks++;
+    const m = grahaSurface.match(re);
+    if (m) {
+      violation('D12', `GrahaChart.tsx asserts a graha as CAUSE, not nimitta: "${m[0]}"`);
+    }
+  }
+
+  // D12h — the nimitta frame must be present on the surface that shows the
+  // positions. Stating it in a source comment is not enough; the user has to
+  // read it.
+  checks++;
+  if (!grahaSurface.includes('निमित्त')) {
+    violation('D12', 'GrahaChart.tsx does not state the nimitta frame to the user — positions must never be shown bare');
+  }
+  checks++;
+  if (!grahaSurface.includes('ज्योतिषी देव')) {
+    violation('D12', 'GrahaChart.tsx does not identify the grahas as Jyotishi Devs (CLAUDE.md rule 1)');
+  }
+}
+
 // ── Report ──────────────────────────────────────────────────────────────────
 const byRule = new Map<string, number>();
 for (const e of errors) {
@@ -325,7 +537,7 @@ console.log(`Doctrine guard — ${N} charts, ${checks} assertions\n`);
 console.log('  D1 Pancham Kaal ceiling   D2 no moksha claim      D3 no mortality claim');
 console.log('  D4 purushartha open       D5 no Vedic devas       D6 karma completeness');
 console.log('  D7 actionable remedies    D8 value ranges         D9 gunasthana provenance');
-console.log('  D10 ladder reachable\n');
+console.log('  D10 ladder reachable      D11 two-claim separation  D12 grahas stay nimitta\n');
 
 if (errors.length) {
   console.error(`Doctrine guard FAILED — ${errors.length} violations:`);

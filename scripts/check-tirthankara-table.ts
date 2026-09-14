@@ -201,26 +201,35 @@ for (const [idStr, why] of Object.entries(CONTESTED)) {
   }
 }
 
-// ── CLAUDE.md rule: Tirthankar nakshatras are param_shubha ──────────────────
-// Reported, not enforced. Reclassifying a nakshatra changes nakshatraNature for
-// every birth in it, which shifts the gunasthana prior and the whole tone of the
-// reading — a doctrinal decision, not a lint fix.
+// ── RESOLVED 2026-09-14: the conflict was a category error, not a data bug ──
+// This block used to report that N Tirthankara-hosting nakshatras were not
+// classified param_shubha, and left the choice open. The choice has been made:
+// the two statements are not competing answers to one question, they are answers
+// to two different questions, and both are now carried separately.
+//
+//   nature                  — Sanjna-derived muhurta grade ("what does this star
+//                             favour?"). Unchanged; nothing was reclassified.
+//   getBirthSanctity()      — Tirthankara-birth sanctity ("was a Tirthankara born
+//                             under it?"). New, independent, never derived from
+//                             nature.
+//
+// Enforcement of the separation lives in check-doctrine D11, which is the right
+// place for it: D11 asserts BOTH derivations independently and fails if either
+// is recomputed from the other. What remains here is a descriptive census, kept
+// so the divergence stays visible to anyone reading this guard's output.
 {
   const hosting = NAKSHATRAS.filter(
     (n) => (((n as { tirthankaras_born?: string[] }).tirthankaras_born ?? []).length > 0)
   );
-  const violating = hosting.filter((n) => n.nature !== 'param_shubha');
+  const divergent = hosting.filter((n) => n.nature !== 'param_shubha');
   checks++;
-  if (violating.length) {
-    notices.push(
-      `CLAUDE.md states "Tirthankar nakshatras = param_shubha", and ${violating.length} of ${hosting.length} ` +
-        `nakshatras hosting a Tirthankara birth are classified otherwise: ` +
-        violating.map((n) => `${n.name}=${n.nature}`).join(', ') +
-        `. NOTE: the rule was never implemented by the data's own author — JAIN NAKSHATRA RULING ` +
-        `FRAMEWORK.md states the rule in its header and then violates it 13 times of 18 in its own ` +
-        `data. So this is a doctrinal decision to take, not a regression to fix (NAKSHATRA-3WAY finding 3)`
-    );
-  }
+  notices.push(
+    `two-claim split (resolved): ${hosting.length}/27 nakshatras host a Tirthankara birth; ` +
+      `${divergent.length} of those carry a non-benefic Sanjna and so keep a lower muhurta grade — ` +
+      divergent.map((n) => `${n.name}=${n.nature}`).join(', ') +
+      `. Both facts are surfaced separately in the reading; enforced by check-doctrine D11 ` +
+      `(NAKSHATRA-3WAY finding 3, closed)`
+  );
 }
 
 // ── Regeneration hazard: the repo's own authoring files are NOT authoritative ─
@@ -299,15 +308,22 @@ for (const [idStr, why] of Object.entries(CONTESTED)) {
     notices.push(`nakshatra karma_type: ${karmaMatches}/27 faithful to the authoring file (pinned)`);
   }
 
-  // ── nature: edited in BOTH directions, with no coherent governing rule ─────
+  // ── nature: divergence from the authoring file, now explained ─────────────
   // The engine changed 15 of 27 natures from the authoring file — 10 toward more
-  // auspicious, 5 toward less. Eight of the upgrades do follow CLAUDE.md's
-  // "Tirthankar nakshatras = param_shubha". But four Tirthankara-hosting
-  // nakshatras were moved the OTHER way, including Vishakha, which the authoring
-  // file ranked param_shubha and which hosts two Tirthankaras, demoted to mishra.
-  // So this is not a rule awaiting application; the field has been edited
-  // inconsistently and currently follows no single rule. Reported, never
-  // enforced — reclassifying shifts the gunasthana prior for ~25% of births.
+  // auspicious, 5 toward less, including Vishakha (two Tirthankaras) demoted from
+  // param_shubha to mishra. This guard used to conclude that the field "follows
+  // no single rule".
+  //
+  // That conclusion was wrong, and the mistake was mine: I was measuring `nature`
+  // against CLAUDE.md rule 4 when it in fact implements the Sanjna derivation
+  // documented at the head of nakshatras.ts. check-doctrine D11e now verifies
+  // every one of the 27 values against that derivation, and all 27 conform. The
+  // field does follow a single rule — just not the rule I was checking it
+  // against. Vishakha is Mishra-Sanjna, so mishra is exactly right.
+  //
+  // What survives is the useful part: a census of where the engine parts company
+  // with the authoring file, so the divergence stays visible and is never
+  // mistaken for drift to be "corrected" back.
   const RANK: Record<string, number> = { ashubha: 0, mishra: 1, shubha: 2, param_shubha: 3 };
   const demotedHosts: string[] = [];
   for (const n of NAKSHATRAS) {
@@ -321,9 +337,10 @@ for (const [idStr, why] of Object.entries(CONTESTED)) {
   }
   if (demotedHosts.length) {
     notices.push(
-      `nature was edited AWAY from the param_shubha rule for ${demotedHosts.length} Tirthankara-hosting ` +
-        `nakshatras: ${demotedHosts.join('; ')}. Combined with 8 edits toward the rule, the field follows ` +
-        `no single rule at present (NAKSHATRA-3WAY finding 3)`
+      `nature diverges from the authoring file for ${demotedHosts.length} Tirthankara-hosting nakshatras: ` +
+        `${demotedHosts.join('; ')}. This is the Sanjna derivation applied correctly, not inconsistency — ` +
+        `each of these stars is Ugra, Tikshna or Mishra. Their Tirthankara-birth sanctity is carried ` +
+        `separately and is unaffected. All 27 values verified against the derivation by check-doctrine D11e`
     );
   }
 }
