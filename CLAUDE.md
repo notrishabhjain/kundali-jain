@@ -66,7 +66,22 @@ src/
 1. **No Vedic devas** — nakshatras are governed by Jyotishi Devs, not Vedic devas
 2. **8 Karmas** — Gyanavaraniya, Darshanavaraniya, Vedaniya, Mohaniya, Ayushya, Naam, Gotra, Antaraya
 3. **Pancham Kaal** — We are in 5th Ara (Dusham). NO MOKSHA POSSIBLE. But Samyak Darshan, punya bandh, and Dev-gati ARE possible.
-4. **Tirthankar nakshatras** = param_shubha. Nakshatra nature: param_shubha > shubha > mishra > ashubha
+4. **Two independent nakshatra claims — never merge them.**
+   - `nature` is a **muhurta grade** derived from the classical 7-Sanjna
+     classification: `ashubha ← Ugra ∪ Tikshna`, `mishra ← Mishra`,
+     `param_shubha ← (tirthankara-birth host) ∧ benefic Sanjna {Dhruva, Char,
+     Kshipra, Mridu}`, `shubha ← remaining benefic-Sanjna stars`. It answers
+     "what does this star favour?" Ordering: param_shubha > shubha > mishra > ashubha.
+   - **Tirthankara-birth sanctity** is a separate fact about sacred history,
+     exposed by `getBirthSanctity()` / `isTirthankaraHost()`. It answers "was a
+     Tirthankara born under this star?" It is read off `tirthankaras_born` alone.
+
+   Seven nakshatras carry Tirthankara-birth sanctity under a non-benefic Sanjna —
+   Bharani, Krittika, Magha, Vishakha, Mula, Purva Ashadha, Purva Bhadrapada. Both
+   facts are true of them at once, and both must be shown. Collapsing them into one
+   enum forces a false choice and loses whichever fact loses the argument; it once
+   made the app tell a Bharani birth it had "अशुभ आध्यात्मिक क्षमता" despite the star
+   hosting शान्तिनाथ. Enforced by `check-doctrine` D11.
 5. **Dasha** — Use Vimshottari (placeholder) in Phase 1; replace with Jain 3-layer dasha in Phase 3
 6. **Language** — All UI text in Hindi (Devanagari). Address user as 'आप', never 'तुम'
 

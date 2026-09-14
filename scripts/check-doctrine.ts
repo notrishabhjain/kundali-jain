@@ -17,6 +17,9 @@
 //   D9 Gunasthana provenance     — a chart alone may not claim the soul's stage
 //   D10 Ladder is reachable      — self-assessment spans stages; only the two
 //                                  Sarvarthasiddhi gates may pin the result
+//   D11 Two-claim separation     — Tirthankara-birth sanctity and the Sanjna
+//                                  muhurta grade are independent; neither may be
+//                                  derived from, nor silently overwrite, the other
 //
 // A violation here is a doctrinal defect, not a style nit: it means the app
 // could tell a Jain user something the tradition holds to be false.
@@ -26,6 +29,11 @@ import { getTodayContext } from '../src/lib/analysisSynthesizer';
 import { generatePredictions } from '../src/lib/predictionEngine';
 import { generateRemedies } from '../src/lib/remedyEngine';
 import { calculateKarmaProfile } from '../src/lib/karmaEngine';
+import {
+  NAKSHATRAS, SANJNA_CLASS, getSanjnaHindi,
+  isTirthankaraHost, getBirthSanctity, describeNakshatraStanding,
+  getDivergentStandingNakshatras
+} from '../src/data/nakshatras';
 import {
   estimateGunasthanaWithConfidence,
   classifyGunasthana,
@@ -128,6 +136,18 @@ for (let i = 0; i < N; i++) {
   }
 
   const ctx = `${profile.formData.dob} ${profile.birthNakshatra}/${profile.dominantKarmaEn}`;
+
+  // D11g — both nakshatra claims must survive all the way into the profile the
+  // user actually reads. A field that exists in the data but never reaches the
+  // output is the same defect as not having it.
+  checks++;
+  if (!profile.nakshatraStanding || profile.nakshatraStanding.length < 20) {
+    violation('D11', `${ctx}: nakshatraStanding missing or truncated in the generated profile`);
+  }
+  checks++;
+  if (profile.nakshatraBirthSanctity !== 'param_shubha_by_birth' && profile.nakshatraBirthSanctity !== 'none') {
+    violation('D11', `${ctx}: nakshatraBirthSanctity="${profile.nakshatraBirthSanctity}" is not one of the two permitted values`);
+  }
 
   // D1 — Pancham Kaal ceiling
   checks++;
@@ -314,6 +334,81 @@ for (let i = 0; i < N; i++) {
   }
 }
 
+// ── D11 — the two nakshatra claims must stay independent ────────────────────
+// Decision of 2026-09-14: `nature` is a Sanjna-derived muhurta grade, and
+// Tirthankara-birth sanctity is a separate fact about sacred history. The two
+// were previously conflated, so a Bharani birth — hosting शान्तिनाथ — was told it
+// had "अशुभ आध्यात्मिक क्षमता".
+//
+// This guard fails if either claim is recomputed from the other, if a divergent
+// nakshatra stops reporting both facts, or if `nature` drifts off its own
+// documented derivation.
+// Source: MP-§C1 (Sanjna classification) and MP-§C2 (Tirthankara birth
+// nakshatras) — two distinct blocks making two distinct claims.
+{
+  const BENEFIC = new Set(['Dhruva', 'Char', 'Kshipra', 'Mridu']);
+  const divergent = getDivergentStandingNakshatras();
+
+  // D11a — the split must not become empty. If every Tirthankara-hosting star
+  // were benefic, the two claims would be observationally identical and someone
+  // could collapse them again without a single test noticing.
+  checks++;
+  if (divergent.length === 0) {
+    violation('D11', 'no nakshatra now pairs Tirthankara-birth sanctity with a non-benefic Sanjna — the two claims have become indistinguishable, so their separation is no longer tested by anything');
+  }
+
+  // D11b — the seven known divergent stars must still diverge.
+  const EXPECTED_DIVERGENT = ['Bharani', 'Krittika', 'Magha', 'Vishakha', 'Mula', 'Purva Ashadha', 'Purva Bhadrapada'];
+  const actual = new Set(divergent.map((n) => n.name));
+  for (const name of EXPECTED_DIVERGENT) {
+    checks++;
+    if (!actual.has(name)) {
+      violation('D11', `${name} hosts a Tirthankara birth under a non-benefic Sanjna but no longer reports as divergent — check whether nature was merged into the sanctity claim`);
+    }
+  }
+
+  for (const n of NAKSHATRAS) {
+    const host = isTirthankaraHost(n);
+    const benefic = BENEFIC.has(SANJNA_CLASS[n.index]);
+    const sanctity = getBirthSanctity(n);
+    const standing = describeNakshatraStanding(n);
+
+    // D11c — sanctity tracks tirthankaras_born and nothing else.
+    checks++;
+    if ((sanctity === 'param_shubha_by_birth') !== host) {
+      violation('D11', `${n.name}: birth sanctity disagrees with tirthankaras_born — sanctity must be read off sacred history alone`);
+    }
+
+    // D11d — sanctity must not be a rename of nature.
+    checks++;
+    if (host && !benefic && n.nature === 'param_shubha') {
+      violation('D11', `${n.name}: non-benefic Sanjna (${SANJNA_CLASS[n.index]}) yet nature=param_shubha — the muhurta grade has been overwritten by the sanctity claim`);
+    }
+
+    // D11e — nature must still follow its own documented derivation.
+    checks++;
+    const expectedNature = !benefic
+      ? (SANJNA_CLASS[n.index] === 'Mishra' ? 'mishra' : 'ashubha')
+      : (host ? 'param_shubha' : 'shubha');
+    if (n.nature !== expectedNature) {
+      violation('D11', `${n.name}: nature=${n.nature} but the documented Sanjna derivation gives ${expectedNature} (Sanjna ${SANJNA_CLASS[n.index]}, tirthankara-host=${host})`);
+    }
+
+    // D11f — a divergent star must state BOTH facts, never quietly drop one.
+    if (host && !benefic) {
+      checks++;
+      const namesTirthankara = n.tirthankaras_born.some((t) => standing.includes(t.split(' (')[0]));
+      if (!namesTirthankara) {
+        violation('D11', `${n.name}: standing text omits the Tirthankara(s) born there`);
+      }
+      checks++;
+      if (!standing.includes(getSanjnaHindi(SANJNA_CLASS[n.index]))) {
+        violation('D11', `${n.name}: standing text omits the Sanjna muhurta grade`);
+      }
+    }
+  }
+}
+
 // ── Report ──────────────────────────────────────────────────────────────────
 const byRule = new Map<string, number>();
 for (const e of errors) {
@@ -325,7 +420,7 @@ console.log(`Doctrine guard — ${N} charts, ${checks} assertions\n`);
 console.log('  D1 Pancham Kaal ceiling   D2 no moksha claim      D3 no mortality claim');
 console.log('  D4 purushartha open       D5 no Vedic devas       D6 karma completeness');
 console.log('  D7 actionable remedies    D8 value ranges         D9 gunasthana provenance');
-console.log('  D10 ladder reachable\n');
+console.log('  D10 ladder reachable      D11 two-claim separation\n');
 
 if (errors.length) {
   console.error(`Doctrine guard FAILED — ${errors.length} violations:`);

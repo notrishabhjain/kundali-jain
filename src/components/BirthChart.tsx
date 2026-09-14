@@ -100,9 +100,19 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
                   </p>
                 </div>
               </div>
-              <div className="bg-white px-4 py-1.5 rounded-full border border-indigo-200 text-sm font-bold text-indigo-800 uppercase tracking-wide">
-                {nakshatraHindi} / {nakshatraNatureHindi || 'शुभ'} स्वभाव
-                <FieldInfo field="nakshatraNature" className="ml-1.5" />
+              <div className="flex flex-col items-start sm:items-end gap-1.5">
+                <div className="bg-white px-4 py-1.5 rounded-full border border-indigo-200 text-sm font-bold text-indigo-800 uppercase tracking-wide">
+                  {nakshatraHindi} / {nakshatraNatureHindi || 'शुभ'} स्वभाव
+                  <FieldInfo field="nakshatraNature" className="ml-1.5" />
+                </div>
+                {/* Birth sanctity is a separate claim from the Sanjna grade above
+                    and is shown as its own badge, never folded into it. */}
+                {profile.nakshatraBirthSanctity === 'param_shubha_by_birth' && (
+                  <div className="bg-amber-50 px-4 py-1.5 rounded-full border border-amber-300 text-sm font-bold text-amber-800 tracking-wide">
+                    परम शुभ — तीर्थंकर जन्म-नक्षत्र
+                    <FieldInfo field="nakshatraBirthSanctity" className="ml-1.5" />
+                  </div>
+                )}
               </div>
             </div>
             
@@ -113,6 +123,16 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
                   यह नक्षत्र भगवान <strong>{profile.tirthankarAffinity || profile.tirthankarAffinityHindi}</strong> से विशेष आत्मिक-सम्बन्ध रखता है।<FieldInfo field="tirthankarAffinity" className="ml-1" />
                   आपकी राशि <strong>{profile.birthRashi || ''}</strong> है।<FieldInfo field="birthRashi" className="ml-1" />
                 </p>
+
+                {/* Both claims, stated together. Where the Tirthankara-birth
+                    sanctity and the Sanjna muhurta grade diverge, the sentence
+                    says so rather than letting one override the other silently. */}
+                {profile.nakshatraStanding && (
+                  <p className="bg-indigo-50/60 border-l-4 border-indigo-300 px-4 py-3 rounded-r-lg text-base text-indigo-900">
+                    {profile.nakshatraStanding}
+                    <FieldInfo field="nakshatraBirthSanctity" className="ml-1" />
+                  </p>
+                )}
 
                 <p>
                   {nakshatraData
@@ -125,8 +145,13 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
                   <div className="bg-emerald-50/50 p-5 rounded-xl border border-emerald-100">
                     <span className="text-xs font-bold text-emerald-600 uppercase mb-2 block">आपकी सबसे बड़ी आध्यात्मिक संभावना</span>
                     <p className="text-emerald-900 font-medium tracking-wide">
+                      {/* Previously this sentence read "<nature> आध्यात्मिक क्षमता",
+                          splicing the Sanjna muhurta grade into a statement about
+                          spiritual capacity — so a Bharani birth was told it had
+                          "अशुभ आध्यात्मिक क्षमता" despite hosting शान्तिनाथ. The two
+                          claims are now kept apart. */}
                       {nakshatraData?.tirthankaras_born.length
-                        ? `${nakshatraHindi} नक्षत्र ${nakshatraData.tirthankaras_born.join(', ')} का जन्म-नक्षत्र है। इस नक्षत्र में जन्मे व्यक्ति में ${nakshatraNatureHindi} आध्यात्मिक क्षमता होती है।`
+                        ? `${nakshatraHindi} नक्षत्र ${nakshatraData.tirthankaras_born.join(', ')} का जन्म-नक्षत्र है — यह परम शुभ जन्म-सान्निध्य है। इस नक्षत्र में जन्मे व्यक्ति की आध्यात्मिक संभावना ${nakshatraData.spiritual_traits} में निहित है।`
                         : `${nakshatraHindi} नक्षत्र की आध्यात्मिक संभावना ${nakshatraData?.spiritual_traits || 'ध्यान और साधना'} में निहित है।`
                       }
                     </p>

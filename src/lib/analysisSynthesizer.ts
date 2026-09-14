@@ -10,7 +10,11 @@
 //  - Three-layer dashā synthesis (mahā → antar → pratyantar): MP-§D2.
 //  - Tirthankara affinity weaving: MP-§C1 + MP-§C2.
 //
-import { NAKSHATRAS, getNakshatraByDegree, getNakshatraPada } from '../data/nakshatras';
+import {
+  NAKSHATRAS, getNakshatraByDegree, getNakshatraPada,
+  getBirthSanctity, getBirthSanctityHindi, describeNakshatraStanding,
+  type BirthSanctity
+} from '../data/nakshatras';
 import { calculateIshtakaal, calculateJainZodiacProjection, type IshtakaalResult, type JainZodiacProjection } from '../data/jainCosmology';
 import { calculateApparentSunTimes } from './sunriseEngine';
 import { resolveShadGhatiTithi, getGandantStatus } from './calendarEngine';
@@ -57,6 +61,15 @@ export interface UserProfile {
   nakshatraKarmaType: string;     // dominant karma type for this nakshatra
   nakshatraNature: string;        // param_shubha / shubha / mishra / ashubha
   nakshatraNatureHindi: string;
+  // Birth sanctity — the SECOND, independent claim. `nakshatraNature` above is a
+  // Sanjna-derived muhurta grade; these say whether a Tirthankara was born in
+  // the star. Neither is computed from the other, and for seven nakshatras they
+  // point different ways. See the header of src/data/nakshatras.ts.
+  // Source: MP-§C2 + CLAUDE.md rule 4.
+  nakshatraBirthSanctity: BirthSanctity;
+  nakshatraBirthSanctityHindi: string;
+  /** Both claims stated together; says so plainly where they diverge. */
+  nakshatraStanding: string;
   currentDasha: DashaInfo;
   dominantKarma: string;          // Hindi karma name
   dominantKarmaEn: string;        // English karma name for comparisons
@@ -262,6 +275,9 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     nakshatraKarmaType: karmaType,
     nakshatraNature: nakshatra.nature,
     nakshatraNatureHindi: NATURE_HINDI[nakshatra.nature] || nakshatra.nature,
+    nakshatraBirthSanctity: getBirthSanctity(nakshatra),
+    nakshatraBirthSanctityHindi: getBirthSanctityHindi(nakshatra),
+    nakshatraStanding: describeNakshatraStanding(nakshatra),
     currentDasha: dasha,
     dominantKarma: dominantKarmaHindi,
     dominantKarmaEn: karmaType,

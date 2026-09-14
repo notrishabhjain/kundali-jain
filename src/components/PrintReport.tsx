@@ -196,7 +196,10 @@ export default function PrintReport({ profile }: PrintReportProps) {
               </h3>
               <div className="space-y-2 text-sm text-rose-800">
                 <div className="flex justify-between"><span className="text-rose-600">प्रबल कर्म:</span> <span className="font-bold">{profile.dominantKarma} कर्म</span></div>
-                <div className="flex justify-between"><span className="text-rose-600">नक्षत्र स्वभाव:</span> <span className="font-medium">{profile.nakshatraNatureHindi || 'शुभ'}</span></div>
+                <div className="flex justify-between"><span className="text-rose-600">नक्षत्र स्वभाव (मुहूर्त):</span> <span className="font-medium">{profile.nakshatraNatureHindi || 'शुभ'}</span></div>
+                {profile.nakshatraBirthSanctity === 'param_shubha_by_birth' && (
+                  <div className="flex justify-between"><span className="text-rose-600">जन्म-सान्निध्य:</span> <span className="font-medium">परम शुभ — तीर्थंकर जन्म-नक्षत्र</span></div>
+                )}
                 <div className="flex justify-between"><span className="text-rose-600">अंतर्दशा:</span> <span className="font-medium">{profile.currentDasha?.antardashaInfo?.lord_hindi || '-'}</span></div>
                 <div className="flex justify-between"><span className="text-rose-600">प्रत्यंतर्दशा:</span> <span className="font-medium">{profile.currentDasha?.pratyantardasha?.lord_hindi || '-'}</span></div>
                 <div className="flex justify-between"><span className="text-rose-600">आराध्य तीर्थंकर:</span> <span className="font-medium">श्री {profile.tirthankarAffinity} भगवान</span></div>
