@@ -10,6 +10,7 @@
 //  - Three-layer dashā synthesis (mahā → antar → pratyantar): MP-§D2.
 //  - Tirthankara affinity weaving: MP-§C1 + MP-§C2.
 //
+import { computeGrahaChart, type GrahaChart } from './planets';
 import {
   NAKSHATRAS, getNakshatraByDegree, getNakshatraPada,
   getBirthSanctity, getBirthSanctityHindi, describeNakshatraStanding,
@@ -81,6 +82,11 @@ export interface UserProfile {
   // Jain sidereal zodiac projection (unequal muhurta spans from Surya Prajnapti).
   // Source: Research Report §4 + SP-1.
   jainZodiacProjection: JainZodiacProjection;
+  // Nine grahas, lagna and whole-sign bhavas. Positions only — the grahas are
+  // Jyotishi Devs and NIMITTA (indicative), never causal; see src/lib/planets.ts
+  // for why computing them does not breach G2-C1, and grahas.ts for the frame
+  // they are read in. Undefined when the birth coordinates are unparsable.
+  grahaChart?: GrahaChart;
   // Legacy fields kept for backward compatibility with existing components
   birthNakshatraLegacy?: string;  // same as birthNakshatra
   currentDashaLegacy?: string;    // same as currentDasha.lord_hindi
@@ -250,6 +256,19 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
   // Source: Research Report §4 + SP-1.
   const jainZodiacProjection = calculateJainZodiacProjection(siderealDeg);
 
+  // Nine grahas + lagna. Never allowed to block profile generation: the karma
+  // reading is the primary output and must survive a coordinate it cannot parse.
+  let grahaChart: GrahaChart | undefined;
+  try {
+    const lat = parseFloat(data.lat);
+    const lng = parseFloat(data.lng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      grahaChart = computeGrahaChart(data.dob, data.time || '12:00', lat, lng);
+    }
+  } catch {
+    grahaChart = undefined;
+  }
+
   // Gandant birth warning (blueprint §B.7) — Moon within ±10′ of a water→fire
   // sign junction (Ashlesha→Magha, Jyeshtha→Mula, Revati→Ashvini).
   let gandantWarning: string | undefined;
@@ -285,6 +304,7 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     formData: data,
     ishtakaal,
     jainZodiacProjection,
+    grahaChart,
     // Legacy compatibility
     birthNakshatraLegacy: nakshatra.hindi_name,
     currentDashaLegacy: dasha.lord_hindi,

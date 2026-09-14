@@ -161,6 +161,12 @@ const FullPrintableReport = ({ profile, forExport }: Props) => {
         <div className="w-full"><BirthChart profile={profile} part={2} /></div>
       </ReportPage>
 
+      {/* Grahas, lagna and bhavas get a page of their own — the table and the
+          twelve-bhava grid do not fit legibly alongside the nakshatra analysis. */}
+      <ReportPage pageNumber={5} totalPages={23}>
+        <div className="w-full"><BirthChart profile={profile} part={3} /></div>
+      </ReportPage>
+
       <ReportPage pageNumber={6} totalPages={23}>
         <div className="w-full"><KarmaProfile profile={profile} /></div>
       </ReportPage>

@@ -55,7 +55,7 @@ export function julianDayFromUTC(
   return Math.floor(365.25 * (Y + 4716)) + Math.floor(30.6001 * (M + 1)) + d + B - 1524.5;
 }
 
-const julianCentury = (jde: number) => (jde - 2451545.0) / 36525;
+export const julianCentury = (jde: number) => (jde - 2451545.0) / 36525;
 
 // ── Nutation in longitude (Meeus ch. 22, principal terms) ───────────────────
 // Δψ to about 0.5 arcsec, which is far below our lunar-theory error floor.

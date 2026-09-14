@@ -7,10 +7,12 @@ import { generatePredictions } from '../lib/predictionEngine';
 import { getKarmaSadhana } from '../data/sadhana';
 import { GRAHA_KARMA_MAPPINGS } from '../data/jainCosmology';
 import FieldInfo from './FieldInfo';
+import GrahaChartPanel from './GrahaChart';
 
 interface BirthChartProps {
   profile: UserProfile;
-  part?: 1 | 2;
+  /** 3 = the graha/lagna panel, which gets its own page in the printed report. */
+  part?: 1 | 2 | 3;
 }
 
 export default function BirthChart({ profile, part }: BirthChartProps) {
@@ -259,6 +261,15 @@ export default function BirthChart({ profile, part }: BirthChartProps) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Nine grahas, lagna and bhavas. Positions only — the Jain frame (Jyotishi
+          Devs, nimitta not cause) is stated inside the component, before the
+          numbers rather than after them. */}
+      {(!part || part === 3) && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
+          <GrahaChartPanel profile={profile} />
         </div>
       )}
 

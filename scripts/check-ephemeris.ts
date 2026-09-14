@@ -44,7 +44,9 @@ import {
   lastNewMoonBefore,
   normDeg,
   toJulianDay as toJulianDayIST,
+  toJulianDay,
 } from '../src/lib/astronomy';
+import { getAllGrahaPositions, getLagna, type GrahaKey } from '../src/lib/planets';
 
 const errors: string[] = [];
 const notes: string[] = [];
@@ -251,6 +253,84 @@ for (const Y of SANKRANTI_YEARS) {
   const ok = err < 90; // the true motion wobbles; this catches gross scale errors
   notes.push(`  ${ok ? 'ok  ' : 'FAIL'} ${'Moon returns after one sidereal month'.padEnd(46)} ${err.toFixed(1)}' residual (bound 90')`);
   if (!ok) errors.push(`Moon sidereal-month closure off by ${err.toFixed(1)} arcmin`);
+}
+
+// ── 7. Planetary positions against published events ─────────────────────────
+// The planetary theory (Standish/JPL Keplerian elements) is new, and unlike the
+// Sun and Moon it has no long-standing anchors in this guard. These five events
+// are published astronomy this codebase did not produce, and each pins two
+// bodies against each other so an error in either one shows up as a gap.
+//
+// A conjunction is a strong test precisely because it is a coincidence: getting
+// the separation right at the right instant is very hard to do by accident.
+{
+  const sep = (a: number, b: number) => Math.abs(((a - b) + 540) % 360 - 180);
+  const posAt = (d: string, t: string) =>
+    new Map(getAllGrahaPositions(toJulianDay(d, t)).map((g) => [g.key, g.siderealLongitude]));
+
+  const EVENTS: Array<{ date: string; time: string; a: GrahaKey; b: GrahaKey; expect: number; tol: number; label: string }> = [
+    // Jupiter-Saturn great conjunction. Closest approach 0.1 deg.
+    { date: '2020-12-21', time: '18:30', a: 'Guru', b: 'Shani', expect: 0.1, tol: 0.25, label: 'Great conjunction 2020: Guru-Shani' },
+    // Venus transit of the Sun — the two longitudes coincide by definition.
+    { date: '2004-06-08', time: '13:50', a: 'Shukra', b: 'Surya', expect: 0, tol: 0.20, label: 'Venus transit 2004: Shukra on Surya' },
+    // Mercury transit of the Sun.
+    { date: '2016-05-09', time: '19:30', a: 'Budha', b: 'Surya', expect: 0, tol: 0.20, label: 'Mercury transit 2016: Budha on Surya' },
+    // Mars at opposition — exactly 180 deg from the Sun.
+    { date: '2018-07-27', time: '10:37', a: 'Mangal', b: 'Surya', expect: 180, tol: 0.20, label: 'Mars opposition 2018: Mangal opposite Surya' },
+    // Mercury transit, a second epoch, to catch an error that happens to vanish
+    // at one date.
+    { date: '2019-11-11', time: '20:20', a: 'Budha', b: 'Surya', expect: 0, tol: 0.20, label: 'Mercury transit 2019: Budha on Surya' },
+  ];
+
+  for (const e of EVENTS) {
+    const p = posAt(e.date, e.time);
+    const got = sep(p.get(e.a)!, p.get(e.b)!);
+    const err = Math.abs(got - e.expect);
+    checks++;
+    const ok = err < e.tol;
+    notes.push(`  ${ok ? 'ok  ' : 'FAIL'} ${e.label.padEnd(46)} ${got.toFixed(3)}deg vs ${e.expect}deg (bound ${e.tol})`);
+    if (!ok) errors.push(`${e.label}: separation ${got.toFixed(3)}deg, expected ${e.expect}deg +/- ${e.tol}`);
+  }
+
+  // The nodes are always 180 deg apart by construction. A cheap invariant, but
+  // it catches a sign slip in the Ketu derivation.
+  {
+    const p = posAt('1993-09-05', '01:25');
+    const d = sep(p.get('Rahu' as GrahaKey)!, p.get('Ketu' as GrahaKey)!);
+    checks++;
+    const ok = Math.abs(d - 180) < 1e-6;
+    notes.push(`  ${ok ? 'ok  ' : 'FAIL'} ${'Rahu and Ketu exactly opposed'.padEnd(46)} ${d.toFixed(6)}deg`);
+    if (!ok) errors.push(`Rahu/Ketu separation ${d.toFixed(6)}deg, must be 180`);
+  }
+}
+
+// ── 8. Lagna: the Sun sits on the ascendant at sunrise ──────────────────────
+// An oracle-free identity, and a strict one. If the ascendant formula has a
+// quadrant error, a sign slip, an obliquity mistake or the wrong sidereal time,
+// the instant at which the Sun coincides with the ascendant moves away from
+// actual sunrise and the gap opens up. Tested across latitudes because the
+// tan(phi) term is where such formulas usually break.
+{
+  const CASES: Array<[string, string, number, number, string]> = [
+    ['1993-09-05', 'Meerut', 28.98, 77.70, '06:03'],
+    ['2000-03-20', 'Delhi', 28.61, 77.21, '06:29'],
+    ['1975-12-22', 'Chennai', 13.08, 80.27, '06:30'],
+    ['2015-06-21', 'Leh', 34.16, 77.58, '05:13'],
+  ];
+  for (const [dob, place, lat, lon, expectIST] of CASES) {
+    let best = 1e9, bestT = '';
+    for (let m = 0; m < 24 * 60; m++) {
+      const hh = String(Math.floor(m / 60)).padStart(2, '0');
+      const mm = String(m % 60).padStart(2, '0');
+      const jd = toJulianDay(dob, `${hh}:${mm}`);
+      const d = Math.abs(((getLagna(jd, lat, lon) - getSunSiderealLongitude(jd)) + 540) % 360 - 180);
+      if (d < best) { best = d; bestT = `${hh}:${mm}`; }
+    }
+    checks++;
+    const ok = best < 0.25 && bestT === expectIST;
+    notes.push(`  ${ok ? 'ok  ' : 'FAIL'} ${`Lagna = Sun at sunrise, ${place}`.padEnd(46)} ${bestT} IST, gap ${best.toFixed(3)}deg`);
+    if (!ok) errors.push(`${place} ${dob}: Sun coincides with lagna at ${bestT} (expected ${expectIST}), gap ${best.toFixed(3)}deg`);
+  }
 }
 
 // ── Report ──────────────────────────────────────────────────────────────────

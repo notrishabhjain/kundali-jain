@@ -43,6 +43,9 @@ Shatabdi Panchang 1950-2050, and the Codex Master Prompt distillation.
 src/
   context/KundaliContext.tsx   — shared state (profile + panchang)
   lib/analysisSynthesizer.ts   — Moon calc, dasha calc, narrative gen
+  lib/astronomy.ts             — single source of astronomical truth (Meeus)
+  lib/planets.ts               — 9 grahas (Standish/JPL) + lagna + bhavas
+  lib/bhaktamarSelector.ts     — nakshatra-driven shloka selection
   data/
     nakshatras.ts              — 27+1 nakshatras with Jain framework
     tirthankaras.ts            — 24 tirthankaras, full data
@@ -58,12 +61,23 @@ src/
     RemedyTab.tsx              — 5 sub-tabs of remedies
     DharmaMarg.tsx             — 12 vratas + dharma path
     VratCalendar.tsx           — Panchang calendar
+    GrahaChart.tsx             — 9 grahas + lagna + whole-sign bhavas (positions only)
     PrintReport.tsx            — PDF export wrapper
     FullPrintableReport.tsx    — PDF content
 ```
 
 ## Jain Jyotish Rules (NOT Vedic)
-1. **No Vedic devas** — nakshatras are governed by Jyotishi Devs, not Vedic devas
+1. **No Vedic devas** — nakshatras are governed by Jyotishi Devs, not Vedic devas.
+   **Grahas and lagna are computed** (decision of 2026-09-14). Computing where a
+   planet was is astronomy, not Vedic practice, and Jain cosmology has its own
+   tradition of it (Surya Prajnapti, Tiloyapannatti ch. 7, Ganita Sara Sangraha).
+   What G2-C1 rules out is the interpretive apparatus built on top: Vedic
+   deities, planetary causal agency, aspects, yogas, gemstone remedies. So the
+   engine reports positions and stops. The grahas are Jyotishi Devs and
+   **nimitta** — indicative, never causal: a graha does not cause a karma, it
+   marks one already bound. Enforced by `check-doctrine` D12, which fails the
+   build if a graha is given agency, if a position becomes a prediction, or if
+   the nimitta frame disappears from the surface the user reads.
 2. **8 Karmas** — Gyanavaraniya, Darshanavaraniya, Vedaniya, Mohaniya, Ayushya, Naam, Gotra, Antaraya
 3. **Pancham Kaal** — We are in 5th Ara (Dusham). NO MOKSHA POSSIBLE. But Samyak Darshan, punya bandh, and Dev-gati ARE possible.
 4. **Two independent nakshatra claims — never merge them.**
