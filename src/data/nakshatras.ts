@@ -273,7 +273,7 @@ export const NAKSHATRAS: Nakshatra[] = [
     index: 19, name: "Purva Ashadha", hindi_name: "पूर्वाषाढ़ा",
     start_deg: 253.333, end_deg: 266.667,
     nature: "ashubha", karma_type: "Gotra",
-    tirthankaras_born: ["शीतलनाथ (10)"],
+    tirthankaras_born: ["शीतलनाथ (10)", "मल्लिनाथ (19)"],  // Mallinatha added 2026-09-14: #19 resolved to Purva Ashadha — both repo authoring files agree, and the lone dissenting web source was a Malli/Nami confusion. Source: NAKSHATRA-3WAY finding 2.
     ruling_jyotishi_dev: "पूर्वाषाढ़ा ज्योतिषी देव",
     spiritual_traits: "अजेय शक्ति, जल-तत्व, शुद्धि, विजय की ओर",
     karma_manifestation: "गोत्र कर्म: कुल-परंपरा से संघर्ष, सामाजिक प्रतिष्ठा की चिंता",
