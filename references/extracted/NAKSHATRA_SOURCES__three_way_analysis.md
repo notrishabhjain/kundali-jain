@@ -82,15 +82,44 @@ param_shubha; Bharani, Krittika, Magha, Mula, Purva Ashadha, Shatabhisha,
 Ashvini, Mrigashirsha, Punarvasu, Chitra, Anuradha, Shravana, Uttara Bhadrapada
 and Revati host Tirthankara births and are classified otherwise.
 
-The engine violates the rule 7 times rather than 13, meaning some entries were
-upgraded to param_shubha at some point, but not systematically.
+**And the engine has edited the field in BOTH directions.** Diffing all 27
+natures against the framework file: 15 were changed, 10 toward more auspicious
+and 5 toward less.
 
-**This reframes the question.** The 7 engine violations are not a regression
-away from a rule that once held — the rule was never applied by the data's own
-author. Applying it now would reclassify roughly a quarter of all births,
-shifting the gunasthana prior and the tone of every affected reading. That makes
-it a doctrinal decision to take deliberately, not a lint fix. It is reported on
-every CI run rather than enforced.
+Eight of the ten upgrades do follow the rule — nakshatras hosting a Tirthankara
+birth raised to param_shubha (Ashvini, Mrigashirsha, Punarvasu, Chitra, Anuradha,
+Shravana, Shatabhisha, Revati). Pushya's upgrade is coherent too: it hosts
+Dharmanatha under the engine's corrected assignment, though not under the
+framework's. Dhanishtha's mishra → shubha has no rule-based explanation either
+way; it hosts no Tirthankara.
+
+**But four Tirthankara-hosting nakshatras were moved the other way:**
+
+| Nakshatra | Hosts | Framework | Engine |
+|---|---|---|---|
+| Vishakha | Suparshvanatha, Parshvanatha | **param_shubha** | mishra |
+| Purva Ashadha | Shitalanatha, Mallinatha | mishra | **ashubha** |
+| Bharani | Shantinatha | mishra | **ashubha** |
+| Magha | Sumatinatha | mishra | **ashubha** |
+
+Vishakha is the sharpest case: it was the framework's only multi-Tirthankara
+param_shubha, and it was demoted to mishra. Purva Ashadha hosts two and sits at
+the lowest rank.
+
+**This is a stronger finding than "the rule was never applied."** The field has
+been edited toward the rule eight times and away from it four times, so it
+currently follows no single rule at all — it is not a rule awaiting
+implementation. Deciding what governs it would reclassify roughly a quarter of
+all births, shifting the gunasthana prior and the tone of every affected
+reading. Reported on every CI run, never enforced.
+
+## Finding 4 — karma_type IS faithful, and is now pinned
+
+Unlike birth_nakshatra and nature, the `karma_type` field matches
+`JAIN NAKSHATRA RULING FRAMEWORK.md` on **all 27 entries**. It is the basis of
+every reading's "dominant karma", and since no competing witness disputes it,
+any future drift from the authoring file would be drift rather than correction.
+`check:tirthankara` now pins it.
 
 ## What is now settled
 

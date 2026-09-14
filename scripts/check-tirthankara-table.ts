@@ -22,6 +22,8 @@
 
 import { TIRTHANKARAS } from '../src/data/tirthankaras';
 import { NAKSHATRAS } from '../src/data/nakshatras';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 // Confirmed against at least two independent published sources.
 // Source: TIRTHANKARA-NAK-VERIFY (references/extracted/)
@@ -260,6 +262,68 @@ for (const [idStr, why] of Object.entries(CONTESTED)) {
     notices.push(
       `engine deliberately diverges from tirthankar_data.md on ${stillDiverging} birth nakshatras — ` +
         `this is CORRECT, the authoring file is the less reliable witness (NAKSHATRA-3WAY finding 1)`
+    );
+  }
+}
+
+// ── nakshatra karma_type is faithful to its authoring file ──────────────────
+// Unlike birth_nakshatra, this field matches JAIN NAKSHATRA RULING FRAMEWORK.md
+// exactly on all 27 entries. It is the basis of every reading's "dominant
+// karma", so the agreement is pinned here: a future edit that drifts from the
+// authoring file is real drift, not a correction, because there is no competing
+// witness saying otherwise. Source: NAKSHATRA-3WAY.
+{
+  const fw = readFileSync(join(process.cwd(), 'JAIN NAKSHATRA RULING FRAMEWORK.md'), 'utf8');
+  const fwKarma = new Map<string, string>();
+  const fwNature = new Map<string, string>();
+  for (const m of fw.matchAll(/"([^"]+)":\s*\{\s*nature:\s*"(\w+)"[^}]*karma_type:\s*"([^"]+)"/g)) {
+    fwNature.set(m[1], m[2]);
+    fwKarma.set(m[1], m[3]);
+  }
+
+  let karmaMatches = 0;
+  for (const n of NAKSHATRAS) {
+    const want = fwKarma.get(n.name);
+    if (!want) continue;
+    checks++;
+    if ((n as { karma_type?: string }).karma_type === want) karmaMatches++;
+    else {
+      errors.push(
+        `${n.name}: karma_type is "${(n as { karma_type?: string }).karma_type}" but the authoring file ` +
+          `says "${want}". This field agreed on all 27 entries when verified; a change is drift, ` +
+          `and it drives every reading's dominant karma.`
+      );
+    }
+  }
+  if (karmaMatches) {
+    notices.push(`nakshatra karma_type: ${karmaMatches}/27 faithful to the authoring file (pinned)`);
+  }
+
+  // ── nature: edited in BOTH directions, with no coherent governing rule ─────
+  // The engine changed 15 of 27 natures from the authoring file — 10 toward more
+  // auspicious, 5 toward less. Eight of the upgrades do follow CLAUDE.md's
+  // "Tirthankar nakshatras = param_shubha". But four Tirthankara-hosting
+  // nakshatras were moved the OTHER way, including Vishakha, which the authoring
+  // file ranked param_shubha and which hosts two Tirthankaras, demoted to mishra.
+  // So this is not a rule awaiting application; the field has been edited
+  // inconsistently and currently follows no single rule. Reported, never
+  // enforced — reclassifying shifts the gunasthana prior for ~25% of births.
+  const RANK: Record<string, number> = { ashubha: 0, mishra: 1, shubha: 2, param_shubha: 3 };
+  const demotedHosts: string[] = [];
+  for (const n of NAKSHATRAS) {
+    const was = fwNature.get(n.name);
+    if (!was || was === n.nature) continue;
+    const hosts = TIRTHANKARAS.filter((t) => t.birth_nakshatra === n.name).length;
+    checks++;
+    if (hosts > 0 && RANK[n.nature] < RANK[was]) {
+      demotedHosts.push(`${n.name} (${hosts} Tirthankara${hosts > 1 ? 's' : ''}) ${was} -> ${n.nature}`);
+    }
+  }
+  if (demotedHosts.length) {
+    notices.push(
+      `nature was edited AWAY from the param_shubha rule for ${demotedHosts.length} Tirthankara-hosting ` +
+        `nakshatras: ${demotedHosts.join('; ')}. Combined with 8 edits toward the rule, the field follows ` +
+        `no single rule at present (NAKSHATRA-3WAY finding 3)`
     );
   }
 }
