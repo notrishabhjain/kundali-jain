@@ -19,7 +19,8 @@
     "check:doctrine": "tsx scripts/check-doctrine.ts",
     "check:ephemeris": "tsx scripts/check-ephemeris.ts",
     "check:citations": "tsx scripts/check-citations.ts",
-    "check:tirthankara": "tsx scripts/check-tirthankara-table.ts"
+    "check:tirthankara": "tsx scripts/check-tirthankara-table.ts",
+    "check:reachability": "tsx scripts/check-reachability.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

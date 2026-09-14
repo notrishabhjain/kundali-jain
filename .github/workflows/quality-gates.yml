@@ -48,6 +48,11 @@ jobs:
       # External-oracle layer: published astronomy this codebase did not produce.
       # Catches uniform errors (a wrong ayanamsa, a truncated lunar series) that
       # metamorphic testing is structurally blind to.
+      # Doctrinal data the app can never actually show. This engine has
+      # repeatedly accumulated sourced data that nothing reads.
+      - name: Reachability guard
+        run: npm run check:reachability
+
       # The nakshatra -> Tirthankara table underlies every reading; 19 of 24
       # entries are pinned against the published record, the rest reported.
       - name: Tirthankara table guard
@@ -104,6 +109,7 @@ jobs:
             echo "| Pancham Kaal guard | ✅ |"
             echo "| Karma quality guard | ✅ |"
             echo "| PDF parity guard | ✅ |"
+            echo "| Reachability guard | ✅ |"
             echo "| Tirthankara table | ✅ |"
             echo "| Citation audit | ✅ |"
             echo "| Ephemeris conformance | ✅ |"
