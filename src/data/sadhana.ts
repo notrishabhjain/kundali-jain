@@ -1023,6 +1023,13 @@ export const BHAKTAMAR_SHLOKAS: BhaktamarShloka[] = [
     name: 'चोर-भय और सम्पत्ति-रक्षा श्लोक',
     targetKarma: ['Antaraya', 'Gotra'],
     targetAffliction: 'चोरी, डकैती, धन-हानि, संपत्ति पर खतरा',
+    // [REQUIRES_RESEARCH] This line does NOT match Bhaktamar verse 8. The
+    // canonical verse opening 'वक्तुं गुणान् गुण-समुद्र! शशांक-कान्तान्' is a
+    // different text, and the distinctive phrase 'लक्ष्मी-स्वयंवर' returns no
+    // Bhaktamar match in any catalogued or searchable edition — it may belong
+    // to another stotra entirely. Retained rather than deleted (nothing is
+    // removed from the codebase) but NOT rendered anywhere, and must be
+    // replaced from a printed Digambar edition before it ever is.
     sanskritVerse: 'स्वर्गापवर्ग-पद-वीर्य-विलास-दक्षं लक्ष्मी-स्वयंवर-मणिं त्रिभुवन-जनस्य',
     riddhiMantra: 'ॐ ह्रीं अहं णमो अरहंताणं',
     remedialMantra: 'ॐ ह्रीं श्रीं क्लीं चोर-भय-निवारणाय धन-संरक्षकाय नमः स्वाहा',
@@ -1349,7 +1356,11 @@ export const BHAKTAMAR_SHLOKAS: BhaktamarShloka[] = [
     targetAffliction: 'आर्थिक कठिनाई, ऋण-मुक्ति, आध्यात्मिक उन्नति (बृहस्पति-शुक्र वित्त-बाधा)',
     sanskritVerse: 'इत्थं यथा तव विभूतिरभूज्जिनेन्द्र! तच्चिन्तितं मम मनोगत-मेव सिद्धम्',
     riddhiMantra: 'ॐ ह्रीं अहं णमो अरहंताणं',
-    remedialMantra: 'ॐ ह्रीं श्रीं क्लीं धन-लक्ष्मी समृद्धि दायकेभ्यो नमः स्वाहा',
+    // G2-C1 fix: this previously read 'धन-लक्ष्मी समृद्धि दायकेभ्यो', which
+    // prescribes the invocation of a Vedic goddess to a Jain user. Rewritten
+    // in the idiom the neighbouring entries already use — the karmic effect
+    // named directly, with no deva. Source: MP-§F1 (antaraya-kshaya remedies).
+    remedialMantra: 'ॐ ह्रीं श्रीं अर्हं लाभान्तराय-क्षयाय समृद्धि-दायकाय नमः स्वाहा',
     repetitionShloka: 48,
     repetitionRiddhi: 108,
     repetitionMantra: 108,

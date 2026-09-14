@@ -19,6 +19,7 @@ import { join, relative } from 'node:path';
 import { generateUserProfile, BirthFormData } from '../src/lib/analysisSynthesizer';
 import { generateRemedies } from '../src/lib/remedyEngine';
 import { BHAKTAMAR_TRADITIONAL_ASSIGNMENTS } from '../src/data/bhaktamarTraditionalAssignments';
+import { measureBhaktamarReach } from '../src/lib/bhaktamarSelector';
 
 const ROOT = process.cwd();
 const errors: string[] = [];
@@ -110,26 +111,75 @@ let checks = 0;
       'the remedy engine prescribed no Bhaktamar shloka at all across ' +
         `${N} charts — the prescription path is broken, or this guard's parser is`
     );
-  } else {
-    notices.push(
-      `Bhaktamar: the personalised remedy path reaches ${prescribed.size} of 48 shlokas ` +
-        `(${[...prescribed].map(Number).sort((a, b) => a - b).join(', ')}). ` +
-        `The remaining ${48 - prescribed.size} are catalogued but cannot be prescribed to anyone.`
+  }
+
+  // Two different numbers matter, and reporting only the first understates the
+  // engine badly. `prescribed` counts shlokas allotted as a birth's PRIMARY.
+  // `shown` also counts the eligible alternates, which the reading now lists in
+  // full — they are as prescribable as the primary, the tradition assigns them
+  // to the same karma, and before this change they were computed and discarded.
+  const { primaries, eligible } = measureBhaktamarReach();
+
+  // ENFORCED FLOORS. Before the nakshatra-driven selector the primary path
+  // reached 8 of 48 because remedyEngine took the first element of the eligible
+  // set. These floors sit just under the current figures so a regression to
+  // `[0]`-style truncation fails the build instead of quietly narrowing the
+  // reading.
+  const PRIMARY_FLOOR = 18;
+  const ELIGIBLE_FLOOR = 44;
+
+  checks++;
+  if (primaries.size < PRIMARY_FLOOR) {
+    errors.push(
+      `Bhaktamar: only ${primaries.size} distinct shlokas can be allotted as a birth's primary, ` +
+        `below the floor of ${PRIMARY_FLOOR}. This is the signature of selection collapsing back onto ` +
+        `one element of the eligible set.`
+    );
+  }
+  checks++;
+  if (eligible.size < ELIGIBLE_FLOOR) {
+    errors.push(
+      `Bhaktamar: only ${eligible.size} of 48 shlokas are eligible for any birth, below the floor of ` +
+        `${ELIGIBLE_FLOOR}. Check that BOTH catalogues are being consulted.`
     );
   }
 
-  // The traditional-assignment table (shlokas 25-47) was written specifically to
-  // fill the gap above 24. If none of its entries can be prescribed, the table
-  // is not filling anything.
+  notices.push(
+    `Bhaktamar: ${primaries.size} of 48 shlokas can be a birth's allotted primary; ` +
+      `${eligible.size} of 48 are eligible and shown as alternates ` +
+      `(was 8 primaries / 22 eligible before the nakshatra-driven selector). ` +
+      `Sampled ${prescribed.size} distinct primaries across ${N} random charts.`
+  );
+
+  // The three that remain out of reach are out of reach for a reason worth
+  // stating, not for want of wiring: they target karma types no birth nakshatra
+  // carries.
+  const unreachable = [...Array(48)].map((_, i) => i + 1).filter((n) => !eligible.has(n));
   checks++;
-  const traditionalNums = new Set(BHAKTAMAR_TRADITIONAL_ASSIGNMENTS.map((a) => String(a.shlokaNumber)));
-  const traditionalReached = [...prescribed].filter((n) => traditionalNums.has(n));
-  if (traditionalReached.length === 0 && prescribed.size > 0) {
+  if (unreachable.length > 0) {
     notices.push(
+      `Bhaktamar: shlokas ${unreachable.join(', ')} remain unreachable — they target Ayushya and ` +
+        `"Sarva karma kshay", and no nakshatra in the 27-star cycle carries either as its karma_type ` +
+        `(Sarva karma kshay belongs to Abhijit, which no birth longitude resolves to). Forcing them ` +
+        `into reach would mean inventing a karma assignment, which C4 forbids.`
+    );
+  }
+
+  // The traditional-assignment table (shlokas 25-47) was written to fill the gap
+  // above 24. It is now consulted by the selector via its own targetKarma.
+  checks++;
+  const traditionalNums = new Set(BHAKTAMAR_TRADITIONAL_ASSIGNMENTS.map((a) => a.shlokaNumber));
+  const traditionalReached = [...eligible].filter((n) => traditionalNums.has(n));
+  if (traditionalReached.length === 0) {
+    errors.push(
       `Bhaktamar: none of the ${BHAKTAMAR_TRADITIONAL_ASSIGNMENTS.length} traditional assignments ` +
-        `(shlokas 25-47) is reachable by the prescription path. The table was added to fill the gap ` +
-        `above shloka 24; wiring it in is a doctrinal decision about which shloka answers which karma, ` +
-        `so it is reported rather than guessed.`
+        `(shlokas 25-47) is reachable. They carry their own targetKarma and must be consulted by the ` +
+        `selector; if this fires, that wiring has been removed.`
+    );
+  } else {
+    notices.push(
+      `Bhaktamar: ${traditionalReached.length} of ${BHAKTAMAR_TRADITIONAL_ASSIGNMENTS.length} traditional ` +
+        `assignments (shlokas 25-47) are now reachable — they were entirely dead before.`
     );
   }
 }

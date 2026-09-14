@@ -104,6 +104,50 @@ export default function RemedyTab({ profile }: RemedyTabProps) {
                 </p>
               </div>
 
+              {/* ── Bhaktamar prescription allotted to THIS birth ───────────────
+                  The engine used to compute the eligible set for the dominant
+                  karma and then show only its first element, so 8 shlokas of 48
+                  were reachable across every possible birth. Eligibility is
+                  traditional; the allotment within it is this engine's own and
+                  the provenance line below says so. */}
+              {combined.bhaktamarPrimary && (
+                <div className="bg-fuchsia-50 p-5 rounded-xl border border-fuchsia-200">
+                  <span className="block text-sm font-bold text-fuchsia-700 uppercase mb-2">
+                    आपके जन्म-नक्षत्र ({profile.birthNakshatraHindi}) हेतु नियत भक्तामर श्लोक
+                  </span>
+                  <p className="text-gray-900 text-sm leading-relaxed font-medium">{combined.bhaktamarShloka}</p>
+                  <p className="text-gray-800 text-sm leading-relaxed mt-2">{combined.bhaktamarMantra}</p>
+                  <p className="text-gray-800 text-sm leading-relaxed mt-1">{combined.bhaktamarProtocol}</p>
+                  {combined.bhaktamarPrimary.versePending && (
+                    <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+                      इस श्लोक की संस्कृत पंक्ति अभी मुद्रित संस्करण से सत्यापित नहीं है — इसीलिए यहाँ उद्धृत नहीं की गई।
+                      यह इंजन अप्रमाणित पद्य-पाठ नहीं गढ़ता।
+                    </p>
+                  )}
+
+                  {combined.bhaktamarAlternates.length > 0 && (
+                    <div className="mt-4">
+                      <span className="block text-xs font-bold text-fuchsia-700 uppercase mb-2">
+                        इसी कर्म हेतु विहित अन्य श्लोक ({combined.bhaktamarAlternates.length})
+                      </span>
+                      <div className="grid sm:grid-cols-2 gap-2">
+                        {combined.bhaktamarAlternates.map((a) => (
+                          <div key={a.shlokaNumber} className="bg-white rounded-lg border border-fuchsia-100 px-3 py-2">
+                            <span className="text-xs font-bold text-fuchsia-900">श्लोक {a.shlokaNumber} — {a.name}</span>
+                            <p className="text-[11px] text-gray-600 mt-0.5">{a.targetAffliction}</p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">{a.repetitionShloka}× जाप | {a.direction} | {a.timeWindow}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[11px] text-fuchsia-800 bg-white/70 border border-fuchsia-200 rounded-lg px-3 py-2 mt-3 leading-relaxed">
+                    {combined.bhaktamarProvenance}
+                  </p>
+                </div>
+              )}
+
               {/* Bhaktamar graha-shanti mapping (blueprint §B.4) */}
               <div className="bg-violet-50 p-5 rounded-xl border border-violet-200">
                 <span className="block text-sm font-bold text-violet-700 uppercase mb-3">भक्तामर स्तोत्र — ग्रह-शांति मैपिंग (पारम्परिक)</span>
