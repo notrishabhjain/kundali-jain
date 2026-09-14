@@ -22,6 +22,8 @@
 
 import { TIRTHANKARAS } from '../src/data/tirthankaras';
 import { NAKSHATRAS } from '../src/data/nakshatras';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 // Confirmed against at least two independent published sources.
 // Source: TIRTHANKARA-NAK-VERIFY (references/extracted/)
@@ -41,6 +43,12 @@ const CONFIRMED: Record<number, string> = {
   15: 'Pushya',
   16: 'Bharani',
   17: 'Krittika',
+  // #19 resolved 2026-09-14: BOTH repo authoring files independently give
+  // Purvashadha, and the lone web source giving "Ashvini" is the Malli/Nami
+  // confusion anticipated when the conflict was opened (#21 Naminatha genuinely
+  // is Ashvini). Three of four witnesses agree with the engine.
+  // Source: NAKSHATRA-3WAY finding 2.
+  19: 'Purva Ashadha',
   20: 'Shravana',
   21: 'Ashvini',
   22: 'Chitra',
@@ -52,12 +60,7 @@ const CONFLICTS: Record<number, { engine: string; published: string; note: strin
   13: {
     engine: 'Purva Bhadrapada',
     published: 'Uttara Bhadrapada',
-    note: 'two independent sources; adjacent nakshatras, the shape of a transcription slip',
-  },
-  19: {
-    engine: 'Purva Ashadha',
-    published: 'Ashvini',
-    note: 'one source, at Mithilapuri; note #21 Naminatha is independently confirmed as Ashvini, so a Malli/Nami confusion in the source cannot be excluded',
+    note: 'now a THREE-WAY disagreement: the repo authoring files say Uttara Phalguni, the engine says Purva Bhadrapada, the published record says Uttara Bhadrapada. No two agree. Needs TLP-1/TLP-3 ch.4. Source: NAKSHATRA-3WAY finding 2',
   },
 };
 
@@ -210,9 +213,117 @@ for (const [idStr, why] of Object.entries(CONTESTED)) {
   checks++;
   if (violating.length) {
     notices.push(
-      `CLAUDE.md states "Tirthankar nakshatras = param_shubha", but ${violating.length} of ${hosting.length} ` +
+      `CLAUDE.md states "Tirthankar nakshatras = param_shubha", and ${violating.length} of ${hosting.length} ` +
         `nakshatras hosting a Tirthankara birth are classified otherwise: ` +
-        violating.map((n) => `${n.name}=${n.nature}`).join(', ')
+        violating.map((n) => `${n.name}=${n.nature}`).join(', ') +
+        `. NOTE: the rule was never implemented by the data's own author — JAIN NAKSHATRA RULING ` +
+        `FRAMEWORK.md states the rule in its header and then violates it 13 times of 18 in its own ` +
+        `data. So this is a doctrinal decision to take, not a regression to fix (NAKSHATRA-3WAY finding 3)`
+    );
+  }
+}
+
+// ── Regeneration hazard: the repo's own authoring files are NOT authoritative ─
+// CLAUDE.md names tirthankar_data.md as the source for tirthankaras.ts, but the
+// engine diverges from it on six birth nakshatras and in four of those the
+// PUBLISHED RECORD backs the engine, not the file. The file also shows the
+// marks of a column filled by repetition: 16 of its 24 entries give birth,
+// diksha, kevalajnana and nirvana the same nakshatra.
+//
+// Rebuilding tirthankaras.ts from that file would silently reintroduce six
+// errors. This check keeps the divergence visible and labelled so it is never
+// mistaken for drift that ought to be "corrected" back toward the file.
+// Source: NAKSHATRA-3WAY finding 1.
+{
+  const AUTHORING_FILE_DIVERGENCES: Record<number, string> = {
+    5: 'Krittika',
+    10: 'Vishakha',
+    13: 'Uttara Phalguni',
+    15: 'Uttara Bhadrapada',
+    17: 'Ashvini',
+    18: 'Uttara Ashadha',
+  };
+  let stillDiverging = 0;
+  for (const [idStr, fileValue] of Object.entries(AUTHORING_FILE_DIVERGENCES)) {
+    const t = byId.get(Number(idStr));
+    checks++;
+    if (!t) continue;
+    if (t.birth_nakshatra === fileValue) {
+      errors.push(
+        `#${idStr} ${t.name}: birth_nakshatra is now "${fileValue}", matching tirthankar_data.md. ` +
+          `That file is NOT authoritative for this field — the published record backs the engine's ` +
+          `previous value. Looks like a regeneration from the authoring file; see NAKSHATRA-3WAY.`
+      );
+    } else {
+      stillDiverging++;
+    }
+  }
+  if (stillDiverging) {
+    notices.push(
+      `engine deliberately diverges from tirthankar_data.md on ${stillDiverging} birth nakshatras — ` +
+        `this is CORRECT, the authoring file is the less reliable witness (NAKSHATRA-3WAY finding 1)`
+    );
+  }
+}
+
+// ── nakshatra karma_type is faithful to its authoring file ──────────────────
+// Unlike birth_nakshatra, this field matches JAIN NAKSHATRA RULING FRAMEWORK.md
+// exactly on all 27 entries. It is the basis of every reading's "dominant
+// karma", so the agreement is pinned here: a future edit that drifts from the
+// authoring file is real drift, not a correction, because there is no competing
+// witness saying otherwise. Source: NAKSHATRA-3WAY.
+{
+  const fw = readFileSync(join(process.cwd(), 'JAIN NAKSHATRA RULING FRAMEWORK.md'), 'utf8');
+  const fwKarma = new Map<string, string>();
+  const fwNature = new Map<string, string>();
+  for (const m of fw.matchAll(/"([^"]+)":\s*\{\s*nature:\s*"(\w+)"[^}]*karma_type:\s*"([^"]+)"/g)) {
+    fwNature.set(m[1], m[2]);
+    fwKarma.set(m[1], m[3]);
+  }
+
+  let karmaMatches = 0;
+  for (const n of NAKSHATRAS) {
+    const want = fwKarma.get(n.name);
+    if (!want) continue;
+    checks++;
+    if ((n as { karma_type?: string }).karma_type === want) karmaMatches++;
+    else {
+      errors.push(
+        `${n.name}: karma_type is "${(n as { karma_type?: string }).karma_type}" but the authoring file ` +
+          `says "${want}". This field agreed on all 27 entries when verified; a change is drift, ` +
+          `and it drives every reading's dominant karma.`
+      );
+    }
+  }
+  if (karmaMatches) {
+    notices.push(`nakshatra karma_type: ${karmaMatches}/27 faithful to the authoring file (pinned)`);
+  }
+
+  // ── nature: edited in BOTH directions, with no coherent governing rule ─────
+  // The engine changed 15 of 27 natures from the authoring file — 10 toward more
+  // auspicious, 5 toward less. Eight of the upgrades do follow CLAUDE.md's
+  // "Tirthankar nakshatras = param_shubha". But four Tirthankara-hosting
+  // nakshatras were moved the OTHER way, including Vishakha, which the authoring
+  // file ranked param_shubha and which hosts two Tirthankaras, demoted to mishra.
+  // So this is not a rule awaiting application; the field has been edited
+  // inconsistently and currently follows no single rule. Reported, never
+  // enforced — reclassifying shifts the gunasthana prior for ~25% of births.
+  const RANK: Record<string, number> = { ashubha: 0, mishra: 1, shubha: 2, param_shubha: 3 };
+  const demotedHosts: string[] = [];
+  for (const n of NAKSHATRAS) {
+    const was = fwNature.get(n.name);
+    if (!was || was === n.nature) continue;
+    const hosts = TIRTHANKARAS.filter((t) => t.birth_nakshatra === n.name).length;
+    checks++;
+    if (hosts > 0 && RANK[n.nature] < RANK[was]) {
+      demotedHosts.push(`${n.name} (${hosts} Tirthankara${hosts > 1 ? 's' : ''}) ${was} -> ${n.nature}`);
+    }
+  }
+  if (demotedHosts.length) {
+    notices.push(
+      `nature was edited AWAY from the param_shubha rule for ${demotedHosts.length} Tirthankara-hosting ` +
+        `nakshatras: ${demotedHosts.join('; ')}. Combined with 8 edits toward the rule, the field follows ` +
+        `no single rule at present (NAKSHATRA-3WAY finding 3)`
     );
   }
 }
