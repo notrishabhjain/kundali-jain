@@ -256,12 +256,44 @@ export const BHAKTAMAR_TRADITIONAL_ASSIGNMENTS: TraditionalBhaktamarAssignment[]
 
 // ─── Verified Sanskrit first-lines, shlokas 25–44 (v3 §2 + final resolution) ──
 // Source: blueprint-v2 §2 (dedup pass) + final truncation resolution (37/39).
-export const BHAKTAMAR_VERIFIED_LINES: Record<number, string> = {
+/**
+ * ─── UNRELIABLE: Svetambara numbering. Do not render these. ─────────────────
+ *
+ * This table is named VERIFIED_LINES but an external audit (15 Sep 2026)
+ * demonstrated that entry 29 is wrong:
+ *
+ *   "The standard Digambar Bhaktamar verse 29 begins 'सिंहासने
+ *    मणिमयूखशिखाविचित्रे…' and describes Adinath's radiant form on a jeweled
+ *    throne. The verse printed in the PDF is not the standard verse 29."
+ *
+ * Independently confirmed: verse 29 is सिंहासने मणिमयूखशिखाविचित्रे / विभ्राजते
+ * तव वपुः कनकावदातम्. The line stored here for 29 — त्वामामनन्ति मुनयः परमं
+ * पुमांसम् — is verse 24 of the 44-verse Svetambara recension.
+ *
+ * That single error is diagnostic of the whole table. The Digambar text has 48
+ * verses because it carries the four Pratiharya verses the Svetambara
+ * recension lacks, so the two numberings diverge from that point on. A table
+ * built against the wrong recension cannot be repaired entry by entry.
+ *
+ * The file header above already said the right thing — that 25-44 need OCR of a
+ * printed Digambar edition and "this file never fabricates verse text". This
+ * table was added later in contradiction of that and is now renamed to match
+ * reality. Nothing is deleted (CLAUDE.md quality gate), but nothing reads it
+ * either: BHAKTAMAR_SADHANA_CATALOG_EXTENDED below now carries no verse lines,
+ * and check-doctrine D15 fails the build if any of these strings reaches a
+ * rendered surface.
+ *
+ * Only entry 29 is corrected, because it is the one an external reviewer
+ * checked and we independently confirmed.
+ */
+export const BHAKTAMAR_LINES_UNVERIFIED_SVETAMBARA_NUMBERING: Record<number, string> = {
   25: 'किं शर्वरीषु शशिनाह्नि विवस्वता वा',
   26: 'मन्ये वरं हरिहरादय एव दृष्टाः',
   27: 'ज्ञानं यथा त्वयि विभाति कृतावकाशं',
   28: 'बुद्धस्त्वमेव विबुधाचितबुद्धिबोधात्',
-  29: 'त्वामामनन्ति मुनयः परमं पुमांसम्',
+  // Corrected 2026-09-22 from the Svetambara-numbered line, per external
+  // audit and independent confirmation. This one IS the Digambar verse 29.
+  29: 'सिंहासने मणिमयूखशिखाविचित्रे विभ्राजते तव वपुः कनकावदातम्',
   30: 'त्वं पावनं सुविमलं परिचिन्त्य रूपं',
   31: 'द्योतान्तरं तव वपुः प्रविभक्तभासम्',
   32: 'स्वर्गापवर्ग-गम-मार्ग-विमार्गणेष्टः',
@@ -288,7 +320,12 @@ export function getBhaktamarAssignment(shlokaNumber: number): TraditionalBhaktam
 // BhaktamarShloka entries in sadhana.ts always take precedence.
 export interface BhaktamarSadhana {
   shlokaNumber: number;
-  shlokaFirstLine: string;
+  /**
+   * Optional, and absent wherever the line has not been confirmed against a
+   * printed Digambar edition. The UI must render the shloka NUMBER and omit the
+   * text rather than print an unverified or mis-numbered verse.
+   */
+  shlokaFirstLine?: string;
   planetaryTarget: string;   // graha name or 'All'
   remedyTarget: string;
   jaapCount: number;
@@ -358,12 +395,12 @@ export function getBhaktamarForGraha(grahaEn: string): BhaktamarSadhana[] {
 
 // Additional graha-targeted rows from v3 §2 (completing the planetary map).
 export const BHAKTAMAR_SADHANA_CATALOG_EXTENDED: BhaktamarSadhana[] = [
-  { shlokaNumber: 26, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[26], planetaryTarget: 'Mercury', remedyTarget: 'बुद्धि-विकास, धर्म-मार्ग स्पष्टता', jaapCount: 108 },
-  { shlokaNumber: 31, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[31], planetaryTarget: 'Sun', remedyTarget: 'ज्योति-प्रकाश — यश एवं सौर-तेज', jaapCount: 108 },
-  { shlokaNumber: 33, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[33], planetaryTarget: 'Moon', remedyTarget: 'चन्द्र अरिष्ट शमन, भावनात्मक स्थैर्य', jaapCount: 108 },
-  { shlokaNumber: 35, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[35], planetaryTarget: 'Venus', remedyTarget: 'समृद्धि एवं लौकिक शांति', jaapCount: 108 },
-  { shlokaNumber: 40, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[40], planetaryTarget: 'Ketu', remedyTarget: 'केतु अरिष्ट, त्वचा-रोग, अग्नि-रक्षा', jaapCount: 108 },
-  { shlokaNumber: 41, shlokaFirstLine: BHAKTAMAR_VERIFIED_LINES[41], planetaryTarget: 'Mars', remedyTarget: 'भौम अरिष्ट (क्रोध, हिंसा, शल्य-कवच)', jaapCount: 108 }
+  { shlokaNumber: 26, shlokaFirstLine: undefined, planetaryTarget: 'Mercury', remedyTarget: 'बुद्धि-विकास, धर्म-मार्ग स्पष्टता', jaapCount: 108 },
+  { shlokaNumber: 31, shlokaFirstLine: undefined, planetaryTarget: 'Sun', remedyTarget: 'ज्योति-प्रकाश — यश एवं सौर-तेज', jaapCount: 108 },
+  { shlokaNumber: 33, shlokaFirstLine: undefined, planetaryTarget: 'Moon', remedyTarget: 'चन्द्र अरिष्ट शमन, भावनात्मक स्थैर्य', jaapCount: 108 },
+  { shlokaNumber: 35, shlokaFirstLine: undefined, planetaryTarget: 'Venus', remedyTarget: 'समृद्धि एवं लौकिक शांति', jaapCount: 108 },
+  { shlokaNumber: 40, shlokaFirstLine: undefined, planetaryTarget: 'Ketu', remedyTarget: 'केतु अरिष्ट, त्वचा-रोग, अग्नि-रक्षा', jaapCount: 108 },
+  { shlokaNumber: 41, shlokaFirstLine: undefined, planetaryTarget: 'Mars', remedyTarget: 'भौम अरिष्ट (क्रोध, हिंसा, शल्य-कवच)', jaapCount: 108 }
 ];
 
 /** Full graha lookup across base + extended catalogs. */

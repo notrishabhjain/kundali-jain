@@ -159,6 +159,20 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
               </div>
             )}
 
+            {/* The audit's point about dasha dates: the sequence is reproducible
+                but its year-allotments are this engine's own construction, so the
+                boundary dates carry a precision the underlying model does not.
+                Stated here rather than implied by three tidy date ranges. */}
+            {dasha && (
+              <p className="text-[11px] text-amber-800 bg-amber-50/70 border border-amber-200 rounded-lg px-3 py-2 -mt-3 mb-6 leading-relaxed">
+                <strong>दशा-तिथियाँ अनुमानित हैं।</strong> यह अष्ट-कर्म दशा-क्रम इस संगणक का
+                <strong> संकलित</strong> प्रतिमान है — प्रति-कर्म वर्ष-विभाजन किसी दिगम्बर आगम-ग्रंथ से
+                शब्दशः प्राप्त नहीं है। क्रम एवं गणना पुनरुत्पाद्य हैं, किन्तु आरम्भ-अन्त की तिथियाँ
+                उसी प्रतिमान पर निर्भर हैं। इन्हें कर्म-उदय की दिशा समझने का साधन मानें, घटनाओं का
+                कैलेंडर नहीं।
+              </p>
+            )}
+
             <div className="space-y-4 text-gray-800 leading-relaxed">
               <p>
                 आप इस समय <strong>{dashaLord} महादशा</strong> में <strong>{dasha?.antardashaInfo.lord_hindi} अंतर्दशा</strong> से गुजर रहे हैं

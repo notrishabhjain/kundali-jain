@@ -162,6 +162,18 @@ export default function RemedyTab({ profile }: RemedyTabProps) {
                     </div>
                   ))}
                 </div>
+                {/* Applied-interpretation label. The audit's point: the
+                    Navagraha-Tirthankara and graha-shloka correspondences come
+                    from practitioner material, not a canonical Digambar text,
+                    and must be presented as a living convention rather than
+                    core doctrine. */}
+                <p className="text-[11px] text-violet-900 bg-white/80 border border-violet-300 rounded-lg px-3 py-2 mt-3 leading-relaxed">
+                  <strong>प्रयुक्त व्याख्या (आगम-विधान नहीं):</strong> यह ग्रह-श्लोक सम्बन्ध मानतुंगाचार्य की
+                  परम्परागत चिकित्सा-सूची एवं प्रचलित साधक-सामग्री से है — किसी दिगम्बर आगम-ग्रंथ का
+                  शब्दशः विधान नहीं। इसे जीवित परम्परा की प्रथा मानें, मूल सिद्धांत नहीं। स्मरण रहे कि
+                  ग्रह <strong>निमित्त</strong> हैं, कारण नहीं — कोई श्लोक ग्रह को नहीं बदलता, वह आपके
+                  भाव को बदलता है।
+                </p>
                 <p className="text-[11px] text-violet-700 mt-2">पूर्ण विधि (दिशा/समय/सोमैटिक क्रम) हेतु जाप साधना टैब देखें — वहाँ के पूर्ण प्रवेश प्राथमिक हैं।</p>
               </div>
 
