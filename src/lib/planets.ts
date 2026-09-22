@@ -24,7 +24,11 @@
 //
 //   Mercury 15"   Venus 21"   Mars 25"   Jupiter 100"   Saturn 200"
 //
-// 200" is 3.3 arcmin. That is comfortably inside a rashi (30 deg) and a
+// An independent Swiss Ephemeris check found our Jupiter 3.2' and Saturn 6.0'
+// out — beyond those claims — so the bounds actually used below are raised to
+// 240" and 420" to cover what was measured. See MAX_ERROR_ARCSEC.
+//
+// 420" is 7 arcmin. That is comfortably inside a rashi (30 deg) and a
 // nakshatra (13 deg 20'), and inside a pada (3 deg 20') except within a few
 // arcmin of a pada boundary. checkPadaConfidence() below flags exactly that
 // case rather than letting the reading assert a pada it cannot support.
@@ -65,9 +69,24 @@ const ELEMENTS: Record<string, KeplerElements> = {
              aDot: -0.00125060, eDot: -0.00050991, IDot: 0.00193609, LDot: 1222.49362201, periDot: -0.41897216, nodeDot: -0.28867794 },
 };
 
-/** Published maximum longitude error, arcseconds, over 1800-2050 (Standish table 2). */
+/**
+ * Maximum longitude error, arcseconds. These started as Standish's published
+ * table-2 figures for 1800-2050 (Mercury 15, Venus 21, Mars 25, Jupiter 100,
+ * Saturn 200), but an independent Swiss Ephemeris check of a real chart put our
+ * Jupiter 3.2' out and our Saturn 6.0' out — both beyond what table 2 claims.
+ *
+ * Rather than keep quoting a bound we do not meet, these are raised to cover the
+ * observed disagreement with a margin. An optimistic error bar is worse than a
+ * wide one here: `padaConfident` below is computed from these numbers, so
+ * understating them would let the reading assert a pada it cannot actually
+ * support. Mercury, Venus and Mars matched to well inside their published
+ * figures and keep them.
+ *
+ * Source: Standish (JPL), Keplerian Elements table 2, adjusted against
+ * "Revised Digambar Jain Kundali — Full audit", 15 Sep 2026 §1.
+ */
 const MAX_ERROR_ARCSEC: Record<string, number> = {
-  Mercury: 15, Venus: 21, Mars: 25, Jupiter: 100, Saturn: 200,
+  Mercury: 15, Venus: 21, Mars: 25, Jupiter: 240, Saturn: 420,
 };
 
 /** Heliocentric rectangular ecliptic coordinates (J2000), AU. */

@@ -99,6 +99,36 @@ src/
 5. **Dasha** — Use Vimshottari (placeholder) in Phase 1; replace with Jain 3-layer dasha in Phase 3
 6. **Language** — All UI text in Hindi (Devanagari). Address user as 'आप', never 'तुम'
 
+## What this engine may NOT assert (external audit, 15 Sep 2026)
+
+An independent reviewer recomputed a generated chart with Swiss Ephemeris and
+audited every claim for a disclosed formula. The astronomy held up; four of the
+interpretive outputs did not. These are now permanent constraints:
+
+1. **No karma percentage.** Nothing may render a measured quantity of karma.
+   The weights in `karmaEngine.ts` are this engine's own and are marked
+   `[REQUIRES_RESEARCH]`; sthiti-bandha is described in sagaropama, never in
+   percent. The UI shows a three-value band (प्रमुख / गौण / पृष्ठभूमि) and bar
+   widths derive from the band, not the key. Enforced by D13.
+2. **Udaya, sattā and nirjarā are not bands of one quantity.** Sattā is the
+   condition of being bound — true of all eight, always. Udaya is present
+   fruition. Nirjarā is shedding, and is **never** derived from a chart: it is
+   what sādhana produces. Enforced by D14.
+3. **No gunasthāna from a chart.** Chart-only inference reached nothing but
+   stages 2 and 3 — sāsādana and miśra, both transient downfalls from right
+   faith. The stage is withheld unless the person self-assesses all three
+   Sarvārthasiddhi axes. Enforced by D15.
+4. **No guaranteed outcome.** The general doctrine that deva-gati bandha is
+   possible in Pancham Kāl is canonical and stays (rule 3). A claim about *this
+   person's* gati does not — āyuṣya-karma binds at one moment from the bhāvas of
+   that moment, and no calculation reaches it. The same applies to health,
+   wealth, career and family: conditional framing only, never the future tense.
+   Enforced by D16.
+
+Every constructed layer carries its label: the 8-karma dasha is `sankalita` with
+boundary dates marked approximate, and graha/Tirthankara correspondences are
+marked प्रयुक्त व्याख्या (applied interpretation), not āgama.
+
 ## Karma Manifestation Rule
 Every karma statement MUST include:
 - What it is (karma name in Devanagari)

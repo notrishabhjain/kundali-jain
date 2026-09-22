@@ -369,8 +369,18 @@ export default function YantraSadhana({ profile, part }: YantraSadhanaProps) {
               </div>
               <div className="space-y-3">
                 <div className="bg-orange-100 rounded-lg border border-orange-200 p-4">
-                  <span className="text-xs font-bold text-orange-700 uppercase block mb-1">कर्म प्रभाव</span>
+                  {/* Was "कर्म प्रभाव" — a promised effect. The audit called the
+                      yantra section "ritual engineering presented as personalized
+                      Digambar doctrine": no consecration lineage, no source text
+                      and no mechanism was given for the stated outcome. The
+                      practice stays; the guarantee does not. */}
+                  <span className="text-xs font-bold text-orange-700 uppercase block mb-1">साधना का प्रयोजन</span>
                   <span className="font-medium text-orange-900">{karmaSadhana.yantra.effect}</span>
+                  <span className="block text-[11px] text-orange-800 mt-2 leading-relaxed">
+                    यह इस साधना का <strong>प्रयोजन</strong> है, प्रतिफल की गारंटी नहीं। यंत्र-विधि जीवित
+                    परम्परा से है; इसकी प्रतिष्ठा-परम्परा एवं मूल ग्रंथ-प्रमाण यहाँ उपलब्ध नहीं। फल
+                    भाव-शुद्धि और पुरुषार्थ के अधीन है — किसी यंत्र के आकार, धातु या दिशा के नहीं।
+                  </span>
                 </div>
                 <div className="bg-white rounded-lg border border-amber-100 p-4">
                   <span className="text-xs font-bold text-amber-600 uppercase block mb-1">जन्म-नक्षत्र तीर्थंकर यंत्र</span>

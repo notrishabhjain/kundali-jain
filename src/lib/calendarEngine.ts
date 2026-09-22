@@ -24,6 +24,7 @@ export {
 
 import {
   getMoonSiderealLongitude,
+  getSunSiderealLongitude,
   getSunLongitude,
   getMoonTropicalLongitude,
   getElongation,
@@ -153,6 +154,10 @@ export interface JainPanchang {
   /** half-tithi (GP.2) — Vishti/Bhadra is varjit for new undertakings */
   karanaHindi: string;
   isVishtiKarana: boolean;
+  /** Nitya-yoga: the 27-fold division of (Sun + Moon) sidereal longitude. */
+  yogaHindi: string;
+  /** 0-26, Vishkambha = 0. */
+  yogaIndex: number;
   /** numeric tithi within the paksha (1–15) for varjit/siddha lookups */
   tithiNum: number;
   /** weekday index 0=रवि … 6=शनि */
@@ -252,10 +257,44 @@ export function getJainPanchang(date: Date, scheme: MasaScheme = 'purnimanta'): 
     varaIndex: date.getDay(),
     ...(() => {
       const degInto = elongation - tithiRaw * 12;
-      const karana = calculateKarana(tithiNum, degInto >= 6);
-      return { karanaHindi: karana.hindiName, isVishtiKarana: karana.isVishti };
+      // calculateKarana takes the tithi index within the LUNAR MONTH (1-30), not
+      // within the paksha (1-15). This used to pass tithiNum, the paksha-relative
+      // number, so every Krishna-paksha karana was 15 tithis (30 halves) early.
+      // Caught by an external audit: 1993-09-05 01:25 IST reported Vanija where
+      // the correct karana is Bava. Source: GAP_CLOSING_RESEARCH GP.2.
+      const tithiInMonth = tithiRaw + 1;
+      const karana = calculateKarana(tithiInMonth, degInto >= 6);
+      const yoga = calculateYoga(getSunSiderealLongitude(jde), getMoonSiderealLongitude(jde));
+      return {
+        karanaHindi: karana.hindiName,
+        isVishtiKarana: karana.isVishti,
+        yogaHindi: yoga.hindiName,
+        yogaIndex: yoga.index,
+      };
     })()
   };
+}
+
+// ─── Nitya-yoga (नित्य योग) — the 27-fold Sun+Moon division ──────────────────
+// The sum of the two sidereal longitudes, divided into 27 arcs of 13°20'. This
+// is the third of the five panchang limbs and was previously not computed at
+// all, so the reading showed tithi, vara, nakshatra and karana but no yoga.
+// Source: standard panchang geometry (Meeus-derived longitudes); the arc
+// division matches the nakshatra span already used in nakshatras.ts.
+const NITYA_YOGAS = [
+  'विष्कम्भ', 'प्रीति', 'आयुष्मान्', 'सौभाग्य', 'शोभन', 'अतिगण्ड', 'सुकर्मा',
+  'धृति', 'शूल', 'गण्ड', 'वृद्धि', 'ध्रुव', 'व्याघात', 'हर्षण', 'वज्र', 'सिद्धि',
+  'व्यतीपात', 'वरीयान्', 'परिघ', 'शिव', 'सिद्ध', 'साध्य', 'शुभ', 'शुक्ल',
+  'ब्रह्म', 'इन्द्र', 'वैधृति',
+] as const;
+
+export function calculateYoga(
+  sunSiderealDeg: number,
+  moonSiderealDeg: number
+): { index: number; hindiName: string } {
+  const sum = ((sunSiderealDeg + moonSiderealDeg) % 360 + 360) % 360;
+  const index = Math.min(26, Math.floor(sum / (360 / 27)));
+  return { index, hindiName: NITYA_YOGAS[index] };
 }
 
 // ─── Karana (करण) — half-tithi (GP.2) ─────────────────────────────────────────

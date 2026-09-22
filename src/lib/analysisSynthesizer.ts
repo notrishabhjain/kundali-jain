@@ -44,7 +44,7 @@ export interface BirthFormData {
 export type { AntardashaInfo, PratyantardashInfo, DashaInfo } from './dashaEngine';
 import { calculateDasha } from './dashaEngine';
 import type { DashaInfo } from './dashaEngine';
-import { estimateGunasthana } from './gunasthanaClassifier';
+import { estimateGunasthana, estimateGunasthanaWithConfidence } from './gunasthanaClassifier';
 import { calculateKarmaProfile } from './karmaEngine';
 import { generatePredictions } from './predictionEngine';
 import { generateRemedies } from './remedyEngine';
@@ -74,7 +74,16 @@ export interface UserProfile {
   currentDasha: DashaInfo;
   dominantKarma: string;          // Hindi karma name
   dominantKarmaEn: string;        // English karma name for comparisons
-  gunasthana: number;             // 1–14, estimated
+  /**
+   * Internal working value only. A birth chart cannot settle the stage; when
+   * `gunasthanaDeterminable` is false this is the mithyatva floor used for
+   * arithmetic and MUST NOT be displayed. Read `gunasthanaDisplay` to render.
+   */
+  gunasthana: number;
+  /** True only when the person self-assessed all three Sarvarthasiddhi axes. */
+  gunasthanaDeterminable: boolean;
+  /** The stage to show, or null when only self-assessment can settle it. */
+  gunasthanaDisplay: number | null;
   formData: BirthFormData;
   // Jain high-precision temporal coordinate (Surya Prajnapti + Research Report §2).
   // The mathematical anchor is umbilical cord severance. Source: Research Report §2.
@@ -241,7 +250,11 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
   const rashi = getRashi(siderealDeg);
   const dasha = calculateDasha(siderealDeg, data.dob, birthMoonElongation);
   const tirthankar = getTirthankarAffinity(nakshatra);
-  const gunasthana = estimateGunasthana(nakshatra.nature, dasha.lord);
+  // A chart alone lands only on stages 2 and 3 — both transient downfall
+  // states — so the estimate withholds a displayable stage unless the person
+  // has self-assessed. See GunasthanaEstimate.determinable.
+  const gunasthanaEstimate = estimateGunasthanaWithConfidence(nakshatra.nature, dasha.lord);
+  const gunasthana = gunasthanaEstimate.gunasthana;
 
   const karmaType = nakshatra.karma_type;
   const dominantKarmaHindi = KARMA_HINDI[karmaType] || karmaType;
@@ -301,6 +314,8 @@ export function generateUserProfile(data: BirthFormData): UserProfile {
     dominantKarma: dominantKarmaHindi,
     dominantKarmaEn: karmaType,
     gunasthana,
+    gunasthanaDeterminable: gunasthanaEstimate.determinable,
+    gunasthanaDisplay: gunasthanaEstimate.displayStage,
     formData: data,
     ishtakaal,
     jainZodiacProjection,

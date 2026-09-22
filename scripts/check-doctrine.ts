@@ -23,6 +23,15 @@
 //   D12 Grahas stay nimitta      — planetary positions are indicative, never
 //                                  causal; no graha may be given agency, and a
 //                                  position may never become a prediction
+//   D13 No karma percentage      — no measured quantity of karma reaches any
+//                                  surface; the scale has no canonical basis
+//   D14 Karma states are distinct — udaya/satta are structural, never derived
+//                                  from thresholds on a number; nirjara is not
+//                                  a chart-readable state at all
+//   D15 No unearned gunasthana   — a chart alone yields no displayable stage
+//   D16 No outcome guarantee     — no personal afterlife destination, and no
+//                                  assured health, wealth, career or family
+//                                  result stated in the future tense
 //
 // A violation here is a doctrinal defect, not a style nit: it means the app
 // could tell a Jain user something the tradition holds to be false.
@@ -215,7 +224,9 @@ for (let i = 0; i < N; i++) {
     if (!(k.intensity >= 0 && k.intensity <= 100)) {
       violation('D8', `${ctx} ${k.karmaEn}: intensity ${k.intensity} outside 0–100`);
     }
-    if (!['Udaya', 'Satta', 'Nirjara'].includes(k.state)) {
+    // 'Nirjara' was removed from this union on 2026-09-22. Shedding is what
+    // sadhana produces, not a state a birth chart reports — see karmaEngine.ts.
+    if (!['Udaya', 'Satta'].includes(k.state)) {
       violation('D8', `${ctx} ${k.karmaEn}: unknown karma state "${k.state}"`);
     }
 
@@ -526,6 +537,166 @@ for (let i = 0; i < N; i++) {
   }
 }
 
+// ── D13-D16 — findings of the external audit of 15 September 2026 ──────────
+// An independent reviewer examined a generated kundali and rejected four of its
+// central outputs. Each objection is encoded below so it cannot come back.
+// Source: "Revised Digambar Jain Kundali — Full audit", 15 Sep 2026, §2 and §5.
+{
+  // Own sample — the D12 block's list is scoped to it.
+  const auditCharts: UserProfile[] = [];
+  for (let i = 0; i < 120; i++) {
+    try { auditCharts.push(generateUserProfile(birth(i))); } catch { /* covered elsewhere */ }
+  }
+
+  const KARMA_SURFACES = [
+    'src/components/KarmaProfile.tsx',
+    'src/components/KarmaAshtadal.tsx',
+    'src/components/VartamanTab.tsx',
+  ];
+
+  // D13 — no quantity of karma may be rendered.
+  //   "No equation converts a horoscope, dasha and gunasthana into these
+  //    numbers." Correct: the base weights are marked [REQUIRES_RESEARCH] in
+  //    karmaEngine.ts and were still being printed as percentages.
+  //
+  // Matches a template expression followed by a percent sign, which is the
+  // shape every one of the old renders took ({k.intensity}% / {avgIntensity}%).
+  const PERCENT_RENDER = /\{[^}]*\b(intensity|Intensity|percent|Percent)\b[^}]*\}\s*%/;
+  const stripJsxComments = (src: string) =>
+    src.replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const f of KARMA_SURFACES) {
+    const src = stripJsxComments(readFileSync(f, 'utf8'));
+    checks++;
+    const m = src.match(PERCENT_RENDER);
+    if (m) {
+      violation('D13', `${f} renders a karma quantity as a percentage: "${m[0]}" — no canonical source supplies a measurable amount of karma`);
+    }
+    // The old wording promised a measurable density.
+    checks++;
+    if (/सघनता\s*\(%\)|\{[^}]*intensity[^}]*\}\s*%\s*सघनता/.test(src)) {
+      violation('D13', `${f} still describes karma as a measurable सघनता percentage`);
+    }
+  }
+
+  // D13b — the engine's own ordering key must stay off the wire.
+  for (const p of auditCharts.slice(0, 40)) {
+    const ks = calculateKarmaProfile(p.dominantKarmaEn, p.currentDasha.lord, p.gunasthana);
+    for (const k of ks) {
+      checks++;
+      if (typeof k.emphasis !== 'string' || !['primary', 'secondary', 'background'].includes(k.emphasis)) {
+        violation('D13', `${p.formData.dob} ${k.karmaEn}: emphasis "${k.emphasis}" is not one of the three permitted bands`);
+      }
+    }
+  }
+
+  // D14 — udaya and satta are distinct conditions, not bands of one quantity,
+  // and nirjara is not among them.
+  //   "'100% udaya' is treated as a measurable intensity while other distinct
+  //    technical states are mixed on one percentage scale."
+  {
+    // Strip comments first. The fix for this very defect is documented inside
+    // karmaEngine.ts, quoting the removed line verbatim, and a guard that fires
+    // on its own changelog is a guard that punishes writing things down.
+    const stripComments = (src: string) =>
+      src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+    const engineSrc = stripComments(readFileSync('src/lib/karmaEngine.ts', 'utf8'));
+    checks++;
+    if (/intensity\s*[<>]=?\s*\d+\s*\)?\s*(\?|\{)?\s*(state\s*=|['"]Nirjara)/.test(engineSrc)) {
+      violation('D14', 'karmaEngine derives a karma state from a numeric threshold — the three states are not bands of one quantity');
+    }
+    checks++;
+    if (/state\s*=\s*['"]Nirjara['"]/.test(engineSrc)) {
+      violation('D14', "karmaEngine assigns 'Nirjara' as a state — shedding is what sadhana produces, not a condition a birth chart reports");
+    }
+
+    for (const p of auditCharts.slice(0, 40)) {
+      const ks = calculateKarmaProfile(p.dominantKarmaEn, p.currentDasha.lord, p.gunasthana);
+      // Every one of the eight is in satta. That is definitional.
+      checks++;
+      if (ks.length !== 8) {
+        violation('D14', `${p.formData.dob}: ${ks.length} karmas, expected all 8 — satta covers every bound karma`);
+      }
+      for (const k of ks) {
+        checks++;
+        if (k.state !== 'Udaya' && k.state !== 'Satta') {
+          violation('D14', `${p.formData.dob} ${k.karmaEn}: state "${k.state}" outside {Udaya, Satta}`);
+        }
+        checks++;
+        if (k.inUdaya !== (k.state === 'Udaya')) {
+          violation('D14', `${p.formData.dob} ${k.karmaEn}: inUdaya disagrees with state`);
+        }
+      }
+      // Udaya is a minority condition by construction; if everything is fruiting
+      // the distinction has stopped meaning anything.
+      checks++;
+      const udaya = ks.filter((k) => k.inUdaya).length;
+      if (udaya === 0 || udaya > 3) {
+        violation('D14', `${p.formData.dob}: ${udaya} of 8 karmas in udaya — expected between 1 and 3`);
+      }
+    }
+  }
+
+  // D15 — a chart alone may not produce a displayable gunasthana.
+  //   "Stage 2 (sasadana) is a specific downfall from right faith, not a
+  //    personality score inferable from a birth Moon."
+  {
+    for (const nature of ['param_shubha', 'shubha', 'mishra', 'ashubha']) {
+      for (const lord of ['Mohaniya', 'Antaraya', 'Gyanavaraniya', 'Darshanavaraniya', 'Vedaniya', 'Naam', 'Gotra', 'Ayushya']) {
+        const e = estimateGunasthanaWithConfidence(nature, lord);
+        checks++;
+        if (e.determinable || e.displayStage !== null) {
+          violation('D15', `nakshatra ${nature} + ${lord} dasha yields a displayable gunasthana ${e.displayStage} from chart data alone`);
+        }
+      }
+    }
+    // Self-assessment must still work, or the feature has been broken rather
+    // than corrected.
+    const assessed = estimateGunasthanaWithConfidence('shubha', 'Vedaniya', {
+      mithyatva: 0, avirati: 1, kashayaLevel: 2,
+    });
+    checks++;
+    if (!assessed.determinable || assessed.displayStage === null) {
+      violation('D15', 'a fully self-assessed chart still yields no displayable gunasthana — the questionnaire path is broken');
+    }
+
+    for (const p of auditCharts) {
+      checks++;
+      if (p.gunasthanaDeterminable || p.gunasthanaDisplay !== null) {
+        violation('D15', `${p.formData.dob}: profile exposes a displayable gunasthana without self-assessment`);
+      }
+    }
+  }
+
+  // D16 — no guaranteed outcome, worldly or otherwise.
+  //   "Possible jyotishi/vaimanika deva-gati ... This is the most serious
+  //    overreach." And: "No medical or astronomical basis is shown. Do not use
+  //    for health decisions."
+  //
+  // The general doctrine that deva-gati bandha is possible in Pancham Kaal is
+  // canonical (CLAUDE.md rule 3) and is NOT what these patterns look for. What
+  // is forbidden is the future-tense personal assurance.
+  {
+    const ASSURANCE = [
+      /(देव-?गति|मनुष्य-?गति|वैमानिक|ज्योतिषी\s*देव)[^।]{0,40}(का\s*बंध\s*)?होगा/,
+      /(स्वास्थ्य|आरोग्य)[^।]{0,30}(रहेगा|रहेगी|होगा)/,
+      /(धन|लाभ|आय|समृद्धि)[^।]{0,30}(मिलेगा|मिलेगी|होगा|बढ़ेगा)/,
+      /(पद|पदोन्नति|नौकरी|यश|सम्मान)[^।]{0,30}(मिलेगा|मिलेगी|होगा)/,
+      /(विवाह|सन्तान|संतान)[^।]{0,30}(होगा|होगी|मिलेगा)/,
+      /(रोग|बीमारी)[^।]{0,30}(दूर\s*होगा|ठीक\s*होगा|नष्ट\s*होगा)/,
+    ];
+    for (const p of auditCharts) {
+      const text = generatePredictions(p).map((x) => x.prediction).join(' ');
+      for (const re of ASSURANCE) {
+        checks++;
+        const m = text.match(re);
+        if (m) {
+          violation('D16', `${p.formData.dob}: prediction asserts a guaranteed outcome — "${m[0]}"`);
+        }
+      }
+    }
+  }
+}
+
 // ── Report ──────────────────────────────────────────────────────────────────
 const byRule = new Map<string, number>();
 for (const e of errors) {
@@ -537,7 +708,9 @@ console.log(`Doctrine guard — ${N} charts, ${checks} assertions\n`);
 console.log('  D1 Pancham Kaal ceiling   D2 no moksha claim      D3 no mortality claim');
 console.log('  D4 purushartha open       D5 no Vedic devas       D6 karma completeness');
 console.log('  D7 actionable remedies    D8 value ranges         D9 gunasthana provenance');
-console.log('  D10 ladder reachable      D11 two-claim separation  D12 grahas stay nimitta\n');
+console.log('  D10 ladder reachable      D11 two-claim separation  D12 grahas stay nimitta');
+console.log('  D13 no karma percentage   D14 karma states distinct D15 no unearned gunasthana');
+console.log('  D16 no outcome guarantee\n');
 
 if (errors.length) {
   console.error(`Doctrine guard FAILED — ${errors.length} violations:`);

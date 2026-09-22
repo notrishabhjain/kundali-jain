@@ -46,7 +46,8 @@ import {
   toJulianDay as toJulianDayIST,
   toJulianDay,
 } from '../src/lib/astronomy';
-import { getAllGrahaPositions, getLagna, type GrahaKey } from '../src/lib/planets';
+import { getAllGrahaPositions, getLagna, computeGrahaChart, type GrahaKey } from '../src/lib/planets';
+import { getJainPanchang } from '../src/lib/calendarEngine';
 
 const errors: string[] = [];
 const notes: string[] = [];
@@ -330,6 +331,83 @@ for (const Y of SANKRANTI_YEARS) {
     const ok = best < 0.25 && bestT === expectIST;
     notes.push(`  ${ok ? 'ok  ' : 'FAIL'} ${`Lagna = Sun at sunrise, ${place}`.padEnd(46)} ${bestT} IST, gap ${best.toFixed(3)}deg`);
     if (!ok) errors.push(`${place} ${dob}: Sun coincides with lagna at ${bestT} (expected ${expectIST}), gap ${best.toFixed(3)}deg`);
+  }
+}
+
+// ── 9. External audit parity — an oracle this codebase did not produce ──────
+// On 15 September 2026 an independent reviewer recomputed this exact birth with
+// Swiss Ephemeris (sidereal, Lahiri, Meerut 28°59'N 77°42'E) and published the
+// results. That is the strongest kind of anchor available to this project: a
+// full chart, computed by different software from a different ephemeris, by
+// someone with no access to this code.
+//
+// Every value below is theirs, transcribed verbatim. Where we disagreed, we were
+// wrong and fixed it — the karana was reported as Vanija because the call site
+// passed the paksha-relative tithi (1-15) to a function documented as taking the
+// month-relative one (1-30), so every Krishna-paksha karana was 30 halves early.
+//
+// Source: "Revised Digambar Jain Kundali — Full audit", 15 Sep 2026, §1
+// "Independent astronomy check".
+{
+  const chart = computeGrahaChart('1993-09-05', '01:25', 28.9833, 77.70);
+  const pos = new Map(chart.grahas.map((g) => [g.key, g.siderealLongitude]));
+
+  // Rashi index × 30 + degrees + minutes/60, as the audit printed them.
+  const dms = (rashi: number, deg: number, min: number) => rashi * 30 + deg + min / 60;
+
+  const AUDIT: Array<{ key: GrahaKey; expect: number; tol: number; label: string }> = [
+    { key: 'Surya',   expect: dms(4, 18, 31), tol: 0.05, label: 'Surya = Leo 18°31°' },
+    { key: 'Chandra', expect: 359.206,        tol: 0.05, label: 'Chandra = Pisces 29°12°' },
+    { key: 'Budha',   expect: dms(4, 24, 31), tol: 0.05, label: 'Budha = Leo 24°31°' },
+    { key: 'Mangal',  expect: dms(5, 21, 28), tol: 0.05, label: 'Mangal = Virgo 21°28°' },
+    { key: 'Guru',    expect: dms(5, 22,  7), tol: 0.10, label: 'Guru = Virgo 22°07°' },
+    { key: 'Shukra',  expect: dms(3, 15, 58), tol: 0.05, label: 'Shukra = Cancer 15°58°' },
+    { key: 'Shani',   expect: dms(10, 2,  1), tol: 0.15, label: 'Shani = Aquarius 2°01°' },
+    { key: 'Rahu',    expect: dms(7, 13, 35), tol: 0.05, label: 'Rahu = Scorpio 13°35°' },
+    { key: 'Ketu',    expect: dms(1, 13, 35), tol: 0.05, label: 'Ketu = Taurus 13°35°' },
+  ];
+
+  for (const a of AUDIT) {
+    const got = pos.get(a.key)!;
+    const err = Math.abs(((got - a.expect) + 540) % 360 - 180);
+    checks++;
+    const ok = err < a.tol;
+    notes.push(`  ${ok ? 'ok  ' : 'FAIL'} ${('audit: ' + a.label).padEnd(46)} ${(err * 60).toFixed(1)}' from Swiss Ephemeris`);
+    if (!ok) errors.push(`audit parity ${a.key}: ${err.toFixed(4)}deg (${(err * 60).toFixed(1)} arcmin) from the independent value, bound ${a.tol}deg`);
+  }
+
+  // Lagna — the audit gives 78.998°, we give 78.999°.
+  {
+    const lagna = chart.bhava.lagnaLongitude;
+    const err = Math.abs(lagna - 78.998);
+    checks++;
+    const ok = err < 0.05;
+    notes.push(`  ${ok ? 'ok  ' : 'FAIL'} ${'audit: Lagna = 78.998deg (Gemini 19)'.padEnd(46)} ${(err * 3600).toFixed(1)}" from Swiss Ephemeris`);
+    if (!ok) errors.push(`audit parity lagna: ${lagna.toFixed(3)}deg vs 78.998deg`);
+  }
+
+  // Sun-Moon elongation, and the four panchang limbs derived from it.
+  {
+    const jd = toJulianDay('1993-09-05', '01:25');
+    const el = getElongation(jd);
+    checks++;
+    const elOk = Math.abs(el - 220.696) < 0.05;
+    notes.push(`  ${elOk ? 'ok  ' : 'FAIL'} ${'audit: elongation 220.696deg'.padEnd(46)} ${el.toFixed(3)}deg`);
+    if (!elOk) errors.push(`audit parity elongation: ${el.toFixed(3)}deg vs 220.696deg`);
+
+    const pan = getJainPanchang(new Date(Date.UTC(1993, 8, 4, 19, 55)));
+    const LIMBS: Array<[string, string, string]> = [
+      ['tithi', pan.tithi, 'कृष्ण चतुर्थी'],
+      ['nakshatra', pan.nakshatra, 'रेवती'],
+      ['karana', pan.karanaHindi, 'बव'],
+      ['yoga', pan.yogaHindi, 'वृद्धि'],
+    ];
+    for (const [name, got, want] of LIMBS) {
+      checks++;
+      const ok = got === want;
+      notes.push(`  ${ok ? 'ok  ' : 'FAIL'} ${`audit: ${name} = ${want}`.padEnd(46)} ${got}`);
+      if (!ok) errors.push(`audit parity ${name}: "${got}", independent audit says "${want}"`);
+    }
   }
 }
 

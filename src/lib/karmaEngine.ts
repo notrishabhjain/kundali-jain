@@ -6,6 +6,38 @@
 //  - State labels Udaya / Sattā / Nirjarā: SKD karma-prakṛti chapter; MP-§D4 engine contract.
 //  - Intensity weights per karma: baseline from MP-§C1 (relative prabal-tā). Exact numeric
 //    weights are [REQUIRES_RESEARCH] pending OCR of SKD verses.
+//
+// ─── External audit, 15 Sep 2026 — what changed and why ──────────────────────
+// An independent reviewer examined a generated kundali and rejected this file's
+// central output. The finding, quoted:
+//
+//   "No equation converts a horoscope, dasha and gunasthana into these numbers.
+//    Worse, '100% udaya' is treated as a measurable intensity while other
+//    distinct technical states are mixed on one percentage scale. Canonical
+//    texts discuss bondage, fruition, subsidence, destruction and shedding, but
+//    these sources do not supply this horoscope-percentage method."
+//
+// That is correct on both counts, and the second count is the serious one.
+//
+// (a) The weights below are this engine's own. They were already marked
+//     [REQUIRES_RESEARCH] three lines up, and were still being rendered to the
+//     user as "45%" — a precision nothing supports. No percentage now reaches
+//     any surface; `intensity` survives only as an internal ordering key, and
+//     `emphasis` is the qualitative band the UI may show.
+//
+// (b) Udaya, Sattā and Nirjarā are not three bands of one quantity. Sattā is the
+//     condition of being bound at all; udaya is present fruition; nirjarā is
+//     shedding. A soul in udaya of a karma is simultaneously in sattā of it.
+//     Deriving them from thresholds on a single number (`intensity < 40` meant
+//     nirjarā) asserted a relationship the tradition does not hold.
+//
+//     They are now derived structurally instead:
+//       sattā   — every one of the eight, always. This is definitional.
+//       udaya   — the karmas the chart marks as presently fruiting.
+//       nirjarā — NOT DERIVED HERE AT ALL. Shedding is what sādhana produces,
+//                 not a state a birth chart can report. See `nirjaraPractice`
+//                 for what the engine may legitimately say about it.
+// Enforced by check-doctrine D13/D14.
 //  - Gunasthāna damping: MP-§D4 + classical śloka "yathā-yathā gunasthāna-vṛddhi tathā tathā
 //    karma-kṣaya".
 //  - Compound ghātiyā (≥2 distinct ghātiyā in simultaneous Udaya): SKD compound-prakṛti
@@ -29,12 +61,42 @@ export function countCompoundGhatiya(dominantKarmaEn: string, dashaLord: string,
   return active.size;
 }
 
+/**
+ * Qualitative emphasis band. This is what the reading may show. It deliberately
+ * has three coarse values and no numeric form: the underlying weights are this
+ * engine's own construction, and a band is the most they can honestly carry.
+ */
+export type KarmaEmphasis = 'primary' | 'secondary' | 'background';
+
+export const EMPHASIS_HINDI: Record<KarmaEmphasis, string> = {
+  primary: 'प्रमुख',
+  secondary: 'गौण',
+  background: 'पृष्ठभूमि',
+};
+
 export interface KarmaState {
   id: string;
   karmaEn: string;
   karmaHindi: string;
-  intensity: number; // 0-100
-  state: 'Udaya' | 'Satta' | 'Nirjara';
+  /**
+   * @internal Relative ordering key ONLY — never render this, and never render
+   * anything derived from it that looks like a measurement. It exists so the
+   * eight karmas can be sorted and the lotus petals sized. It is not a
+   * percentage, not an intensity the tradition recognises, and not reproducible
+   * from any catalogued source. check-doctrine D13 fails the build if a digit
+   * from this field reaches a rendered surface.
+   */
+  intensity: number;
+  /** The band the UI shows in place of the old percentage. */
+  emphasis: KarmaEmphasis;
+  emphasisHindi: string;
+  /**
+   * Sattā for all eight (definitional); Udaya for those the chart marks as
+   * fruiting. Nirjarā is absent by design — see the header.
+   */
+  state: 'Udaya' | 'Satta';
+  /** True when this karma is one the chart marks as presently fruiting. */
+  inUdaya: boolean;
   manifestation: string;
   nirjaraPractice: string;
   insight: KarmaInsight;
@@ -67,7 +129,10 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
   return ALL_KARMAS.map(karma => {
     const sadhana = KARMA_SADHANA[karma.en];
     let intensity = karma.base;
-    let state: 'Udaya' | 'Satta' | 'Nirjara' = 'Satta';
+    // Every bound karma is in sattā. That is what sattā means, so it is the
+    // floor for all eight and never something a chart "detects".
+    let state: 'Udaya' | 'Satta' = 'Satta';
+    let inUdaya = false;
 
     // Pancham Kāla 1.4× multiplier on the destructive karmas when they are in transit
     // (dashā) — Source: PARITY-REPORT-2026 Karma Multiplier parity row.
@@ -78,12 +143,14 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
     if (karma.en === effectiveDominant) {
       intensity += 30;
       state = 'Udaya';
+      inUdaya = true;
     }
 
     // dashaLord is a Jain karma name (e.g. 'Mohaniya') — directly boost the active dasha karma
     if (karma.en === dashaLord) {
       intensity += 20;
       state = 'Udaya';
+      inUdaya = true;
     }
 
     // Compound ghātiyā bonus: every additional ghātiyā beyond the first adds confluent pressure
@@ -91,20 +158,26 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
       intensity += compoundBonus;
     }
 
-    // Higher gunasthana reduces intensity (Ratnatraya protective effect)
+    // Higher gunasthana lowers the ordering weight (Ratnatraya protective effect)
     if (gunasthana > 1) {
       intensity -= (gunasthana - 1) * 5;
-      // Nirjarā flip. Mechanism (GAP_CLOSING_RESEARCH GD.8, Gommatsar Karmakanda
-      // §22): intense sadhana enables UDIRANA — stored karma is brought to fruition
-      // prematurely and discharges at reduced strength before its natural udaya.
-      if (intensity < 40) state = 'Nirjara';
     }
+    // The nirjarā flip that used to live here — `if (intensity < 40) state =
+    // 'Nirjara'` — has been removed. Udirana is real doctrine (Gommatsara
+    // Karmakanda §22: sādhana can bring stored karma to premature, weakened
+    // fruition), but a low number on this engine's own ordering scale is not
+    // evidence that it is happening to this person. Shedding is reported as
+    // what the prescribed practice is FOR, never as a state read off a chart.
 
-    // Cap intensity
+    // Clamp the ordering key.
     intensity = Math.max(10, Math.min(100, intensity));
 
+    // Qualitative band — the only form of this quantity the UI may show.
+    const emphasis: KarmaEmphasis =
+      inUdaya ? 'primary' : intensity >= 50 ? 'secondary' : 'background';
+
     const manifestation = sadhana
-      ? `${sadhana.dailyManifestation} वर्तमान स्थिति: ${intensity >= 70 ? sadhana.statusWhenDominant : sadhana.statusWhenNormal}`
+      ? `${sadhana.dailyManifestation} वर्तमान स्थिति: ${inUdaya ? sadhana.statusWhenDominant : sadhana.statusWhenNormal}`
       : karma.hi;
 
     const nirjaraPractice = sadhana
@@ -134,7 +207,10 @@ export function calculateKarmaProfile(dominantKarmaEn: string, dashaLord: string
       karmaEn: karma.en,
       karmaHindi: karma.hi,
       intensity,
+      emphasis,
+      emphasisHindi: EMPHASIS_HINDI[emphasis],
       state,
+      inUdaya,
       manifestation,
       nirjaraPractice,
       insight
