@@ -21,6 +21,15 @@ jobs:
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+      with:
+        # The action's default `packages` is "tools platform-tools". Google has
+        # removed the obsolete `tools` package from the SDK repository, so the
+        # default now fails the whole job with:
+        #   Warning: Failed to find package 'tools'
+        #   Error: sdkmanager failed with exit code 1
+        # Nothing here uses `tools`; the platform and build-tools this build
+        # actually needs are installed explicitly in the next step.
+        packages: 'platform-tools'
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
