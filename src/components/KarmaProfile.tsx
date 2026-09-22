@@ -15,12 +15,22 @@ interface KarmaRow {
   name: string;
   color: string;
   barColor: string;
-  intensity: number;
-  state: 'Udaya' | 'Satta' | 'Nirjara';
+  /**
+   * Bar width as a percentage of the track. Driven by the coarse emphasis band,
+   * NOT by the engine's internal ordering key — so the bar conveys exactly what
+   * the written label conveys and no more. Showing the raw key as a bar would
+   * smuggle back the false precision the label was changed to remove.
+   */
+  barWidth: number;
+  emphasisHindi: string;
+  state: 'Udaya' | 'Satta';
+  inUdaya: boolean;
   status: string;
   isDominant: boolean;
   isDashaActive: boolean;
 }
+
+const BAND_WIDTH: Record<string, number> = { primary: 100, secondary: 62, background: 28 };
 
 function buildRow(
   karmaEn: string,
@@ -32,27 +42,29 @@ function buildRow(
 ): KarmaRow {
   const intensity = ks?.intensity ?? 30;
   const state = ks?.state ?? 'Satta';
+  const inUdaya = ks?.inUdaya ?? false;
+  const emphasisHindi = ks?.emphasisHindi ?? 'पृष्ठभूमि';
   const sadhana = KARMA_SADHANA[karmaEn];
   const isDominant = karmaEn === profile.dominantKarmaEn;
   const isDashaActive = karmaEn === profile.currentDasha?.lord;
 
-  // Build a dynamic status that reflects intensity + dasha + dominance
-  let status: string;
-  if (sadhana) {
-    if (intensity >= 80) {
-      status = `तीव्र उदय (${intensity}%) — ${sadhana.statusWhenDominant}`;
-    } else if (intensity >= 60) {
-      status = `प्रबल उदय (${intensity}%) — ${sadhana.statusWhenDominant}`;
-    } else if (intensity >= 40) {
-      status = `मध्यम सत्ता (${intensity}%) — ${sadhana.statusWhenNormal}`;
-    } else {
-      status = `निर्जरा-मुख (${intensity}%) — ${sadhana.statusWhenNormal}`;
-    }
-  } else {
-    status = `${intensity}% सत्ता`;
-  }
+  // The status line used to read "तीव्र उदय (85%)" / "निर्जरा-मुख (35%)", which put
+  // three distinct technical states on one percentage scale and attached a
+  // precision no source supports. An external audit rejected exactly this.
+  //
+  // It now states the two things that are structurally true — every karma is in
+  // sattā, and these ones are additionally in udaya — plus the qualitative
+  // emphasis band. No number.
+  const stateHindi = inUdaya ? 'सत्ता एवं वर्तमान उदय' : 'सत्ता में';
+  const status = sadhana
+    ? `${stateHindi} (${emphasisHindi}) — ${inUdaya ? sadhana.statusWhenDominant : sadhana.statusWhenNormal}`
+    : `${stateHindi} (${emphasisHindi})`;
 
-  return { karmaEn, name, color, barColor, intensity, state, status, isDominant, isDashaActive };
+  return {
+    karmaEn, name, color, barColor,
+    barWidth: BAND_WIDTH[ks?.emphasis ?? 'background'],
+    emphasisHindi, state, inUdaya, status, isDominant, isDashaActive,
+  };
 }
 
 export default function KarmaProfile({ profile }: KarmaProfileProps) {
@@ -82,8 +94,8 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
   ];
 
   const allKarmas = [...ghatiyaKarmas, ...aghatiyaKarmas];
-  const totalIntensity = allKarmas.reduce((s, k) => s + k.intensity, 0);
-  const avgIntensity = Math.round(totalIntensity / allKarmas.length);
+  // Counts, not averages of a synthesized scale.
+  const udayaCount = karmaStates.filter((k) => k.inUdaya).length;
   const dominantRow = allKarmas.find(k => k.isDominant);
   const dashaRow = allKarmas.find(k => k.isDashaActive);
 
@@ -95,25 +107,29 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
         </h2>
         <p className="text-rose-800 mb-3">
           जैन दर्शन के अनुसार आत्मा अनन्त शक्तिशाली है, किंतु वह ८ प्रकार के कर्मों से आच्छादित है।
-          आपकी जन्म-कुण्डली, वर्तमान <strong>{profile.currentDasha?.lord_hindi}</strong> दशा एवं
-          <strong> गुणस्थान {profile.gunasthana}</strong> के संयोग से प्रत्येक कर्म की सघनता निम्न प्रकार है।
+          आठों कर्म सदा <strong>सत्ता</strong> में रहते हैं — यही सत्ता का अर्थ है। इनमें से जो इस समय
+          फल दे रहे हैं वे <strong>उदय</strong> में भी हैं। नीचे यही दो बातें दर्शाई गई हैं, साथ में
+          इस संगणक का अपना <strong>संकलित</strong> बल-क्रम (प्रमुख / गौण / पृष्ठभूमि)।
         </p>
         <p className="text-rose-700 text-sm mb-2">{narrative.coreSummary}</p>
         <div className="grid sm:grid-cols-3 gap-3 mt-3">
           <div className="bg-white p-3 rounded-lg border border-rose-100">
             <span className="text-[10px] font-bold text-rose-500 uppercase block mb-1">प्रबल कर्म (जन्म आधारित)</span>
             <span className="text-base font-bold text-rose-800">{profile.dominantKarma}</span>
-            <span className="block text-xs text-rose-600 mt-0.5">{dominantRow?.intensity}% सघनता</span>
+            <span className="block text-xs text-rose-600 mt-0.5">वर्तमान उदय</span>
           </div>
           <div className="bg-white p-3 rounded-lg border border-rose-100">
             <span className="text-[10px] font-bold text-rose-500 uppercase block mb-1">वर्तमान दशा कर्म</span>
             <span className="text-base font-bold text-rose-800">{profile.currentDasha?.lord_hindi || '-'}</span>
-            <span className="block text-xs text-rose-600 mt-0.5">{dashaRow?.intensity || '-'}% सघनता</span>
+            <span className="block text-xs text-rose-600 mt-0.5">वर्तमान उदय</span>
           </div>
           <div className="bg-white p-3 rounded-lg border border-rose-100">
-            <span className="text-[10px] font-bold text-rose-500 uppercase block mb-1">कुल कर्म-भार (औसत)</span>
-            <span className="text-base font-bold text-rose-800">{avgIntensity}%</span>
-            <span className="block text-xs text-rose-600 mt-0.5">गुणस्थान {profile.gunasthana} पर</span>
+            {/* Was "कुल कर्म-भार (औसत): 52%" — the mean of a scale this engine
+                invented, which compounds the unsupported precision rather than
+                summarising anything. Replaced with the count, which is a fact. */}
+            <span className="text-[10px] font-bold text-rose-500 uppercase block mb-1">वर्तमान उदय में कर्म</span>
+            <span className="text-base font-bold text-rose-800">{udayaCount} / 8</span>
+            <span className="block text-xs text-rose-600 mt-0.5">शेष छह सत्ता में</span>
           </div>
         </div>
       </div>
@@ -139,39 +155,39 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
             <div className="absolute w-full h-full inset-0 z-20">
               {/* Top - Mohaniya */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/4 bg-rose-500 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1 z-30">
-                <Zap className="w-3 h-3" /> मोहनीय ({findKs('Mohaniya')?.intensity}%)
+                <Zap className="w-3 h-3" /> मोहनीय ({findKs('Mohaniya')?.emphasisHindi})
               </div>
               {/* Bottom - Antaray */}
               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/4 bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold px-3 py-1 rounded-full shadow-sm">
-                अंतराय ({findKs('Antaraya')?.intensity}%)
+                अंतराय ({findKs('Antaraya')?.emphasisHindi})
               </div>
               {/* Left - Gyanavaraniya */}
               <div className="absolute left-0 top-1/2 -translate-x-1/4 -translate-y-1/2 bg-amber-400 text-amber-950 text-xs sm:text-sm font-bold px-3 py-1 rounded-full shadow-sm">
-                ज्ञान ({findKs('Gyanavaraniya')?.intensity}%)
+                ज्ञान ({findKs('Gyanavaraniya')?.emphasisHindi})
               </div>
               {/* Right - Darshanavaraniya */}
               <div className="absolute right-0 top-1/2 translate-x-1/4 -translate-y-1/2 bg-blue-400 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-full shadow-sm">
-                दर्शन ({findKs('Darshanavaraniya')?.intensity}%)
+                दर्शन ({findKs('Darshanavaraniya')?.emphasisHindi})
               </div>
 
               {/* Aghatiya Corners */}
               <div className="absolute top-[10%] left-[10%] bg-emerald-100 text-emerald-800 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md border border-emerald-200">
-                वेदनीय {findKs('Vedaniya')?.intensity}%
+                वेदनीय {findKs('Vedaniya')?.emphasisHindi}
               </div>
               <div className="absolute top-[10%] right-[10%] bg-indigo-100 text-indigo-800 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md border border-indigo-200">
-                आयु {findKs('Ayushya')?.intensity}%
+                आयु {findKs('Ayushya')?.emphasisHindi}
               </div>
               <div className="absolute bottom-[10%] left-[10%] bg-purple-100 text-purple-800 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md border border-purple-200">
-                नाम {findKs('Naam')?.intensity}%
+                नाम {findKs('Naam')?.emphasisHindi}
               </div>
               <div className="absolute bottom-[10%] right-[10%] bg-fuchsia-100 text-fuchsia-800 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md border border-fuchsia-200">
-                गोत्र {findKs('Gotra')?.intensity}%
+                गोत्र {findKs('Gotra')?.emphasisHindi}
               </div>
             </div>
           </div>
 
           <div className="mt-8 text-center text-sm text-gray-500 uppercase tracking-widest font-medium">
-            अष्ट-कर्म वर्तमान सघनता
+            अष्ट-कर्म वर्तमान स्थिति
           </div>
         </div>
 
@@ -194,12 +210,12 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
                       {k.isDashaActive && <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">वर्तमान दशा</span>}
                     </span>
                     <span className="text-sm font-bold flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-wider opacity-70">{k.state === 'Udaya' ? 'उदय' : k.state === 'Nirjara' ? 'निर्जरा' : 'सत्ता'}</span>
-                      <span className="bg-white px-2 py-0.5 rounded-full border border-current/20 text-sm">{k.intensity}%</span>
+                      <span className="text-[10px] uppercase tracking-wider opacity-70">{k.inUdaya ? 'सत्ता + उदय' : 'सत्ता'}</span>
+                      <span className="bg-white px-2 py-0.5 rounded-full border border-current/20 text-sm">{k.emphasisHindi}</span>
                     </span>
                   </div>
                   <div className="w-full h-2 bg-white/60 rounded-full overflow-hidden border border-current/10 mb-2">
-                    <div className={`h-full ${k.barColor} rounded-full transition-all duration-700`} style={{ width: `${k.intensity}%` }} />
+                    <div className={`h-full ${k.barColor} rounded-full transition-all duration-700`} style={{ width: `${k.barWidth}%` }} />
                   </div>
                   <p className="text-xs leading-relaxed opacity-90">{k.status}</p>
                   <p className="text-xs leading-relaxed mt-1"><strong>दैनिक प्रभाव:</strong> {findKs(k.karmaEn)?.insight.dailyManifestation}</p>
@@ -226,12 +242,12 @@ export default function KarmaProfile({ profile }: KarmaProfileProps) {
                       {k.isDashaActive && <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">वर्तमान दशा</span>}
                     </span>
                     <span className="text-sm font-bold flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-wider opacity-70">{k.state === 'Udaya' ? 'उदय' : k.state === 'Nirjara' ? 'निर्जरा' : 'सत्ता'}</span>
-                      <span className="bg-white px-2 py-0.5 rounded-full border border-current/20 text-sm">{k.intensity}%</span>
+                      <span className="text-[10px] uppercase tracking-wider opacity-70">{k.inUdaya ? 'सत्ता + उदय' : 'सत्ता'}</span>
+                      <span className="bg-white px-2 py-0.5 rounded-full border border-current/20 text-sm">{k.emphasisHindi}</span>
                     </span>
                   </div>
                   <div className="w-full h-2 bg-white/60 rounded-full overflow-hidden border border-current/10 mb-2">
-                    <div className={`h-full ${k.barColor} rounded-full transition-all duration-700`} style={{ width: `${k.intensity}%` }} />
+                    <div className={`h-full ${k.barColor} rounded-full transition-all duration-700`} style={{ width: `${k.barWidth}%` }} />
                   </div>
                   <p className="text-xs leading-relaxed opacity-90">{k.status}</p>
                   <p className="text-xs leading-relaxed mt-1"><strong>दैनिक प्रभाव:</strong> {findKs(k.karmaEn)?.insight.dailyManifestation}</p>

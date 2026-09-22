@@ -128,12 +128,47 @@ export function inferGunasthanaInputs(
 export type GunasthanaConfidence = 'self-assessed' | 'estimated';
 
 export interface GunasthanaEstimate {
+  /**
+   * Internal working value. Downstream code (karma emphasis damping, rule
+   * scoring, the Pancham Kaal ceiling) needs a number, so one is always
+   * supplied. It is NOT a finding about the soul and must not be displayed
+   * unless `determinable` is true — read `displayStage` instead.
+   */
   gunasthana: number;
+  /**
+   * True only when all three axes came from the person's own self-assessment.
+   *
+   * An external audit (15 Sep 2026) rejected a displayed "Gunasthana 2":
+   *   "Gunasthanas are canonical stages of spiritual condition. Stage 2
+   *    (sasadana) is a specific downfall from right faith, not a personality
+   *    score inferable from a birth Moon."
+   *
+   * Checking that was worse than the audit knew. Across every combination of
+   * nakshatra nature and dasha lord, chart-only inference produced stage 2 or
+   * stage 3 and nothing else — so every unassessed reading asserted one of the
+   * two transient downfall states. Sasadana lasts at most six avalis; misra is
+   * a wavering moment. Neither is a resting condition a birth can place anyone
+   * in.
+   *
+   * The cause was structural: inferGunasthanaInputs can only return mithyatva
+   * 1 or 2, and the classifier maps those directly onto stages 3 and 2.
+   */
+  determinable: boolean;
+  /** The stage to show the user, or null when only self-assessment can settle it. */
+  displayStage: number | null;
   confidence: GunasthanaConfidence;
   /** Which axes came from the questionnaire rather than from the chart. */
   selfAssessedAxes: Array<keyof GunasthanaInput>;
   inputs: GunasthanaInput;
 }
+
+/**
+ * Working value used when the chart alone cannot settle the stage. Mithyatva is
+ * the doctrinal starting condition of an unexamined soul, so it is the safe
+ * floor for internal arithmetic: it claims no attainment, and it cannot flatter.
+ * It is never shown as a result — `displayStage` is null in that case.
+ */
+export const UNDETERMINED_WORKING_STAGE = 1;
 
 /**
  * Gunasthana with provenance. A chart-only figure is `estimated` and should be
@@ -158,9 +193,14 @@ export function estimateGunasthanaWithConfidence(
   if (activeMohaniyaSubtypes && activeMohaniyaSubtypes.length > 0) {
     g = capGunasthanaByMohaniya(g, activeMohaniyaSubtypes);
   }
+  const determinable = selfAssessedAxes.length === 3;
   return {
-    gunasthana: g,
-    confidence: selfAssessedAxes.length === 3 ? 'self-assessed' : 'estimated',
+    // Chart-only inference lands exclusively on the two transient downfall
+    // stages, so it is not used as the working value at all.
+    gunasthana: determinable ? g : UNDETERMINED_WORKING_STAGE,
+    determinable,
+    displayStage: determinable ? g : null,
+    confidence: determinable ? 'self-assessed' : 'estimated',
     selfAssessedAxes: [...selfAssessedAxes],
     inputs,
   };

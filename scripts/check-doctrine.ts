@@ -215,7 +215,9 @@ for (let i = 0; i < N; i++) {
     if (!(k.intensity >= 0 && k.intensity <= 100)) {
       violation('D8', `${ctx} ${k.karmaEn}: intensity ${k.intensity} outside 0–100`);
     }
-    if (!['Udaya', 'Satta', 'Nirjara'].includes(k.state)) {
+    // 'Nirjara' was removed from this union on 2026-09-22. Shedding is what
+    // sadhana produces, not a state a birth chart reports — see karmaEngine.ts.
+    if (!['Udaya', 'Satta'].includes(k.state)) {
       violation('D8', `${ctx} ${k.karmaEn}: unknown karma state "${k.state}"`);
     }
 

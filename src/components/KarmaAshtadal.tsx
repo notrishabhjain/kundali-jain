@@ -5,18 +5,36 @@ import { Info } from 'lucide-react';
 export interface KarmaPetalData {
   id: string;
   name: string;
-  intensity: number; // 0-100 indicating karma load
+  /**
+   * Petal fill as a percentage of the petal, derived from the coarse emphasis
+   * band — NOT the engine's internal ordering key. The lotus used to print
+   * "45%" beside each karma and size the petal by that number; an external
+   * audit rejected the precision as unsupported by any canonical source, so the
+   * petal now carries the same three-way distinction the label does.
+   */
+  fillPercent: number;
+  emphasisHindi: string;
+  inUdaya: boolean;
   manifestation: string;
   nirjaraPractice: string;
 }
 
 interface KarmaAshtadalProps {
   karmas: KarmaPetalData[];
+  /** Working value. Only rendered when `gunasthanaDeterminable` is true. */
   gunasthana: number;
+  /**
+   * False unless the person self-assessed all three Sarvarthasiddhi axes. A
+   * birth chart cannot settle the stage — chart-only inference reaches nothing
+   * but stages 2 and 3, the two transient downfall states — so the dial shows
+   * "?" rather than a number the chart cannot support.
+   */
+  gunasthanaDeterminable?: boolean;
   forExport?: boolean;
 }
 
-export function KarmaAshtadal({ karmas, gunasthana, forExport }: KarmaAshtadalProps) {
+export function KarmaAshtadal({ karmas, gunasthana, gunasthanaDeterminable = false, forExport }: KarmaAshtadalProps) {
+  const stageLabel = gunasthanaDeterminable ? String(gunasthana) : '?';
   const [selectedKarma, setSelectedKarma] = useState<KarmaPetalData | null>(karmas[3] || null);
 
   if (forExport) {
@@ -26,20 +44,20 @@ export function KarmaAshtadal({ karmas, gunasthana, forExport }: KarmaAshtadalPr
           <div className="w-12 h-12 rounded-full bg-orange-100 border-2 border-orange-500 flex items-center justify-center shrink-0">
             <div className="text-center leading-tight">
               <div className="text-[9px] text-orange-600 font-bold">गुणस्थान</div>
-              <div className="text-lg font-bold text-orange-900">{gunasthana}</div>
+              <div className="text-lg font-bold text-orange-900">{stageLabel}</div>
             </div>
           </div>
-          <p className="text-sm text-gray-600">प्रत्येक कर्म की आवरण-सघनता (%) और आज के जीवन में प्रकटन नीचे दर्शाया गया है।</p>
+          <p className="text-sm text-gray-600">प्रत्येक कर्म की वर्तमान स्थिति (सत्ता / उदय) एवं आज के जीवन में उसका प्रकटन नीचे दर्शाया गया है। यहाँ कोई प्रतिशत नहीं दिया गया — कर्म की मात्रा नापने का कोई शास्त्रीय विधान उपलब्ध नहीं है।</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {karmas.map(karma => (
             <div key={karma.id} className="border border-orange-200 rounded-xl p-3 bg-orange-50/40">
               <div className="flex justify-between items-center mb-1.5">
                 <h4 className="font-bold text-orange-900 text-sm">{karma.name} कर्म</h4>
-                <span className="text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full border border-orange-200">{karma.intensity}%</span>
+                <span className="text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full border border-orange-200">{karma.inUdaya ? 'सत्ता + उदय' : 'सत्ता'} · {karma.emphasisHindi}</span>
               </div>
               <div className="w-full h-1.5 bg-orange-100 rounded-full mb-2">
-                <div className="h-full bg-orange-400 rounded-full" style={{ width: `${karma.intensity}%` }} />
+                <div className="h-full bg-orange-400 rounded-full" style={{ width: `${karma.fillPercent}%` }} />
               </div>
               <div className="space-y-1.5 text-xs">
                 <div>
@@ -98,7 +116,7 @@ export function KarmaAshtadal({ karmas, gunasthana, forExport }: KarmaAshtadalPr
                 <div 
                   className="absolute left-0 bottom-0 top-0 transition-all duration-1000 ease-out"
                   style={{
-                    width: `${karma.intensity}%`,
+                    width: `${karma.fillPercent}%`,
                     backgroundColor: isSelected ? 'rgba(234, 88, 12, 0.4)' : 'rgba(251, 146, 60, 0.25)',
                   }}
                 />
@@ -119,7 +137,7 @@ export function KarmaAshtadal({ karmas, gunasthana, forExport }: KarmaAshtadalPr
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-orange-100 border-2 border-orange-500 shadow-md flex items-center justify-center z-20">
           <div className="text-center">
             <div className="text-[10px] text-orange-600 font-medium leading-tight">गुणस्थान</div>
-            <div className="text-xl font-bold text-orange-900 leading-none">{gunasthana}</div>
+            <div className="text-xl font-bold text-orange-900 leading-none">{stageLabel}</div>
           </div>
         </div>
       </div>
@@ -142,8 +160,8 @@ export function KarmaAshtadal({ karmas, gunasthana, forExport }: KarmaAshtadalPr
                   {selectedKarma.name} कर्म
                 </h3>
                 <div className="flex items-center gap-2 bg-orange-100/80 px-3 py-1 rounded-full border border-orange-200">
-                  <span className="text-xs font-semibold text-orange-800 uppercase tracking-widest">आवरण सघनता</span>
-                  <span className="text-sm font-bold text-orange-700">{selectedKarma.intensity}%</span>
+                  <span className="text-xs font-semibold text-orange-800 uppercase tracking-widest">स्थिति</span>
+                  <span className="text-sm font-bold text-orange-700">{selectedKarma.inUdaya ? 'सत्ता एवं वर्तमान उदय' : 'सत्ता में'} · {selectedKarma.emphasisHindi}</span>
                 </div>
               </div>
 

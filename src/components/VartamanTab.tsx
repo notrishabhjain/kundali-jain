@@ -72,7 +72,11 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
   ).map(k => ({
     id: k.id,
     name: k.karmaHindi,
-    intensity: k.intensity,
+    // Band-derived fill, not the engine's internal ordering key. See
+    // KarmaPetalData in KarmaAshtadal.tsx for why.
+    fillPercent: k.emphasis === 'primary' ? 100 : k.emphasis === 'secondary' ? 62 : 28,
+    emphasisHindi: k.emphasisHindi,
+    inUdaya: k.inUdaya,
     manifestation: k.manifestation,
     nirjaraPractice: k.nirjaraPractice
   }));
@@ -178,16 +182,41 @@ export default function VartamanTab({ profile, part, forExport }: VartamanTabPro
           <section className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm">
             <h2 className="text-2xl font-bold text-amber-900 mb-6 text-center flex items-center justify-center gap-2">अष्ट-कर्म मंडल <FieldInfo field="karmaIntensity" forExport={forExport} /></h2>
             <p className="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
-              यह अष्टदल आपकी आत्मा पर छाए 8 कर्मों के वर्तमान भार (सघनता) को दर्शाता है। प्रत्येक पंखुड़ी पर क्लिक करके जानें कि वह कर्म आज आपके जीवन में किस रूप में प्रकट हो रहा है और उसकी निर्जरा का सटीक मार्ग क्या है।
+              यह अष्टदल आठों कर्मों की वर्तमान स्थिति दर्शाता है — सभी सत्ता में हैं, और जो इस समय फल दे रहे हैं वे उदय में भी। प्रत्येक पंखुड़ी पर क्लिक करके जानें कि वह कर्म आज आपके जीवन में किस रूप में प्रकट हो रहा है और उसकी निर्जरा का सटीक मार्ग क्या है।
             </p>
-            <KarmaAshtadal karmas={dynamicKarmas} gunasthana={profile.gunasthana || 4} forExport={forExport} />
+            <KarmaAshtadal karmas={dynamicKarmas} gunasthana={profile.gunasthana || 1} gunasthanaDeterminable={profile.gunasthanaDeterminable} forExport={forExport} />
           </section>
 
           {/* SECTION 4: Gunasthana */}
           <section className="bg-gradient-to-r from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-200 shadow-sm">
             <h2 className="text-2xl font-bold text-orange-900 mb-4 border-b border-orange-200 pb-2 flex items-center gap-2">आपका गुणस्थान: एक आध्यात्मिक परामर्श <FieldInfo field="gunasthana" forExport={forExport} /></h2>
             <div className="text-gray-800 leading-relaxed text-lg">
-              <GunasthanaDescription name={profile.name} gunasthana={profile.gunasthana || 1} dominantKarma={profile.dominantKarma} dashaLord={dasha?.lord_hindi || dashaLord} />
+              {/* A birth chart cannot settle the gunasthana. Chart-only inference
+                  in this engine reached nothing but stages 2 and 3 — sasadana and
+                  misra, both transient downfalls from right faith — so every
+                  unassessed reading was asserting a spiritual condition it had no
+                  basis for. The number is withheld until the person answers for
+                  themselves. */}
+              {profile.gunasthanaDeterminable && profile.gunasthanaDisplay !== null ? (
+                <GunasthanaDescription name={profile.name} gunasthana={profile.gunasthanaDisplay} dominantKarma={profile.dominantKarma} dashaLord={dasha?.lord_hindi || dashaLord} />
+              ) : (
+                <div className="space-y-3">
+                  <p>
+                    {profile.name} जी, <strong>गुणस्थान का निर्णय जन्म-कुण्डली से नहीं हो सकता।</strong> गुणस्थान
+                    दर्शन-मोहनीय के उदय और कषायों की तीव्रता-श्रेणी से निश्चित होता है — ये आत्मा की भीतरी अवस्थाएँ हैं,
+                    आकाश की स्थितियाँ नहीं। ग्रह एवं नक्षत्र <strong>निमित्त</strong> हैं, कारण नहीं।
+                  </p>
+                  <p className="text-base text-orange-800 bg-white/70 border border-orange-200 rounded-lg px-4 py-3">
+                    इसीलिए यहाँ कोई संख्या नहीं दी गई। सर्वार्थसिद्धि के तीन आधार — मिथ्यात्व, अविरति और कषाय-श्रेणी —
+                    पर आप स्वयं आत्म-परीक्षण करें, तभी गुणस्थान का अनुमान सार्थक होगा। यह इंजन आपके लिए वह निर्णय
+                    नहीं करेगा।
+                  </p>
+                  <p className="text-sm text-orange-700">
+                    स्मरण रहे: पंचम काल में गुणस्थान ५ (देशविरत) तक ही सम्भव है; मोक्ष सम्भव नहीं। किन्तु सम्यग्दर्शन,
+                    पुण्य-बन्ध एवं देव-गति का बन्ध पूर्णतः सम्भव हैं।
+                  </p>
+                </div>
+              )}
             </div>
           </section>
 
